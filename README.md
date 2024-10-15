@@ -15,6 +15,7 @@ Nexis allows customers to effortlessly browse and buy products, while owners can
 * [Technologies used](#technologies-used)
 * [Architecture](#architecture)
 * [Installation](#installation)
+* [Developers](#developers)
 * [License](#license)
 
 ## Features
@@ -53,7 +54,12 @@ Nexis follows a modular architecture, separating concerns between the frontend a
 
 ### Development
 
-### Deployment
+### Developers
+This project is being developed for the third trimester of 2024 at [Universidad Rafael Urdaneta](https://en.wikipedia.org/wiki/Rafael_Urdaneta_University) by:
+* [Javier Pérez](https://github.com/Kaucrow) - Project Manager / Programmer
+* [David Esber](https://github.com/CornyBread) - Database Engineer / Programmer
+* [Rebecca Bracho](https://github.com/Beckarby) - Programmer
+* [Geanfranco Piccioni](https://github.com/GeanfrancoGPD) - Programmer
 
 ## License
 
