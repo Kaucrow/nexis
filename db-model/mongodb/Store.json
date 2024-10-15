@@ -1,0 +1,44 @@
+{
+    "_id": "ObjectId",
+    "name": "String",
+    "num": "Number",
+    "floor": "Number",
+    "size": {
+        "length": "Number",
+        "width": "Number",
+        "height": "Number"
+    },
+    "daySales": {
+        "payment": {
+            "amount": "Number",
+            "type": {
+                "cash": {},
+                "card": "String",
+                "transfer": {
+                    "bank": "String",
+                    "refNum": "Number"
+                }
+            }
+        },
+        "Client": {
+            "name": null | "String",
+            "User": null | "ObjectId",
+        },
+        "Item": [{
+            "coll": "String",
+            "lot": "ObjectId",
+            "item": "ObjectId"
+        }]
+    },
+    "Owner": {
+        "coll": "User",
+        "owner": [{
+            "ref": "ObjectId",
+            "incomePercentage": "Number"
+        }]
+    },
+    "Employee": {
+        "coll": "User",
+        "ref": ["ObjectId"]
+    }
+}

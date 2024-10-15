@@ -1,0 +1,34 @@
+{
+    "_id": "ObjectId",
+    "email": "String",
+    "username": "String",
+    "password": "hashedString",
+    "name": "String",
+    "client": null | {
+        "age": "Number",
+        "gender": "String",
+        "phoneNum": "String",
+        "cart": [{
+            "dateAdded": "Date",
+            "coll": "String",
+            "lot": "ObjectId",
+            "item": "ObjectId"
+        }],
+        "Interest": {
+            "coll": "Store",
+            "ref": ["ObjectId"]
+        }
+    },
+    "employee": null | {
+        "age": "Number",
+        "gender": "String",
+        "phoneNum": "String",
+        "schedule": [{
+            "enterDate": "Date",
+            "exitDate": "Date",
+            "Store": "ObjectId",
+            "StoreJob": "ObjectId"
+        }]
+    },
+    "admin": null | {}
+}

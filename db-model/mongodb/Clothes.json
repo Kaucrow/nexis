@@ -1,0 +1,20 @@
+{
+    "_id": "ObjectId",
+    "name": "String",
+    "price": "Number",
+    "gender": "Boolean",
+    "age": "Number",
+    "size": "String",
+    "color": ["String"],
+    "type": "String",
+    "brand": "String",
+    "material": [{
+        "percentage": null | "Number",
+        "name": "String"
+    }],
+    "lot": [{
+        "_id": "ObjectId",
+        "enterDate": "Date",
+        "code": ["Number"]
+    }]
+}

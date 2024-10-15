@@ -1,0 +1,18 @@
+{
+    "_id": "ObjectId",
+    "name": "String",
+    "price": "Number",
+    "book": null | {
+        "numPages": "Number",
+        "author": ["String"],
+        "publisher": "String",
+        "edition": "Number",
+        "audience": ["String"],
+        "genre": ["String"]
+    },
+    "lot": [{
+        "_id": "ObjectId",
+        "enterDate": "Date",
+        "code": ["ObjectId"]
+    }]
+}

@@ -1,0 +1,24 @@
+{
+    "_id": "ObjectId",
+    "brand": "String",
+    "model": "String",
+    "cudaCores": null | "Number",
+    "tdp": "Number",
+    "ports": ["String"],
+    "dedicated": "Boolean",
+    "soldSep": "Boolean",
+    "warranty": null | "String",
+    "memory": {
+        "sizeGb": "Number",
+        "type": "String"
+    },
+    "clock": {
+        "coreSpeedGhz": "Number",
+        "boostSpeedGhz": "Number"
+    },
+    "lot": [{
+        "_id": "ObjectId",
+        "enterDate": "Date",
+        "code": ["Number"]
+    }]
+}

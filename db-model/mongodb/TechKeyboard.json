@@ -1,0 +1,17 @@
+{
+    "_id": "ObjectId",
+    "brand": "String",
+    "model": "String",
+    "type": "String",
+    "keySwitch": "String",
+    "backlight": "Boolean",
+    "wireless": "Boolean",
+    "dimensions": "String",
+    "weightGr": "Number",
+    "price": "Number",
+    "lot": [{
+        "_id": "ObjectId",
+        "enterDate": "Date",
+        "code": ["Number"]
+    }]
+}

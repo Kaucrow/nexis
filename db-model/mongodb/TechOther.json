@@ -1,0 +1,9 @@
+{
+    "_id": "ObjectId",
+    "name": "String",
+    "lot": [{
+        "_id": "ObjectId",
+        "enterDate": "Date",
+        "code": ["Number"]
+    }] 
+}

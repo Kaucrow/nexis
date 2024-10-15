@@ -1,0 +1,7 @@
+{
+    "_id": "ObjectId",
+    "name": "String",
+    "payPerHour": null | "Number",
+    "payPerWeek": null | "Number",
+    "Store": ["ObjectId"]
+}

@@ -1,0 +1,26 @@
+{
+    "_id": "ObjectId",
+    "brand": "String",
+    "model": "String",
+    "arch": "String",
+    "cores": "Number",
+    "threads": "Number",
+    "socketType": "String",
+    "overclockSupp": "Boolean",
+    "soldSep": "Boolean",
+    "warranty": null | "String",
+    "memorySupp": {
+        "type": "String",
+        "maxSizeGb": "Number"
+    },
+    "clock": {
+        "coreSpeedGhz": "Number",
+        "boostSpeedGhz": "Number"
+    },
+    "TechGpu": null | "ObjectId",
+    "lot": [{
+        "_id": "ObjectId",
+        "enterDate": "Date",
+        "code": ["Number"]
+    }]
+}
