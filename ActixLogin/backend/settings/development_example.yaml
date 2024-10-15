@@ -1,0 +1,18 @@
+# settings/development.yaml
+
+application:
+  protocol: https
+  host: localhost
+  base_url: "https://localhost"
+  port: 443
+
+debug: true
+
+secret:
+  # 256 bit encryption key https://acte.ltd/utils/randomkeygen
+  secret_key: ""
+  token_expiration: 30
+  # HMAC secret
+  hmac_secret: ""
+
+frontend_url: "https://localhost:5173"
