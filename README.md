@@ -54,7 +54,9 @@ Nexis follows a modular architecture, separating concerns between the frontend a
 
 ### Development
 
-### Developers
+### Deployment
+
+## Developers
 This project is being developed for the third trimester of 2024 at [Universidad Rafael Urdaneta](https://en.wikipedia.org/wiki/Rafael_Urdaneta_University) by:
 * [Javier Pérez](https://github.com/Kaucrow) - Project Manager / Programmer
 * [David Esber](https://github.com/CornyBread) - Database Engineer / Programmer
