@@ -1,5 +1,6 @@
 {
     "_id": "ObjectId",
+    "price": "Number",
     "brand": "String",
     "model": "String",
     "cudaCores": null | "Number",

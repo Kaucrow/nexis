@@ -1,5 +1,6 @@
 {
     "_id": "ObjectId",
+    "price": "String",
     "brand": "String",
     "model": "String",
     "type": "String",
@@ -8,7 +9,6 @@
     "wireless": "Boolean",
     "dimensions": "String",
     "weightGr": "Number",
-    "price": "Number",
     "lot": [{
         "_id": "ObjectId",
         "enterDate": "Date",

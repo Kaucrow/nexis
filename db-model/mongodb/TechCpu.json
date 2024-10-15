@@ -1,5 +1,6 @@
 {
     "_id": "ObjectId",
+    "price": "String",
     "brand": "String",
     "model": "String",
     "arch": "String",

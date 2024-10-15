@@ -1,6 +1,7 @@
 {
     "_id": "ObjectId",
     "name": "String",
+    "price": "String",
     "lot": [{
         "_id": "ObjectId",
         "enterDate": "Date",
