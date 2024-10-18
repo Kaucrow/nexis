@@ -1,0 +1,10 @@
+[package]
+name = "mocker"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+fake = { version = "2.10.0", features = ["derive", "uuid"] }
+mongodb = "3.1.0"
+rand = "0.8.5"
+uuid = "1.11.0"

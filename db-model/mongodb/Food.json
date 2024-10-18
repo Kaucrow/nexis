@@ -1,8 +1,8 @@
 {
     "_id": "ObjectId",
     "name": "String",
-    "price": "null" | "Number",
-    "pricePerKg": "null" | "Number",
+    "price": null | "Number",
+    "pricePerKg": null | "Number",
     "type": "String",
     "lot": [{
         "_id": "ObjectId",

@@ -33,12 +33,12 @@
     "Owner": {
         "coll": "User",
         "owner": [{
-            "ref": "ObjectId",
+            "owner": "ObjectId",
             "incomePercentage": "Number"
         }]
     },
     "Employee": {
         "coll": "User",
-        "ref": ["ObjectId"]
+        "employee": ["ObjectId"]
     }
 }

@@ -6,7 +6,7 @@
     "name": "String",
     "client": null | {
         "age": "Number",
-        "gender": "String",
+        "gender": "Boolean",
         "phoneNum": "String",
         "cart": [{
             "dateAdded": "Date",
@@ -21,7 +21,7 @@
     },
     "employee": null | {
         "age": "Number",
-        "gender": "String",
+        "gender": "Boolean",
         "phoneNum": "String",
         "schedule": [{
             "enterDate": "Date",

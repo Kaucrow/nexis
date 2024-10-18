@@ -6,9 +6,7 @@
     "color": ["String"],
     "type": "String",
     "memory": "Number",
-    "case": null | "String",
-    "TechCpu": "ObjectId",
-    "TechGpu": null | "ObjectId",
+    "gpu_?_": "ObjectId",
     "lot": [{
         "_id": "ObjectId",
         "enterDate": "Date",

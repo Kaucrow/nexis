@@ -9,7 +9,7 @@
     "type": "String",
     "brand": "String",
     "material": [{
-        "percentage": null | "Number",
+        "percentage": "Number",
         "name": "String"
     }],
     "lot": [{
