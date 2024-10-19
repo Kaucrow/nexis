@@ -1,5 +1,5 @@
 [package]
-name = "mocker"
+name = "mongodb-mock"
 version = "0.1.0"
 edition = "2021"
 
@@ -7,4 +7,5 @@ edition = "2021"
 fake = { version = "2.10.0", features = ["derive", "uuid"] }
 mongodb = "3.1.0"
 rand = "0.8.5"
+tokio = "1.40.0"
 uuid = "1.11.0"
