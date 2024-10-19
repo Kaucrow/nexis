@@ -5,6 +5,7 @@ use fake::{
 use mongodb::{bson::{doc, Document}, options::{ClientOptions, ResolverConfig, ServerApi, ServerApiVersion}, Client};
 use mongodb::Collection;
 use uuid::Uuid;
+use dotenv;
 
 #[derive(Debug, Dummy)]
 pub struct Foo {
@@ -18,18 +19,11 @@ pub struct Foo {
 
 #[tokio::main]
 async fn main() -> mongodb::error::Result<()> {
-    println!("Hello, world!");
+    dotenv::dotenv().ok();
 
-    let f: Foo = Faker.fake();
-    println!("{:#?}", f);
-    let g: Foo = Faker.fake();
-    println!("{:#?}", g);
-    let h: Foo = Faker.fake();
-    println!("{:#?}", h);
+    let mongodb_uri = std::env::var("MONGODB_URI").unwrap();
 
-    let uri = "mongodb+srv://<user>:<pass>@primary.v0b5o.mongodb.net/?retryWrites=true&w=majority&appName=primary";
-
-    let options = ClientOptions::parse(uri).resolver_config(ResolverConfig::cloudflare()).await?;
+    let options = ClientOptions::parse(mongodb_uri).resolver_config(ResolverConfig::cloudflare()).await?;
     // Create a new client and connect to the server
     let client = Client::with_options(options)?;
 
