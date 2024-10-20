@@ -3,6 +3,7 @@
     "name": "String",
     "price": "Number",
     "book": null | {
+        "isbn": "String",
         "numPages": "Number",
         "author": ["String"],
         "publisher": "String",

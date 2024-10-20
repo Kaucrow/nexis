@@ -20,6 +20,7 @@
                 }
             }
         },
+        "Employee": null | "ObjectId",
         "Client": {
             "name": null | "String",
             "User": null | "ObjectId",

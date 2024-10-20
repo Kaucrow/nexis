@@ -3,6 +3,7 @@ use mongodb_mock::{
     clothes::Clothes,
     store::Store,
     food::Food,
+    library::LibraryItem,
 };
 
 #[tokio::main]
@@ -39,6 +40,11 @@ async fn main() -> mongodb::error::Result<()> {
     let food: Vec<Food> = (0..50).map(|_| Faker.fake::<Food>()).collect();
     food_coll.insert_many(food).await?;
     println!("- Inserted: food");
+    
+    let library_item_coll: Collection<LibraryItem> = db.collection("libraryItem");
+    let library_items: Vec<LibraryItem> = (0..50).map(|_| Faker.fake::<LibraryItem>()).collect();
+    library_item_coll.insert_many(library_items).await?;
+    println!("- Inserted: library items");
 
     let stores_coll: Collection<Store> = db.collection("store");
 
@@ -49,6 +55,10 @@ async fn main() -> mongodb::error::Result<()> {
     let store: Store = Store::dummy_with_rng("food", &client, &fake::Faker, &mut rng).await?;
     stores_coll.insert_one(store).await?;
     println!("- Inserted: food store");
+
+    let store: Store = Store::dummy_with_rng("library", &client, &fake::Faker, &mut rng).await?;
+    stores_coll.insert_one(store).await?;
+    println!("- Inserted: library store");
 
     Ok(())
 }

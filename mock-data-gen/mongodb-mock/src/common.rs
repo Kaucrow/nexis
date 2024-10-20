@@ -2,6 +2,7 @@ pub use fake::{
     { Dummy, Fake, Faker },
     faker::lorem::en::Word,
     faker::name::en::Name,
+    faker::barcode::en::Isbn,
 };
 pub use mongodb::{
     bson::{ doc, Document, oid::ObjectId },
