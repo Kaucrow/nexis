@@ -3,7 +3,7 @@
     "name": "String",
     "price": "Number",
     "gender": "Boolean",
-    "age": "Number",
+    "age": "String",
     "size": "String",
     "color": ["String"],
     "type": "String",
