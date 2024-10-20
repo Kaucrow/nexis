@@ -1,7 +1,7 @@
 use mongodb_mock::{
     common::*,
     clothes::Clothes,
-    store::Payment,
+    store::Store,
 };
 
 #[tokio::main]
@@ -14,17 +14,29 @@ async fn main() -> mongodb::error::Result<()> {
 
     let client = Client::with_options(options)?;
 
-    let database = client.database("nexis");
+    let db = client.database("nexis");
 
-    let my_coll: Collection<Clothes> = database.collection("clothes");
+    let collections = db.list_collection_names().await?;
 
-    let doc = Faker.fake::<Clothes>();
-
-    //let res = my_coll.insert_one(doc).await?;
+    for collection in collections {
+        println!("Dropping collection: {}", &collection);
+        db.collection::<Document>(&collection)
+            .drop()
+            .await?;
+    }
 
     let mut rng = rand::thread_rng();
-    let pay = Payment::dummy_with_rng(64.0, &mut rng); 
 
-    println!("{:#?}", pay);
+    let clothes_coll: Collection<Clothes> = db.collection("clothes");
+    let clothes: Vec<Clothes> = (0..50).map(|_| Faker.fake::<Clothes>()).collect();
+    let res = clothes_coll.insert_many(clothes).await?;
+
+    let stores_coll: Collection<Store>  = db.collection("store");
+    let store: Store = Store::dummy_with_rng("clothes", &client, &fake::Faker, &mut rng).await?;
+    let res = stores_coll.insert_one(store).await?;
+
+    //let pay = Payment::dummy_with_rng(64.0, &mut rng);
+
+    //println!("{:#?}", pay);
     Ok(())
 }

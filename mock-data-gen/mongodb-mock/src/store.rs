@@ -65,30 +65,115 @@ pub struct ClientSaleInfo {
     user: Option<ObjectIdWrapper>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct ItemSaleInfo {
-    coll: String,
-    lot: ObjectIdWrapper,
-    item: ObjectIdWrapper,
+impl ClientSaleInfo {
+    pub fn dummy_with_rng<R: rand::Rng + ?Sized>(client_id: ObjectIdWrapper, rng: &mut R) -> Self {
+        match rng.gen_range(0..2) {
+            0 => ClientSaleInfo {
+                name: Some(Name().fake()),
+                user: None,
+            },
+            1 => ClientSaleInfo {
+                name: None,
+                user: Some(client_id),
+            },
+            _ => unimplemented!()
+        }
+    }
 }
+
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct DaySales {
     payment: Payment,
     client: ClientSaleInfo,
-    item: Vec<ItemSaleInfo>,
+    item: Vec<ItemCode>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct ItemSimple {
+    _id: ObjectIdWrapper,
+    lot: Vec<Lot>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct ItemCode {
+    coll: String,
+    _id: ObjectIdWrapper,
+    lot: ObjectIdWrapper,
+    code: ObjectIdWrapper,
+}
+
+impl DaySales {
+    pub async fn dummy_with_rng<R: rand::Rng + ?Sized>(payment: Payment, client_info: ClientSaleInfo, store: &str, client: &Client, rng: &mut R) -> Result<Self, mongodb::error::Error> {
+        let item_colls = match store {
+            "clothes" => vec!["clothes"],
+            "food" => vec!["food"],
+            "library" => vec!["libraryItem"],
+            "tech" => vec!["tech", "techCpu", "techGpu", "techKeyboard", "techOther"],
+            _ => unimplemented!()
+        };
+
+        let pipeline = vec![
+            doc! { "$addFields": { "random": {"$rand": {} }}},
+            doc! { "$sort": { "random": 1 }},
+            doc! { "$limit": 1 },
+            doc! { "$project": { "_id": 1, "lot": 1 }},
+        ];
+
+        let db = client.database("nexis");
+
+        let mut items: Vec<ItemCode> = Vec::new();
+
+        let max_iter = rng.gen_range(1..5);
+        for _ in 0..max_iter {
+            let collection  = {
+                let collection = item_colls.choose(rng).unwrap();
+                db.collection::<Document>(collection)
+            };
+
+            let mut cursor = collection.aggregate(pipeline.clone()).await?;
+            if let Some(res) = cursor.try_next().await? {
+                let item: ItemSimple = mongodb::bson::from_document(res)?;
+
+                if let Some(lot) = item.lot.first() {
+                    if let Some(code) = lot.code.first() {
+                        items.push(
+                            ItemCode {
+                                coll: collection.name().to_string(),
+                                _id: item._id,
+                                lot: lot._id.clone(),
+                                code: code.clone()
+                            }
+                        )
+                    }
+                }
+            }
+        }
+
+        Ok(
+            DaySales {
+                payment,
+                client: client_info,
+                item: items,
+            }
+        )
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Owner {
-    coll: String,
-    owner: Vec<Document>,
+    owner: ObjectIdWrapper,
+    #[serde(rename = "incomePercentage")]
+    income_percentage: f64,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct Employee {
-    coll: String,
-    employee: Vec<ObjectIdWrapper>
+impl Owner {
+    pub fn dummy_with_rng<R: rand::Rng + ?Sized>(owner: ObjectIdWrapper, rng: &mut R) -> Self {
+        Owner {
+            owner,
+            income_percentage: format!("{:.2}", rng.gen_range(1.0..100.0)).parse().expect(""),
+        }
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -99,7 +184,58 @@ pub struct Store {
     floor: u8,
     size: Size,
     #[serde(rename = "daySales")]
-    day_sales: DaySales,
-    owner: Owner,
-    employee: Employee,
+    day_sales: Vec<DaySales>,
+    owner: Vec<Owner>,
+    employee: Vec<ObjectIdWrapper>,
+}
+
+impl Store {
+    pub async fn dummy_with_rng<R: rand::Rng + ?Sized>(store_type: &str, client: &Client, config: &Faker, rng: &mut R) -> Result<Self, mongodb::error::Error> {
+        let mut day_sales: Vec<DaySales> = Vec::new();
+
+        for _ in 0..rng.gen_range(1..20) {
+            day_sales.push(
+                DaySales::dummy_with_rng(
+                    Payment::dummy_with_rng(rng.gen_range(1.0..100.0), rng),
+                    ClientSaleInfo::dummy_with_rng(ObjectIdWrapper::dummy_with_rng(config, rng), rng),
+                    store_type,
+                    client,
+                    rng
+                ).await?
+            )
+        }
+
+        let set_owners: Vec<ObjectIdWrapper> =
+            (0..rng.gen_range(1..3)).map(|_|
+                ObjectIdWrapper::dummy_with_rng(config, rng)
+            ).collect();
+
+        let set_employees: Vec<ObjectIdWrapper> =
+            (0..rng.gen_range(3..6)).map(|_|
+                ObjectIdWrapper::dummy_with_rng(config, rng)
+            ).collect();
+
+        let name = String::from(
+            match store_type {
+                "clothes" => "vesti",
+                "food" => "savoro",
+                "library" => "readon",
+                "tech" => "cyberion",
+                _ => unimplemented!()
+            }
+        );
+
+        Ok(
+            Store {
+                _id: ObjectIdWrapper::dummy_with_rng(config, rng),
+                name,
+                num: rng.gen_range(100..200),
+                floor: rng.gen_range(0..1),
+                size: Size::dummy_with_rng(config, rng),
+                day_sales,
+                owner: set_owners.into_iter().map(|owner| Owner::dummy_with_rng(owner, rng)).collect(),
+                employee: set_employees,
+            }
+        )
+    }
 }

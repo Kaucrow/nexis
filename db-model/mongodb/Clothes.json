@@ -15,6 +15,6 @@
     "lot": [{
         "_id": "ObjectId",
         "enterDate": "Date",
-        "code": ["Number"]
+        "code": ["ObjectId"]
     }]
 }

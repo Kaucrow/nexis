@@ -8,7 +8,7 @@
         "width": "Number",
         "height": "Number"
     },
-    "daySales": {
+    "daySales": [{
         "payment": {
             "amount": "Number",
             "type": {
@@ -29,16 +29,10 @@
             "lot": "ObjectId",
             "item": "ObjectId"
         }]
-    },
-    "Owner": {
-        "coll": "User",
-        "owner": [{
-            "owner": "ObjectId",
-            "incomePercentage": "Number"
-        }]
-    },
-    "Employee": {
-        "coll": "User",
-        "employee": ["ObjectId"]
-    }
+    }],
+    "Owner": [{
+        "owner": "ObjectId",
+        "incomePercentage": "Number"
+    }],
+    "Employee": ["ObjectId"]
 }

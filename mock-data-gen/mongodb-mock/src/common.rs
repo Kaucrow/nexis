@@ -1,6 +1,7 @@
 pub use fake::{
     { Dummy, Fake, Faker },
     faker::lorem::en::Word,
+    faker::name::en::Name,
 };
 pub use mongodb::{
     bson::{ doc, Document, oid::ObjectId },
@@ -11,6 +12,7 @@ pub use mongodb::{
 pub use chrono::{ DateTime, TimeZone, Utc, NaiveDate };
 pub use serde::{ Serialize, Deserialize };
 pub use rand::prelude::SliceRandom;
+pub use futures_util::stream::TryStreamExt;
 
 use once_cell::sync::Lazy;
 
@@ -18,7 +20,7 @@ pub static COLORS: Lazy<Vec<&'static str>> = Lazy::new(|| vec![
     "red", "green", "blue", "yellow", "orange", "teal", "purple", "pink", "white", "black", "brown"
 ]);
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ObjectIdWrapper(pub ObjectId);
 
 impl Dummy<Faker> for ObjectIdWrapper {
@@ -47,9 +49,9 @@ impl Dummy<Faker> for DateTimeWrapper {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Lot {
-    _id: ObjectIdWrapper,
+    pub _id: ObjectIdWrapper,
     enter_date: DateTimeWrapper,
-    code: Vec<ObjectIdWrapper>
+    pub code: Vec<ObjectIdWrapper>,
 }
 
 impl Dummy<Faker> for Lot {
