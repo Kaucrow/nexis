@@ -30,7 +30,7 @@ impl Dummy<Faker> for ObjectIdWrapper {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct DateTimeWrapper(DateTime<Utc>);
+pub struct DateTimeWrapper(pub DateTime<Utc>);
 
 impl Dummy<Faker> for DateTimeWrapper {
     fn dummy_with_rng<R: rand::Rng + ?Sized>(_config: &Faker, rng: &mut R) -> Self {
@@ -44,6 +44,25 @@ impl Dummy<Faker> for DateTimeWrapper {
         let naive_date = NaiveDate::from_ymd_opt(year, month, day).expect("");
 
         DateTimeWrapper(Utc.from_utc_datetime(&naive_date.and_hms_opt(hour, min, sec).expect("")))
+    }
+}
+
+pub trait LotTrait {
+    fn get_id(&self) -> &ObjectIdWrapper;
+    fn get_code(&self) -> Option<&Vec<ObjectIdWrapper>>;
+}
+
+impl LotTrait for Lot {
+    fn get_id(&self) -> &ObjectIdWrapper {
+        &self._id
+    }
+
+    fn get_code(&self) -> Option<&Vec<ObjectIdWrapper>> {
+        if let Some(_) = self.code.first() {
+            Some(&self.code)
+        } else {
+            None
+        }
     }
 }
 

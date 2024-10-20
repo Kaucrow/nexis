@@ -2,6 +2,7 @@ use mongodb_mock::{
     common::*,
     clothes::Clothes,
     store::Store,
+    food::Food,
 };
 
 #[tokio::main]
@@ -18,25 +19,36 @@ async fn main() -> mongodb::error::Result<()> {
 
     let collections = db.list_collection_names().await?;
 
+    println!("======== Dropping collections ========");
     for collection in collections {
-        println!("Dropping collection: {}", &collection);
+        println!("- Dropped: {}", &collection);
         db.collection::<Document>(&collection)
             .drop()
             .await?;
     }
 
+    println!("======== Inserting collections ========");
     let mut rng = rand::thread_rng();
 
     let clothes_coll: Collection<Clothes> = db.collection("clothes");
     let clothes: Vec<Clothes> = (0..50).map(|_| Faker.fake::<Clothes>()).collect();
-    let res = clothes_coll.insert_many(clothes).await?;
+    clothes_coll.insert_many(clothes).await?;
+    println!("- Inserted: clothes");
 
-    let stores_coll: Collection<Store>  = db.collection("store");
+    let food_coll: Collection<Food> = db.collection("food");
+    let food: Vec<Food> = (0..50).map(|_| Faker.fake::<Food>()).collect();
+    food_coll.insert_many(food).await?;
+    println!("- Inserted: food");
+
+    let stores_coll: Collection<Store> = db.collection("store");
+
     let store: Store = Store::dummy_with_rng("clothes", &client, &fake::Faker, &mut rng).await?;
-    let res = stores_coll.insert_one(store).await?;
+    stores_coll.insert_one(store).await?;
+    println!("- Inserted: clothes store");
+    
+    let store: Store = Store::dummy_with_rng("food", &client, &fake::Faker, &mut rng).await?;
+    stores_coll.insert_one(store).await?;
+    println!("- Inserted: food store");
 
-    //let pay = Payment::dummy_with_rng(64.0, &mut rng);
-
-    //println!("{:#?}", pay);
     Ok(())
 }

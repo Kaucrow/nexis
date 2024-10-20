@@ -8,6 +8,6 @@
         "_id": "ObjectId",
         "enterDate": "Date",
         "expiry": "Date",
-        "code": ["Number"]
+        "code": ["ObjectId"]
     }]
 }
