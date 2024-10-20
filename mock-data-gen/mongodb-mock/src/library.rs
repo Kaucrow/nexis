@@ -1,6 +1,5 @@
-use std::collections::HashSet;
-
 use crate::common::*;
+use std::collections::HashSet;
 use once_cell::sync::Lazy;
 
 static AUDIENCES: Lazy<Vec<&str>> = Lazy::new(|| vec![

@@ -6,6 +6,7 @@
     "color": ["String"],
     "type": "String",
     "memory": "Number",
+    "cpu": "ObjectId",
     "gpu_?_": "ObjectId",
     "lot": [{
         "_id": "ObjectId",

@@ -4,6 +4,7 @@ use mongodb_mock::{
     store::Store,
     food::Food,
     library::LibraryItem,
+    tech::Cpu,
 };
 
 #[tokio::main]
@@ -45,6 +46,11 @@ async fn main() -> mongodb::error::Result<()> {
     let library_items: Vec<LibraryItem> = (0..50).map(|_| Faker.fake::<LibraryItem>()).collect();
     library_item_coll.insert_many(library_items).await?;
     println!("- Inserted: library items");
+
+    let cpu_coll: Collection<Cpu> = db.collection("techCpu");
+    let cpus: Vec<Cpu> = (0..50).map(|_| Faker.fake::<Cpu>()).collect();
+    cpu_coll.insert_many(cpus).await?;
+    println!("- Inserted: CPUs");
 
     let stores_coll: Collection<Store> = db.collection("store");
 
