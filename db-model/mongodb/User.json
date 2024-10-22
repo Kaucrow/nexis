@@ -6,22 +6,18 @@
     "name": "String",
     "client": null | {
         "age": "Number",
-        "gender": "Boolean",
+        "gender": "String",
         "phoneNum": "String",
-        "cart": [{
+        "interest": ["ObjectId"],
+        "cart": null | [{
             "dateAdded": "Date",
             "coll": "String",
-            "lot": "ObjectId",
             "item": "ObjectId"
-        }],
-        "Interest": {
-            "coll": "Store",
-            "ref": ["ObjectId"]
-        }
+        }]
     },
     "employee": null | {
         "age": "Number",
-        "gender": "Boolean",
+        "gender": "String",
         "phoneNum": "String",
         "schedule": [{
             "enterDate": "Date",

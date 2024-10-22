@@ -1,7 +1,4 @@
-use uuid::fmt::Simple;
-
 use crate::common::*;
-use crate::food::FoodLot;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Payment {
@@ -76,43 +73,6 @@ pub struct DaySales {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-struct FoodItemSimple {
-    _id: ObjectIdWrapper,
-    lot: Vec<FoodLot>,
-}
-
-trait SimpleItem {
-    type LotType: LotTrait;
-
-    fn get_id(&self) -> &ObjectIdWrapper;
-    fn get_lot(&self) -> Option<&Self::LotType>;
-}
-
-impl SimpleItem for ItemSimple {
-    type LotType = Lot;
-
-    fn get_id(&self) -> &ObjectIdWrapper {
-        &self._id
-    }
-
-    fn get_lot(&self) -> Option<&Self::LotType> {
-        self.lot.first()
-    }
-}
-
-impl SimpleItem for FoodItemSimple {
-    type LotType = FoodLot;
-
-    fn get_id(&self) -> &ObjectIdWrapper {
-        &self._id
-    }
-
-    fn get_lot(&self) -> Option<&Self::LotType> {
-        self.lot.first()
-    }
-}
-
-#[derive(Debug, Serialize, Deserialize)]
 struct ItemCode {
     coll: String,
     _id: ObjectIdWrapper,
@@ -120,7 +80,7 @@ struct ItemCode {
     code: ObjectIdWrapper,
 }
 
-fn process_item<T: SimpleItem>(item: T, collection: String, items: &mut Vec<ItemCode>) {
+fn process_item<T: SimpleItemTrait>(item: T, collection: String, items: &mut Vec<ItemCode>) {
     if let Some(lot) = item.get_lot() {
         if let Some(code) = lot.get_code() {
             items.push(

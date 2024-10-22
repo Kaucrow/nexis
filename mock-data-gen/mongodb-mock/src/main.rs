@@ -7,13 +7,16 @@ use mongodb_mock::{
     food::Food,
     library::LibraryItem,
     tech::{ Cpu, Gpu, Tech, Keyboard, TechOther },
+    user::User,
 };
 
 #[tokio::main]
 async fn main() -> mongodb::error::Result<()> {
     dotenv::dotenv().ok();
 
-    let mongodb_uri = std::env::var("MONGODB_URI").unwrap();
+    let mongodb_uri = 
+        if let Ok(uri) = std::env::var("MONGODB_URI") { uri }
+        else { panic!("Make sure that `.env` file exists and contains the `MONGODB_URI` env variable.") };
 
     let options = ClientOptions::parse(mongodb_uri).resolver_config(ResolverConfig::cloudflare()).await?;
 
@@ -33,7 +36,6 @@ async fn main() -> mongodb::error::Result<()> {
 
     println!("======== Inserting collections ========");
     let mut rng = rand::thread_rng();
-
     let clothes_coll: Collection<Clothes> = db.collection("clothes");
     let clothes: Vec<Clothes> = (0..50).map(|_| Faker.fake::<Clothes>()).collect();
     clothes_coll.insert_many(clothes).await?;
@@ -118,6 +120,14 @@ async fn main() -> mongodb::error::Result<()> {
     let store: Store = Store::dummy_with_rng("library", &client, &fake::Faker, &mut rng).await?;
     stores_coll.insert_one(store).await?;
     println!("- Inserted: library store");
+
+    let users_coll: Collection<User> = db.collection("user");
+    let mut users: Vec<User> = Vec::new();
+    for _ in 0..50 {
+        users.push(User::dummy_with_rng(&client, &Faker, &mut rng).await);
+    }
+    users_coll.insert_many(users).await?;
+    println!("- Inserted: users");
 
     Ok(())
 }

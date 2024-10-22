@@ -27,8 +27,9 @@
         },
         "Item": [{
             "coll": "String",
+            "item": "ObjectId",
             "lot": "ObjectId",
-            "item": "ObjectId"
+            "code": "String"
         }]
     }],
     "Owner": [{

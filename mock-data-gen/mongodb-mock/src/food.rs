@@ -1,43 +1,6 @@
 use crate::common::*;
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct FoodLot {
-    _id: ObjectIdWrapper,
-    #[serde(rename = "enterDate")]
-    enter_date: DateTimeWrapper,
-    expiry: DateTimeWrapper,
-    code: Vec<ObjectIdWrapper>
-}
-
-impl LotTrait for FoodLot {
-    fn get_id(&self) -> &ObjectIdWrapper {
-        &self._id
-    }
-
-    fn get_code(&self) -> Option<&Vec<ObjectIdWrapper>> {
-        if let Some(_) = self.code.first() {
-            Some(&self.code)
-        } else {
-            None
-        }
-    }
-}
-
-impl Dummy<Faker> for FoodLot {
-    fn dummy_with_rng<R: rand::Rng + ?Sized>(config: &Faker, rng: &mut R) -> Self {
-        let enter_date = DateTimeWrapper::dummy_with_rng(config, rng);
-        let expiry = DateTimeWrapper(enter_date.0.checked_add_days(chrono::Days::new(7)).expect(""));
-
-        FoodLot {
-            _id: ObjectIdWrapper::dummy_with_rng(config, rng),
-            enter_date,
-            expiry,
-            code: (0..10).map(|_| ObjectIdWrapper::dummy_with_rng(config, rng)).collect(),
-        }
-    }
-}
-
-#[derive(Debug, Serialize, Deserialize)]
 pub struct Food {
     _id: ObjectIdWrapper,
     name: String,

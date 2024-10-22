@@ -1,11 +1,15 @@
 pub use fake::{
     { Dummy, Fake, Faker, Rng },
-    faker::lorem::en::Word,
-    faker::name::en::Name,
-    faker::barcode::en::Isbn,
+    faker::{
+        lorem::en::Word,
+        name::en::Name,
+        barcode::en::Isbn,
+        internet::en::{ FreeEmail, Username, Password },
+        phone_number::en::CellNumber,
+    },
 };
 pub use mongodb::{
-    bson::{ doc, Document, oid::ObjectId },
+    bson::{ Bson, doc, Document, oid::ObjectId },
     options::{ ClientOptions, ResolverConfig, ServerApi, ServerApiVersion },
     Client,
     Collection
@@ -13,7 +17,8 @@ pub use mongodb::{
 pub use chrono::{ DateTime, TimeZone, Utc, NaiveDate };
 pub use serde::{ Serialize, Deserialize };
 pub use rand::prelude::SliceRandom;
-pub use futures_util::stream::TryStreamExt;
+pub use futures_util::stream::{ self, StreamExt, TryStreamExt };
+pub use std::collections::{ HashMap, HashSet };
 
 use once_cell::sync::Lazy;
 
@@ -25,6 +30,7 @@ pub static RND_ITEM_PIPELINE: Lazy<Vec<Document>> = Lazy::new(|| vec![
     doc! { "$addFields": { "random": {"$rand": {} }}},
     doc! { "$sort": { "random": 1 }},
     doc! { "$limit": 1 },
+    doc! { "$match": { "lot": { "$elemMatch": { "code": { "$ne": [] }}}}},
     doc! { "$project": { "_id": 1, "lot": 1 }},
 ]);
 
@@ -33,8 +39,121 @@ pub fn get_rnd_item_pipeline(item_amt: i64) -> Vec<Document> {
         doc! { "$addFields": { "random": {"$rand": {} }}},
         doc! { "$sort": { "random": 1 }},
         doc! { "$limit": item_amt },
+        doc! { "$match": { "lot": { "$elemMatch": { "code": { "$ne": [] }}}}},
         doc! { "$project": { "_id": 1, "lot": 1 }},
     ]
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub enum SimpleItem {
+    Regular(ItemSimple),
+    Food(FoodItemSimple),
+}
+
+impl SimpleItem {
+    pub fn get_id(&self) -> &ObjectIdWrapper {
+        match self {
+            SimpleItem::Regular(item) => item.get_id(),
+            SimpleItem::Food(item) => item.get_id(),
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct FoodLot {
+    _id: ObjectIdWrapper,
+    #[serde(rename = "enterDate")]
+    enter_date: DateTimeWrapper,
+    expiry: DateTimeWrapper,
+    code: Vec<ObjectIdWrapper>
+}
+
+impl LotTrait for FoodLot {
+    fn get_id(&self) -> &ObjectIdWrapper {
+        &self._id
+    }
+
+    fn get_code(&self) -> Option<&Vec<ObjectIdWrapper>> {
+        if let Some(_) = self.code.first() {
+            Some(&self.code)
+        } else {
+            None
+        }
+    }
+}
+
+impl Dummy<Faker> for FoodLot {
+    fn dummy_with_rng<R: rand::Rng + ?Sized>(config: &Faker, rng: &mut R) -> Self {
+        let enter_date = DateTimeWrapper::dummy_with_rng(config, rng);
+        let expiry = DateTimeWrapper(enter_date.0.checked_add_days(chrono::Days::new(7)).expect(""));
+
+        FoodLot {
+            _id: ObjectIdWrapper::dummy_with_rng(config, rng),
+            enter_date,
+            expiry,
+            code: (0..10).map(|_| ObjectIdWrapper::dummy_with_rng(config, rng)).collect(),
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct FoodItemSimple {
+    _id: ObjectIdWrapper,
+    lot: Vec<FoodLot>,
+}
+
+pub trait SimpleItemTrait {
+    type LotType: LotTrait;
+
+    fn get_id(&self) -> &ObjectIdWrapper;
+    fn get_lot(&self) -> Option<&Self::LotType>;
+}
+
+impl SimpleItemTrait for ItemSimple {
+    type LotType = Lot;
+
+    fn get_id(&self) -> &ObjectIdWrapper {
+        &self._id
+    }
+
+    fn get_lot(&self) -> Option<&Self::LotType> {
+        self.lot.first()
+    }
+}
+
+impl SimpleItemTrait for FoodItemSimple {
+    type LotType = FoodLot;
+
+    fn get_id(&self) -> &ObjectIdWrapper {
+        &self._id
+    }
+
+    fn get_lot(&self) -> Option<&Self::LotType> {
+        self.lot.first()
+    }
+}
+
+pub async fn get_rnd_item_simple<R: Rng + ?Sized>(rng: &mut R, client: &Client, colls: Vec<&str>) -> (SimpleItem, String) {
+    let db = client.database("nexis");
+    let coll_name = colls.choose(rng).unwrap();
+    let coll: Collection<Document> = db.collection(coll_name);
+    let mut cursor = coll.aggregate(get_rnd_item_pipeline(1)).await.expect("");
+
+    if coll_name == &"food" {
+        let item: FoodItemSimple = {
+            if let Ok(Some(res)) = cursor.try_next().await {
+                mongodb::bson::from_document(res).unwrap()
+            } else { panic!("Err getting simple item in collection `{}`", coll_name) }
+        };
+        (SimpleItem::Food(item), coll_name.to_string())
+    } else {
+        let item: ItemSimple = {
+            if let Ok(Some(res)) = cursor.try_next().await {
+                mongodb::bson::from_document(res).unwrap()
+            } else { panic!("Err getting simple item in collection `{}`", coll_name) }
+        };
+        (SimpleItem::Regular(item), coll_name.to_string())
+    }
 }
 
 pub trait RoundTo2 {
@@ -70,9 +189,7 @@ pub struct Size {
     height: f64, 
 }
 
-
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Hash)]
 pub struct ObjectIdWrapper(pub ObjectId);
 
 impl Dummy<Faker> for ObjectIdWrapper {
