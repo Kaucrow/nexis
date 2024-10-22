@@ -1,5 +1,5 @@
 use crate::common::*;
-use std::collections::HashMap;
+use std::collections::{ HashMap, HashSet };
 use once_cell::sync::Lazy;
 use rand::prelude::IteratorRandom;
 
@@ -47,7 +47,7 @@ impl Dummy<Faker> for MemSupp {
     fn dummy_with_rng<R: rand::Rng + ?Sized>(_config: &Faker, rng: &mut R) -> Self {
         MemSupp {
             mem_type: vec!["ddr3", "ddr4", "ddr5"].choose(rng).unwrap().to_string(),
-            max_size_gb: 2u8.pow(rng.gen_range(3..8)),
+            max_size_gb: 2u8.pow(rng.gen_range(3..=7)),
         }
     }
 }
@@ -60,6 +60,15 @@ struct MemDetails {
     size_gb: u8,
 }
 
+impl Dummy<Faker> for MemDetails {
+    fn dummy_with_rng<R: rand::Rng + ?Sized>(_config: &Faker, rng: &mut R) -> Self {
+        MemDetails {
+            mem_type: vec!["ddr3", "ddr4", "ddr5"].choose(rng).unwrap().to_string(),
+            size_gb: 2u8.pow(rng.gen_range(0..=3)),
+        }
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 struct Clock {
     #[serde(rename = "coreSpeedGhz")]
@@ -70,8 +79,8 @@ struct Clock {
 
 impl Dummy<Faker> for Clock {
     fn dummy_with_rng<R: rand::Rng + ?Sized>(_config: &Faker, rng: &mut R) -> Self {
-        let core_speed_ghz = format!("{:.2}", rng.gen_range(0.8..4.0)).parse().unwrap();
-        let boost_speed_ghz = format!("{:.2}", (core_speed_ghz + 0.4)).parse().unwrap();
+        let core_speed_ghz = (rng.gen_range(0.8..=4.0) as f64).round_to_2();
+        let boost_speed_ghz = ((core_speed_ghz + 0.4) as f64).round_to_2();
 
         Clock {
             core_speed_ghz,
@@ -108,42 +117,43 @@ pub struct Cpu {
 impl Dummy<Faker> for Cpu {
     fn dummy_with_rng<R: rand::Rng + ?Sized>(config: &Faker, rng: &mut R) -> Self {
         let brand = CPU_BRAND_MODEL.keys().choose(rng).unwrap();
-        let model = CPU_BRAND_MODEL.get(brand).unwrap().choose(rng).unwrap();
+        let model = CPU_BRAND_MODEL[brand].choose(rng).unwrap();
+
+        let warranty = if rng.gen_bool(0.5) {
+            Some(WARRANTIES.choose(rng).unwrap().to_string())
+        } else {
+            None
+        };
 
         Cpu {
             _id: ObjectIdWrapper::dummy_with_rng(config, rng),
-            price: rng.gen_range(50.0..200.0),
+            price: (rng.gen_range(50.0..=200.0) as f64).round_to_2(),
             brand: brand.to_string(),
             model: model.to_string(),
             arch: vec!["x86", "x64"].choose(rng).unwrap().to_string(),
-            cores: 2u8.pow(rng.gen_range(0..4)),
-            threads: rng.gen_range(1..4),
+            cores: 2u8.pow(rng.gen_range(0..=3)),
+            threads: rng.gen_range(1..=3),
             socket_type: CPU_SOCKETS.choose(rng).unwrap().to_string(),
             overclock_supp: rng.gen_bool(0.5),
             sold_sep: rng.gen_bool(0.5),
-            warranty:
-                if rng.gen_bool(0.5) == true {
-                    Some(WARRANTIES.choose(rng).unwrap().to_string())
-                } else {
-                    None
-                },
+            warranty,
             memory_supp: MemSupp::dummy_with_rng(config, rng),
             clock: Clock::dummy_with_rng(config, rng),
             gpu: None,
-            lot: (0..rng.gen_range(1..5)).map(|_| Lot::dummy_with_rng(config, rng)).collect(),
+            lot: (0..rng.gen_range(1..=5)).map(|_| Lot::dummy_with_rng(config, rng)).collect(),
         } 
     }
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-struct Gpu {
+pub struct Gpu {
     _id: ObjectIdWrapper,
     price: f64,
     brand: String,
     model: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     cuda_cores: Option<u16>,
-    tdp: u8,
+    tdp: u16,
     ports: Vec<String>,
     dedicated: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -153,8 +163,59 @@ struct Gpu {
     lot: Vec<Lot>,
 }
 
+impl Dummy<Faker> for Gpu {
+    fn dummy_with_rng<R: rand::Rng + ?Sized>(config: &Faker, rng: &mut R) -> Self {
+        let brand = GPU_BRAND_MODEL.keys().choose(rng).unwrap();
+        let model = GPU_BRAND_MODEL[brand].choose(rng).unwrap();
+
+        let cuda_cores = {
+            if rng.gen_bool(0.5) {
+                Some(rng.gen_range(1..=24_576))
+            } else {
+                None
+            }
+        };
+
+        let ports = {
+            let amt = rng.gen_range(1..=2);
+            let mut used: HashSet<&str> = HashSet::new();
+            (0..amt).filter_map(|_| {
+                let port = GPU_PORTS.choose(rng).unwrap();
+                if used.insert(port) {
+                    Some(port.to_string())
+                } else {
+                    None
+                }
+            }).collect()
+        };
+
+        let warranty = {
+            if rng.gen_bool(0.5) {
+                Some(WARRANTIES.choose(rng).unwrap().to_string())
+            } else {
+                None
+            }
+        };
+
+        Gpu {
+            _id: ObjectIdWrapper::dummy_with_rng(config, rng),
+            price: (rng.gen_range(50.0..=300.0) as f64).round_to_2(),
+            brand: brand.to_string(),
+            model: model.to_string(),
+            cuda_cores,
+            tdp: rng.gen_range(10..=700),
+            ports,
+            dedicated: rng.gen_bool(0.5),
+            warranty,
+            memory: MemDetails::dummy_with_rng(config, rng),
+            clock: Clock::dummy_with_rng(config, rng),
+            lot: (0..rng.gen_range(1..=5)).map(|_| Lot::dummy_with_rng(config, rng)).collect(),
+        }
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize)]
-struct Tech {
+pub struct Tech {
     _id: ObjectIdWrapper,
     price: f64,
     brand: String,
@@ -164,6 +225,99 @@ struct Tech {
     tech_type: String,
     memory: u16,
     cpu: ObjectIdWrapper,
+    #[serde(skip_serializing_if = "Option::is_none")]
     gpu: Option<ObjectIdWrapper>,
     lot: Vec<Lot>,
+}
+
+impl Tech {
+    pub fn dummy_with_rng<R: rand::Rng + ?Sized>(cpu: ObjectIdWrapper, gpu: Option<ObjectIdWrapper>, config: &Faker, rng: &mut R) -> Self {
+        let color = {
+            let mut used: HashSet<&str> = HashSet::new();
+            (0..rng.gen_range(1..=2)).filter_map(|_| {
+                let color = COLORS.choose(rng).unwrap();
+                if used.insert(color) {
+                    Some(color.to_string())
+                } else {
+                    None
+                }
+            }).collect()
+        };
+
+        Tech {
+            _id: ObjectIdWrapper::dummy_with_rng(config, rng),
+            price: (rng.gen_range(80.0..=1200.0) as f64).round_to_2(),
+            brand: Word().fake(),
+            model: Word().fake(),
+            color,
+            tech_type: TECH_TYPES.choose(rng).unwrap().to_string(),
+            memory: 2u16.pow(rng.gen_range(3..=10)),
+            cpu,
+            gpu,
+            lot: (0..rng.gen_range(1..=5)).map(|_| Lot::dummy_with_rng(config, rng)).collect(),
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Keyboard {
+    _id: ObjectIdWrapper,
+    price: f64,
+    brand: String,
+    model: String,
+    #[serde(rename = "type")]
+    keyboard_type: String,
+    #[serde(rename = "keySwitch")]
+    key_switch: String,
+    backlight: bool,
+    wireless: bool,
+    dimensions: Size,
+    #[serde(rename = "weightKg")]
+    weight_kg: f64,
+    lot: Vec<Lot>
+}
+
+pub static KEYB_TYPES: Lazy<Vec<&'static str>> = Lazy::new(|| vec![
+    "mechanical", "membrane", "chiclet"
+]);
+
+pub static KEYSW_TYPES: Lazy<Vec<&'static str>> = Lazy::new(|| vec![
+    "linear", "tactile", "clicky"
+]);
+
+impl Dummy<Faker> for Keyboard {
+    fn dummy_with_rng<R: Rng + ?Sized>(config: &Faker, rng: &mut R) -> Self {
+        Keyboard {
+            _id: ObjectIdWrapper::dummy_with_rng(config, rng),
+            price: (rng.gen_range(10.0..300.0) as f64).round_to_2(),
+            brand: Word().fake(),
+            model: Word().fake(),
+            keyboard_type: KEYB_TYPES.choose(rng).unwrap().to_string(),
+            key_switch: KEYSW_TYPES.choose(rng).unwrap().to_string(),
+            backlight: rng.gen_bool(0.5),
+            wireless: rng.gen_bool(0.5),
+            dimensions: Size::dummy_with_rng(config, rng),
+            weight_kg: (rng.gen_range(0.5..=1.5) as f64).round_to_2(),
+            lot: (1..=rng.gen_range(1..5)).map(|_| Lot::dummy_with_rng(config, rng)).collect(),
+        } 
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct TechOther {
+    _id: ObjectIdWrapper,
+    name: String,
+    price: f64,
+    lot: Vec<Lot>,
+}
+
+impl Dummy<Faker> for TechOther {
+    fn dummy_with_rng<R: Rng + ?Sized>(config: &Faker, rng: &mut R) -> Self {
+        TechOther {
+            _id: ObjectIdWrapper::dummy_with_rng(config, rng),
+            name: Word().fake(),
+            price: (rng.gen_range(0.5..100.0) as f64),
+            lot: (0..rng.gen_range(1..5)).map(|_| Lot::dummy_with_rng(config, rng)).collect(),
+        }
+    }
 }

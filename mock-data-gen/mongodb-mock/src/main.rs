@@ -1,10 +1,12 @@
+use std::iter::zip;
+
 use mongodb_mock::{
     common::*,
     clothes::Clothes,
     store::Store,
     food::Food,
     library::LibraryItem,
-    tech::Cpu,
+    tech::{ Cpu, Gpu, Tech, Keyboard, TechOther },
 };
 
 #[tokio::main]
@@ -51,6 +53,57 @@ async fn main() -> mongodb::error::Result<()> {
     let cpus: Vec<Cpu> = (0..50).map(|_| Faker.fake::<Cpu>()).collect();
     cpu_coll.insert_many(cpus).await?;
     println!("- Inserted: CPUs");
+
+    let gpu_coll: Collection<Gpu> = db.collection("techGpu");
+    let gpus: Vec<Gpu> = (0..50).map(|_| Faker.fake::<Gpu>()).collect();
+    gpu_coll.insert_many(gpus).await?;
+    println!("- Inserted: GPUs");
+
+    let cpu_coll: Collection<Document> = db.collection("techCpu");
+    let mut cursor = cpu_coll.aggregate(get_rnd_item_pipeline(50)).await?;
+    let mut rnd_cpus: Vec<ItemSimple> = Vec::new();
+    loop {
+        if let Some(res) = cursor.try_next().await? {
+            rnd_cpus.push(mongodb::bson::from_document::<ItemSimple>(res)?);
+        } else {
+            break;
+        }
+    }
+
+    let gpu_coll: Collection<Document> = db.collection("techGpu");
+    let mut cursor = gpu_coll.aggregate(get_rnd_item_pipeline(50)).await?;
+    let mut rnd_gpus: Vec<ItemSimple> = Vec::new();
+    loop {
+        if let Some(res) = cursor.try_next().await? {
+            rnd_gpus.push(mongodb::bson::from_document::<ItemSimple>(res)?);
+        } else {
+            break;
+        }
+    }
+    
+    let rnd_cpus_gpus = zip(rnd_cpus, rnd_gpus);
+    
+    let tech_coll: Collection<Tech> = db.collection("tech");
+    let techs: Vec<Tech> =
+        rnd_cpus_gpus.map(|(cpu, gpu)| {
+            let gpu =
+                if rng.gen_bool(0.5) { Some(gpu._id) }
+                else { None };
+
+            Tech::dummy_with_rng(cpu._id, gpu, &Faker, &mut rng)
+        }).collect();
+    tech_coll.insert_many(techs).await?;
+    println!("- Inserted: techs");
+
+    let keyb_coll: Collection<Keyboard> = db.collection("techKeyboard");
+    let keybs: Vec<Keyboard> = (0..=50).map(|_| Keyboard::dummy_with_rng(&Faker, &mut rng)).collect();
+    keyb_coll.insert_many(keybs).await?;
+    println!("- Inserted: keyboards");
+
+    let tech_other_coll: Collection<TechOther> = db.collection("techOther");
+    let tech_others: Vec<TechOther> = (0..=50).map(|_| TechOther::dummy_with_rng(&Faker, &mut rng)).collect();
+    tech_other_coll.insert_many(tech_others).await?;
+    println!("- Inserted: other techs");
 
     let stores_coll: Collection<Store> = db.collection("store");
 

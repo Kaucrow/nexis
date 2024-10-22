@@ -4,23 +4,6 @@ use crate::common::*;
 use crate::food::FoodLot;
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct Size {
-    length: f64,
-    width: f64,
-    height: f64, 
-}
-
-impl Dummy<Faker> for Size {
-    fn dummy_with_rng<R: rand::Rng + ?Sized>(_config: &Faker, rng: &mut R) -> Self {
-        Size {
-            length: rng.gen_range(1.0..50.0),
-            width: rng.gen_range(1.0..50.0),
-            height: rng.gen_range(1.0..50.0),
-        } 
-    }
-}
-
-#[derive(Debug, Serialize, Deserialize)]
 pub struct Payment {
     amount: f64,
     #[serde(rename = "type")]
@@ -93,12 +76,6 @@ pub struct DaySales {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-struct ItemSimple {
-    _id: ObjectIdWrapper,
-    lot: Vec<Lot>,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
 struct FoodItemSimple {
     _id: ObjectIdWrapper,
     lot: Vec<FoodLot>,
@@ -168,13 +145,6 @@ impl DaySales {
             _ => unimplemented!()
         };
 
-        let pipeline = vec![
-            doc! { "$addFields": { "random": {"$rand": {} }}},
-            doc! { "$sort": { "random": 1 }},
-            doc! { "$limit": 1 },
-            doc! { "$project": { "_id": 1, "lot": 1 }},
-        ];
-
         let db = client.database("nexis");
 
         let mut items: Vec<ItemCode> = Vec::new();
@@ -186,7 +156,7 @@ impl DaySales {
                 db.collection::<Document>(collection)
             };
 
-            let mut cursor = collection.aggregate(pipeline.clone()).await?;
+            let mut cursor = collection.aggregate(RND_ITEM_PIPELINE.clone()).await?;
             if let Some(res) = cursor.try_next().await? {
                 if store == "food" {
                     let item: FoodItemSimple = mongodb::bson::from_document(res)?;
