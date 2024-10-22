@@ -1,4 +1,6 @@
-# Nexis
+<div align='center'>
+    <img src='./static/nexis.png' width='3em' height='auto'>
+</div>
 
 Nexis is a fully self-hosted mall management platform currently in development, created for a fictional mall of the same name. It streamlines the shopping experience for users and delivers insightful analytics for store owners. The platform features four unique stores:
 
