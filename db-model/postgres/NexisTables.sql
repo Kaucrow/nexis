@@ -39,13 +39,6 @@ CREATE TABLE Jobs (
     jobName VARCHAR(255) NOT NULL
 );
 
-CREATE TABLE EmployeeJob (
-    scheduleUuid SERIAL PRIMARY KEY,
-    FOREIGN KEY (scheduleUuid) REFERENCES Schedule(uuid),
-    storeJobUuid SERIAL,
-    FOREIGN KEY (storeJobUuid) REFERENCES StoreJobs(uuid)
-);
-
 CREATE TABLE Stores (
     uuid SERIAL PRIMARY KEY,
     storeName VARCHAR(255) NOT NULL,
@@ -66,6 +59,13 @@ CREATE TABLE StoreJobs (
     payPerWeek INT NOT NULL
 );
 
+CREATE TABLE EmployeeJob (
+    scheduleUuid SERIAL PRIMARY KEY,
+    FOREIGN KEY (scheduleUuid) REFERENCES Schedule(uuid),
+    storeJobUuid SERIAL,
+    FOREIGN KEY (storeJobUuid) REFERENCES StoreJobs(uuid)
+);
+
 CREATE TABLE StoreOwners (
     adminUuid SERIAL,
     FOREIGN KEY (adminUuid) REFERENCES Admins(adminUuid),
@@ -74,18 +74,18 @@ CREATE TABLE StoreOwners (
     incomePercentage INT NOT NULL
 );
 
+CREATE TABLE FoodType (
+    uuid SERIAL PRIMARY KEY,
+    typeName VARCHAR(255) NOT NULL,
+    pricePerKg INT NOT NULL
+);
+
 CREATE TABLE Food (
     uuid SERIAL PRIMARY KEY,
     typeFoodUuid SERIAL,
     FOREIGN KEY (typeFoodUuid) REFERENCES FoodType(uuid),
     foodName VARCHAR(255) NOT NULL,
     foodPrice INT NOT NULL
-);
-
-CREATE TABLE FoodType (
-    uuid SERIAL PRIMARY KEY,
-    typeName VARCHAR(255) NOT NULL,
-    pricePerKg INT NOT NULL
 );
 
 CREATE TABLE FoodLot (
@@ -108,6 +108,12 @@ CREATE TABLE LibraryItems (
     itemPrice INT NOT NULL
 );
 
+CREATE TABLE BookPublishers (
+    uuid SERIAL PRIMARY KEY,
+    publisherName VARCHAR(255) NOT NULL
+);
+
+
 CREATE TABLE Books (
     libraryItemUuid SERIAL PRIMARY KEY,
     FOREIGN KEY (libraryItemUuid) REFERENCES LibraryItems(uuid),
@@ -115,11 +121,6 @@ CREATE TABLE Books (
     FOREIGN KEY (publisherUuid) REFERENCES BookPublishers(uuid),
     numPages INT NOT NULL,
     bookEdition VARCHAR(255) NOT NULL
-);
-
-CREATE TABLE BookPublishers (
-    uuid SERIAL PRIMARY KEY,
-    publisherName VARCHAR(255) NOT NULL
 );
 
 CREATE TABLE Authors (
@@ -180,6 +181,23 @@ CREATE TABLE ClothesColors (
     FOREIGN KEY (colorUuid) REFERENCES Colors(uuid)
 );
 
+CREATE TABLE TechCpu (
+    uuid SERIAL PRIMARY KEY,
+    cpuBrand VARCHAR(255) NOT NULL,
+    cpuModel VARCHAR(255) NOT NULL,
+    cpuPrice INT NOT NULL,
+    soldSeparately BOOLEAN NOT NULL
+);
+
+CREATE TABLE TechGpu (
+    uuid SERIAL PRIMARY KEY,
+    gpuBrand VARCHAR(255) NOT NULL,
+    gpuModel VARCHAR(255) NOT NULL,
+    gpuPrice INT NOT NULL,
+    dedicated BOOLEAN NOT NULL
+);
+
+
 CREATE TABLE Tech (
     uuid SERIAL PRIMARY KEY,
     uuidCpu SERIAL,
@@ -200,22 +218,6 @@ CREATE TABLE TechColors (
     FOREIGN KEY (colorUuid) REFERENCES Colors(uuid)
 );
 
-CREATE TABLE TechCpu (
-    uuid SERIAL PRIMARY KEY,
-    cpuBrand VARCHAR(255) NOT NULL,
-    cpuModel VARCHAR(255) NOT NULL,
-    cpuPrice INT NOT NULL,
-    soldSeparately BOOLEAN NOT NULL
-);
-
-CREATE TABLE TechGpu (
-    uuid SERIAL PRIMARY KEY,
-    gpuBrand VARCHAR(255) NOT NULL,
-    gpuModel VARCHAR(255) NOT NULL,
-    gpuPrice INT NOT NULL,
-    dedicated BOOLEAN NOT NULL
-);
-
 CREATE TABLE Sales (
     uuid SERIAL PRIMARY KEY,
     clientUuid SERIAL,
@@ -224,17 +226,17 @@ CREATE TABLE Sales (
     date DATE NOT NULL
 );
 
+CREATE TABLE PaymentMethods (
+    uuid SERIAL PRIMARY KEY,
+    paymentMethod VARCHAR(255) NOT NULL
+);
+
 CREATE TABLE Payments (
     saleUuid SERIAL PRIMARY KEY,
     FOREIGN KEY (saleUuid) REFERENCES Sales(uuid),
     uuidMethod SERIAL,
     FOREIGN KEY (uuidMethod) REFERENCES PaymentMethods(uuid),
     amount INT NOT NULL
-);
-
-CREATE TABLE PaymentMethods (
-    uuid SERIAL PRIMARY KEY,
-    paymentMethod VARCHAR(255) NOT NULL
 );
 
 CREATE TABLE SalesTech (
