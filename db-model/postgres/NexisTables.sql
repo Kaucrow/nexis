@@ -230,15 +230,18 @@ CREATE TABLE ClientName (
 );
 
 CREATE TABLE SalesInPerson (
-    uuid SERIAL PRIMARY KEY,
-    date DATE PRIMARY KEY,
+    uuid SERIAL,
+    dateSalesInPerson DATE,
+    PRIMARY KEY (uuid, dateSalesInPerson),
     clientUuid SERIAL,
     FOREIGN KEY (clientUuid) REFERENCES Clients(clientUuid)
+
 );
 
 CREATE TABLE SalesOnline (
-    uuid SERIAL PRIMARY KEY,
-    date DATE PRIMARY KEY,
+    uuid SERIAL,
+    dateSalesOnline DATE,
+    PRIMARY KEY (uuid, dateSalesOnline),
     clientUuid SERIAL,
     FOREIGN KEY (clientUuid) REFERENCES Clients(clientUuid)
 );
@@ -254,19 +257,6 @@ CREATE TABLE Sales (
         (salesInPersonUuid IS NOT NULL AND salesOnlineUuid IS NULL) OR
         (salesInPersonUuid IS NULL AND salesOnlineUuid IS NOT NULL)
     )
-);
-
-CREATE TABLE PaymentMethods (
-    uuid SERIAL PRIMARY KEY,
-    paymentMethod VARCHAR(255) NOT NULL
-);
-
-CREATE TABLE Payments (
-    saleUuid SERIAL PRIMARY KEY,
-    FOREIGN KEY (saleUuid) REFERENCES Sales(uuid),
-    uuidMethod SERIAL,
-    FOREIGN KEY (uuidMethod) REFERENCES PaymentMethods(uuid),
-    amount INT NOT NULL
 );
 
 CREATE TABLE SalesTech (
@@ -312,6 +302,20 @@ CREATE TABLE SalesLibrary (
     price INT NOT NULL,
     returned BOOLEAN NOT NULL
 );
+
+CREATE TABLE PaymentMethods (
+    uuid SERIAL PRIMARY KEY,
+    paymentMethod VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE Payments (
+    saleUuid SERIAL PRIMARY KEY,
+    FOREIGN KEY (saleUuid) REFERENCES Sales(uuid),
+    uuidMethod SERIAL,
+    FOREIGN KEY (uuidMethod) REFERENCES PaymentMethods(uuid),
+    amount INT NOT NULL
+);
+
 
 
 
