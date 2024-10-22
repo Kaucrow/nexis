@@ -159,8 +159,15 @@ CREATE TABLE BookGenres (
     FOREIGN KEY (genreUuid) REFERENCES Genres(uuid)
 );
 
+CREATE TABLE ClothesTypes (
+    uuid SERIAL PRIMARY KEY,
+    typeName VARCHAR(255) NOT NULL
+);
+
 CREATE TABLE Clothes (
     uuid SERIAL PRIMARY KEY,
+    typeClothesUuid SERIAL,
+    FOREIGN KEY (typeClothesUuid) REFERENCES ClothesTypes(uuid),
     clothesName VARCHAR(255) NOT NULL,
     clothesPrice INT NOT NULL,
     clothesBrand VARCHAR(255) NOT NULL,
@@ -197,7 +204,6 @@ CREATE TABLE TechGpu (
     dedicated BOOLEAN NOT NULL
 );
 
-
 CREATE TABLE Tech (
     uuid SERIAL PRIMARY KEY,
     uuidCpu SERIAL,
@@ -218,12 +224,36 @@ CREATE TABLE TechColors (
     FOREIGN KEY (colorUuid) REFERENCES Colors(uuid)
 );
 
+CREATE TABLE ClientName (
+    uuid SERIAL PRIMARY KEY,
+    clientName VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE SalesInPerson (
+    uuid SERIAL PRIMARY KEY,
+    date DATE PRIMARY KEY,
+    clientUuid SERIAL,
+    FOREIGN KEY (clientUuid) REFERENCES Clients(clientUuid)
+);
+
+CREATE TABLE SalesOnline (
+    uuid SERIAL PRIMARY KEY,
+    date DATE PRIMARY KEY,
+    clientUuid SERIAL,
+    FOREIGN KEY (clientUuid) REFERENCES Clients(clientUuid)
+);
+
 CREATE TABLE Sales (
     uuid SERIAL PRIMARY KEY,
-    clientUuid SERIAL,
-    FOREIGN KEY (clientUuid) REFERENCES Clients(clientUuid),
-    salesName VARCHAR(255) NOT NULL,
-    date DATE NOT NULL
+    salesInPersonUuid SERIAL,
+    FOREIGN KEY (salesInPersonUuid) REFERENCES SalesInPerson(uuid),
+    salesOnlineUuid SERIAL,
+    FOREIGN KEY (salesOnlineUuid) REFERENCES SalesOnline(uuid),
+
+    CHECK (
+        (salesInPersonUuid IS NOT NULL AND salesOnlineUuid IS NULL) OR
+        (salesInPersonUuid IS NULL AND salesOnlineUuid IS NOT NULL)
+    )
 );
 
 CREATE TABLE PaymentMethods (
@@ -246,6 +276,7 @@ CREATE TABLE SalesTech (
     FOREIGN KEY (techUuid) REFERENCES Tech(uuid),
     employeeUuid SERIAL,   
     FOREIGN KEY (employeeUuid) REFERENCES Employees(employeeUuid),
+    price INT NOT NULL,
     returned BOOLEAN NOT NULL
 );
 
@@ -256,5 +287,31 @@ CREATE TABLE SalesClothes (
     FOREIGN KEY (clothesUuid) REFERENCES Clothes(uuid),
     employeeUuid SERIAL,   
     FOREIGN KEY (employeeUuid) REFERENCES Employees(employeeUuid),
+    price INT NOT NULL,
     returned BOOLEAN NOT NULL
 );
+
+CREATE TABLE SalesFood (
+    saleUuid SERIAL,
+    FOREIGN KEY (saleUuid) REFERENCES Sales(uuid),
+    foodUuid SERIAL,
+    FOREIGN KEY (foodUuid) REFERENCES Food(uuid),
+    employeeUuid SERIAL,
+    FOREIGN KEY (employeeUuid) REFERENCES Employees(employeeUuid),
+    price INT NOT NULL,
+    returned BOOLEAN NOT NULL
+);
+
+CREATE TABLE SalesLibrary (
+    saleUuid SERIAL,
+    FOREIGN KEY (saleUuid) REFERENCES Sales(uuid),
+    libraryUuid SERIAL,
+    FOREIGN KEY (libraryUuid) REFERENCES LibraryItems(uuid),
+    employeeUuid SERIAL,
+    FOREIGN KEY (employeeUuid) REFERENCES Employees(employeeUuid),
+    price INT NOT NULL,
+    returned BOOLEAN NOT NULL
+);
+
+
+
