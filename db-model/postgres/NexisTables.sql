@@ -241,7 +241,7 @@ CREATE TABLE SalesInPerson (
 CREATE TABLE SalesOnline (
     uuid SERIAL,
     dateSalesOnline DATE,
-    PRIMARY KEY (uuid, dateSalesOnline),
+    PRIMARY KEY (uuid,dateSalesOnline),
     clientUuid SERIAL,
     FOREIGN KEY (clientUuid) REFERENCES Clients(clientUuid)
 );
@@ -249,13 +249,22 @@ CREATE TABLE SalesOnline (
 CREATE TABLE Sales (
     uuid SERIAL PRIMARY KEY,
     salesInPersonUuid SERIAL,
-    FOREIGN KEY (salesInPersonUuid) REFERENCES SalesInPerson(uuid),
     salesOnlineUuid SERIAL,
-    FOREIGN KEY (salesOnlineUuid) REFERENCES SalesOnline(uuid),
+    dateSalesInPerson DATE,
+    dateSalesOnline DATE,
+
+    FOREIGN KEY (salesInPersonUuid, dateSalesInPerson) REFERENCES SalesInPerson(uuid, dateSalesInPerson),
+    FOREIGN KEY (salesOnlineUuid, dateSalesOnline) REFERENCES SalesOnline(uuid, dateSalesOnline),
 
     CHECK (
-        (salesInPersonUuid IS NOT NULL AND salesOnlineUuid IS NULL) OR
-        (salesInPersonUuid IS NULL AND salesOnlineUuid IS NOT NULL)
+        (
+            salesInPersonUuid IS NOT NULL AND dateSalesInPerson IS NOT NULL AND
+            salesOnlineUuid IS NULL AND dateSalesOnline IS NULL
+        ) OR
+        (
+            salesInPersonUuid IS NULL AND dateSalesInPerson IS NULL AND
+            salesOnlineUuid IS NOT NULL AND dateSalesOnline IS NOT NULL
+        )
     )
 );
 
