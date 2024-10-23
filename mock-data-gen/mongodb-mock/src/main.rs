@@ -1,4 +1,4 @@
-use std::iter::zip;
+use std::{iter::zip, mem::uninitialized};
 
 use mongodb_mock::{
     common::*,
@@ -107,27 +107,37 @@ async fn main() -> mongodb::error::Result<()> {
     tech_other_coll.insert_many(tech_others).await?;
     println!("- Inserted: other techs");
 
-    let stores_coll: Collection<Store> = db.collection("store");
-
-    let store: Store = Store::dummy_with_rng("clothes", &client, &fake::Faker, &mut rng).await?;
-    stores_coll.insert_one(store).await?;
-    println!("- Inserted: clothes store");
-    
-    let store: Store = Store::dummy_with_rng("food", &client, &fake::Faker, &mut rng).await?;
-    stores_coll.insert_one(store).await?;
-    println!("- Inserted: food store");
-
-    let store: Store = Store::dummy_with_rng("library", &client, &fake::Faker, &mut rng).await?;
-    stores_coll.insert_one(store).await?;
-    println!("- Inserted: library store");
+    let store_ids: HashMap<&str, ObjectIdWrapper> = (0..4).map(|i| {
+        match i {
+            0 => ("clothes", ObjectIdWrapper::dummy_with_rng(&Faker, &mut rng)),
+            1 => ("food", ObjectIdWrapper::dummy_with_rng(&Faker, &mut rng)),
+            2 => ("library", ObjectIdWrapper::dummy_with_rng(&Faker, &mut rng)),
+            3 => ("tech", ObjectIdWrapper::dummy_with_rng(&Faker, &mut rng)),
+            _ => unimplemented!(),
+        }
+    }).collect();
 
     let users_coll: Collection<User> = db.collection("user");
     let mut users: Vec<User> = Vec::new();
     for _ in 0..50 {
-        users.push(User::dummy_with_rng(&client, &Faker, &mut rng).await);
+        users.push(User::dummy_with_rng(&store_ids, &client, &Faker, &mut rng).await);
     }
     users_coll.insert_many(users).await?;
     println!("- Inserted: users");
+
+    let stores_coll: Collection<Store> = db.collection("store");
+
+    let store: Store = Store::dummy_with_rng("clothes", &store_ids, &client, &fake::Faker, &mut rng).await?;
+    stores_coll.insert_one(store).await?;
+    println!("- Inserted: clothes store");
+    
+    let store: Store = Store::dummy_with_rng("food", &store_ids, &client, &fake::Faker, &mut rng).await?;
+    stores_coll.insert_one(store).await?;
+    println!("- Inserted: food store");
+
+    let store: Store = Store::dummy_with_rng("library", &store_ids, &client, &fake::Faker, &mut rng).await?;
+    stores_coll.insert_one(store).await?;
+    println!("- Inserted: library store");
 
     Ok(())
 }

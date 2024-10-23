@@ -168,7 +168,15 @@ pub struct Store {
 }
 
 impl Store {
-    pub async fn dummy_with_rng<R: rand::Rng + ?Sized>(store_type: &str, client: &Client, config: &Faker, rng: &mut R) -> Result<Self, mongodb::error::Error> {
+    pub async fn dummy_with_rng<R: rand::Rng + ?Sized>(
+        store_type: &str,
+        store_ids: &HashMap<&str, ObjectIdWrapper>,
+        client: &Client,
+        config: &Faker,
+        rng: &mut R
+    ) -> Result<Self, mongodb::error::Error> {
+        let id = store_ids.get(store_type).expect(format!("Could not find store of type {store_type} in `store_ids`").as_str());
+
         let mut day_sales: Vec<DaySales> = Vec::new();
 
         for _ in 0..rng.gen_range(1..20) {
@@ -205,7 +213,7 @@ impl Store {
 
         Ok(
             Store {
-                _id: ObjectIdWrapper::dummy_with_rng(config, rng),
+                _id: id.clone(),
                 name,
                 num: rng.gen_range(100..200),
                 floor: rng.gen_range(0..1),

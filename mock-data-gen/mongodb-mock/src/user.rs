@@ -82,11 +82,17 @@ fn get_rnd_store_pipeline(store_amt: i64) -> Vec<Document> {
 }
 
 impl User {
-    pub async fn dummy_with_rng<R: Rng + ?Sized>(client: &mongodb::Client, config: &Faker, rng: &mut R) -> Self {
+    pub async fn dummy_with_rng<R: Rng + ?Sized>(
+        store_ids: &HashMap<&str, ObjectIdWrapper>,
+        client: &mongodb::Client,
+        config: &Faker,
+        rng: &mut R
+    ) -> Self {
         let db = client.database("nexis");
 
         let (client, employee, admin) = match rng.gen_range(0..3) {
             0 => {
+                /*
                 let stores_coll: Collection<Document> = db.collection("store");
                 let mut cursor = stores_coll.aggregate(get_rnd_store_pipeline(rng.gen_range(1..=4))).await.expect("");
                 let mut rnd_stores: Vec<ObjectIdWrapper> = Vec::new();
@@ -97,7 +103,21 @@ impl User {
                         panic!("Expected `_id` key for store");
                     }
                 }
+                */
+                let rnd_stores: Vec<ObjectIdWrapper> = {
+                    let mut used_stores: HashSet<ObjectIdWrapper> = HashSet::new();
+                    let store_ids: Vec<ObjectIdWrapper> = store_ids.values().map(|val| val.clone()).collect();
 
+                    (0..rng.gen_range(1..4)).filter_map(|_| {
+                        let store = store_ids.choose(rng).unwrap().clone();
+                        if used_stores.insert(store.clone()) {
+                            Some(store)
+                        } else {
+                            None
+                        }
+                    }).collect()
+                };
+                
                 let cart = if rng.gen_bool(0.5) {
                     let item_amt = rng.gen_range(1..=3);
                     let mut item_coll: HashMap<ObjectIdWrapper, String> = HashMap::new();
