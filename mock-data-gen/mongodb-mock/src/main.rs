@@ -7,7 +7,7 @@ use mongodb_mock::{
     food::Food,
     library::LibraryItem,
     tech::{ Cpu, Gpu, Tech, Keyboard, TechOther },
-    user::User,
+    user::{ User, Job },
 };
 
 #[tokio::main]
@@ -116,6 +116,15 @@ async fn main() -> mongodb::error::Result<()> {
             _ => unimplemented!(),
         }
     }).collect();
+
+    let store_ids_values: Vec<ObjectIdWrapper> = store_ids.values().map(|val| val.clone()).collect();
+
+    let jobs_coll: Collection<Job> = db.collection("storeJob");
+    let jobs: Vec<Job> = mongodb_mock::JOBS.iter().map(|name|
+        Job::dummy_with_rng(name, &store_ids_values, &client, &Faker, &mut rng)
+    ).collect();
+    jobs_coll.insert_many(jobs).await?;
+    println!("- Inserted: jobs");
 
     let users_coll: Collection<User> = db.collection("user");
     let mut users: Vec<User> = Vec::new();

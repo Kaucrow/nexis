@@ -7,3 +7,4 @@ pub mod store;
 pub mod user;
 
 pub use common::COLORS;
+pub use user::JOBS;
