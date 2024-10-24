@@ -1,5 +1,5 @@
 CREATE TABLE Users (
-    uuid SERIAL PRIMARY KEY,
+    uuid UUID PRIMARY KEY,
     nameUser VARCHAR(255) NOT NULL,
     username VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL,
@@ -7,7 +7,7 @@ CREATE TABLE Users (
 );
 
 CREATE TABLE Clients (
-    clientUuid SERIAL PRIMARY KEY,
+    clientUuid UUID PRIMARY KEY,
     FOREIGN KEY (clientUuid) REFERENCES Users(uuid),
     phone VARCHAR(255) NOT NULL,
     age INT NOT NULL,
@@ -15,32 +15,32 @@ CREATE TABLE Clients (
 );
 
 CREATE TABLE Employees (
-    employeeUuid SERIAL PRIMARY KEY,
+    employeeUuid UUID PRIMARY KEY,
     FOREIGN KEY (employeeUuid) REFERENCES Users(uuid),
     phone VARCHAR(255) NOT NULL,
     age INT NOT NULL
 );
 
 CREATE TABLE Admins (
-    adminUuid SERIAL PRIMARY KEY,
+    adminUuid UUID PRIMARY KEY,
     FOREIGN KEY (adminUuid) REFERENCES Users(uuid)
 );
 
 CREATE TABLE Schedule (
-    uuid SERIAL PRIMARY KEY,
-    employeeUuid SERIAL,
+    uuid UUID PRIMARY KEY,
+    employeeUuid UUID,
     FOREIGN KEY (employeeUuid) REFERENCES Employees(employeeUuid),
     enterDate DATE NOT NULL,
     exitDate DATE NOT NULL
 );
 
 CREATE TABLE Jobs (
-    uuid SERIAL PRIMARY KEY,
+    uuid UUID PRIMARY KEY,
     jobName VARCHAR(255) NOT NULL
 );
 
 CREATE TABLE Stores (
-    uuid SERIAL PRIMARY KEY,
+    uuid UUID PRIMARY KEY,
     storeName VARCHAR(255) NOT NULL,
     storeNum INT NOT NULL,
     storeFloor INT NOT NULL,
@@ -50,123 +50,123 @@ CREATE TABLE Stores (
 );
 
 CREATE TABLE StoreJobs (
-    uuid SERIAL PRIMARY KEY,
-    storeUuid SERIAL,
+    uuid UUID PRIMARY KEY,
+    storeUuid UUID,
     FOREIGN KEY (storeUuid) REFERENCES Stores(uuid),
-    jobUuid SERIAL,
+    jobUuid UUID,
     FOREIGN KEY (jobUuid) REFERENCES Jobs(uuid),
     payPerHour INT NOT NULL,
     payPerWeek INT NOT NULL
 );
 
 CREATE TABLE EmployeeJob (
-    scheduleUuid SERIAL PRIMARY KEY,
+    scheduleUuid UUID PRIMARY KEY,
     FOREIGN KEY (scheduleUuid) REFERENCES Schedule(uuid),
-    storeJobUuid SERIAL,
+    storeJobUuid UUID,
     FOREIGN KEY (storeJobUuid) REFERENCES StoreJobs(uuid)
 );
 
 CREATE TABLE StoreOwners (
-    adminUuid SERIAL,
+    adminUuid UUID,
     FOREIGN KEY (adminUuid) REFERENCES Admins(adminUuid),
-    storeUuid SERIAL,
+    storeUuid UUID,
     FOREIGN KEY (storeUuid) REFERENCES Stores(uuid),
     incomePercentage INT NOT NULL
 );
 
 CREATE TABLE FoodType (
-    uuid SERIAL PRIMARY KEY,
+    uuid UUID PRIMARY KEY,
     typeName VARCHAR(255) NOT NULL,
     pricePerKg INT NOT NULL
 );
 
 CREATE TABLE Food (
-    uuid SERIAL PRIMARY KEY,
-    typeFoodUuid SERIAL,
+    uuid UUID PRIMARY KEY,
+    typeFoodUuid UUID,
     FOREIGN KEY (typeFoodUuid) REFERENCES FoodType(uuid),
     foodName VARCHAR(255) NOT NULL,
     foodPrice INT NOT NULL
 );
 
 CREATE TABLE FoodLot (
-    uuid SERIAL PRIMARY KEY,
+    uuid UUID PRIMARY KEY,
     enterDate DATE NOT NULL,
     expiry DATE NOT NULL
 );
 
 CREATE TABLE FoodLotItems (
-    foodLotUuid SERIAL,
+    foodLotUuid UUID,
     FOREIGN KEY (foodLotUuid) REFERENCES FoodLot(uuid),
-    foodUuid SERIAL,
+    foodUuid UUID,
     FOREIGN KEY (foodUuid) REFERENCES Food(uuid),
     quantityInStock INT NOT NULL
 );
 
 CREATE TABLE LibraryItems (
-    uuid SERIAL PRIMARY KEY,
+    uuid UUID PRIMARY KEY,
     itemName VARCHAR(255) NOT NULL,
     itemPrice INT NOT NULL
 );
 
 CREATE TABLE BookPublishers (
-    uuid SERIAL PRIMARY KEY,
+    uuid UUID PRIMARY KEY,
     publisherName VARCHAR(255) NOT NULL
 );
 
 
 CREATE TABLE Books (
-    libraryItemUuid SERIAL PRIMARY KEY,
+    libraryItemUuid UUID PRIMARY KEY,
     FOREIGN KEY (libraryItemUuid) REFERENCES LibraryItems(uuid),
-    publisherUuid SERIAL,
+    publisherUuid UUID,
     FOREIGN KEY (publisherUuid) REFERENCES BookPublishers(uuid),
     numPages INT NOT NULL,
     bookEdition VARCHAR(255) NOT NULL
 );
 
 CREATE TABLE Authors (
-    uuid SERIAL PRIMARY KEY,
+    uuid UUID PRIMARY KEY,
     authorName VARCHAR(255) NOT NULL
 );
 
 CREATE TABLE BookAuthors (
-    bookUuid SERIAL,
+    bookUuid UUID,
     FOREIGN KEY (bookUuid) REFERENCES Books(libraryItemUuid),
-    authorUuid SERIAL,
+    authorUuid UUID,
     FOREIGN KEY (authorUuid) REFERENCES Authors(uuid)
 );
 
 CREATE TABLE Audiences (
-    uuid SERIAL PRIMARY KEY,
+    uuid UUID PRIMARY KEY,
     audienceName VARCHAR(255) NOT NULL
 );
 
 CREATE TABLE BookAudiences (
-    bookUuid SERIAL,
+    bookUuid UUID,
     FOREIGN KEY (bookUuid) REFERENCES Books(libraryItemUuid),
-    audienceUuid SERIAL,
+    audienceUuid UUID,
     FOREIGN KEY (audienceUuid) REFERENCES Audiences(uuid)
 );
 
 CREATE TABLE Genres (
-    uuid SERIAL PRIMARY KEY,
+    uuid UUID PRIMARY KEY,
     genreName VARCHAR(255) NOT NULL
 );
 
 CREATE TABLE BookGenres (
-    bookUuid SERIAL,
+    bookUuid UUID,
     FOREIGN KEY (bookUuid) REFERENCES Books(libraryItemUuid),
-    genreUuid SERIAL,
+    genreUuid UUID,
     FOREIGN KEY (genreUuid) REFERENCES Genres(uuid)
 );
 
 CREATE TABLE ClothesTypes (
-    uuid SERIAL PRIMARY KEY,
+    uuid UUID PRIMARY KEY,
     typeName VARCHAR(255) NOT NULL
 );
 
 CREATE TABLE Clothes (
-    uuid SERIAL PRIMARY KEY,
-    typeClothesUuid SERIAL,
+    uuid UUID PRIMARY KEY,
+    typeClothesUuid UUID,
     FOREIGN KEY (typeClothesUuid) REFERENCES ClothesTypes(uuid),
     clothesName VARCHAR(255) NOT NULL,
     clothesPrice INT NOT NULL,
@@ -177,19 +177,19 @@ CREATE TABLE Clothes (
 );
 
 CREATE TABLE Colors (
-    uuid SERIAL PRIMARY KEY,
+    uuid UUID PRIMARY KEY,
     colorName VARCHAR(255) NOT NULL
 );
 
 CREATE TABLE ClothesColors (
-    clothesUuid SERIAL,
+    clothesUuid UUID,
     FOREIGN KEY (clothesUuid) REFERENCES Clothes(uuid),
-    colorUuid SERIAL,
+    colorUuid UUID,
     FOREIGN KEY (colorUuid) REFERENCES Colors(uuid)
 );
 
 CREATE TABLE TechCpu (
-    uuid SERIAL PRIMARY KEY,
+    uuid UUID PRIMARY KEY,
     cpuBrand VARCHAR(255) NOT NULL,
     cpuModel VARCHAR(255) NOT NULL,
     cpuPrice INT NOT NULL,
@@ -197,7 +197,7 @@ CREATE TABLE TechCpu (
 );
 
 CREATE TABLE TechGpu (
-    uuid SERIAL PRIMARY KEY,
+    uuid UUID PRIMARY KEY,
     gpuBrand VARCHAR(255) NOT NULL,
     gpuModel VARCHAR(255) NOT NULL,
     gpuPrice INT NOT NULL,
@@ -205,10 +205,10 @@ CREATE TABLE TechGpu (
 );
 
 CREATE TABLE Tech (
-    uuid SERIAL PRIMARY KEY,
-    uuidCpu SERIAL,
+    uuid UUID PRIMARY KEY,
+    uuidCpu UUID,
     FOREIGN KEY (uuidCpu) REFERENCES TechCpu(uuid),
-    uuidGpu SERIAL,
+    uuidGpu UUID,
     FOREIGN KEY (uuidGpu) REFERENCES TechGpu(uuid),
     techName VARCHAR(255) NOT NULL,
     techPrice INT NOT NULL,
@@ -218,38 +218,38 @@ CREATE TABLE Tech (
 );
 
 CREATE TABLE TechColors (
-    techUuid SERIAL,
+    techUuid UUID,
     FOREIGN KEY (techUuid) REFERENCES Tech(uuid),
-    colorUuid SERIAL,
+    colorUuid UUID,
     FOREIGN KEY (colorUuid) REFERENCES Colors(uuid)
 );
 
 CREATE TABLE ClientName (
-    uuid SERIAL PRIMARY KEY,
+    uuid UUID PRIMARY KEY,
     clientName VARCHAR(255) NOT NULL
 );
 
 CREATE TABLE SalesInPerson (
-    uuid SERIAL,
+    uuid UUID,
     dateSalesInPerson DATE,
     PRIMARY KEY (uuid, dateSalesInPerson),
-    clientUuid SERIAL,
+    clientUuid UUID,
     FOREIGN KEY (clientUuid) REFERENCES Clients(clientUuid)
 
 );
 
 CREATE TABLE SalesOnline (
-    uuid SERIAL,
+    uuid UUID,
     dateSalesOnline DATE,
     PRIMARY KEY (uuid,dateSalesOnline),
-    clientUuid SERIAL,
+    clientUuid UUID,
     FOREIGN KEY (clientUuid) REFERENCES Clients(clientUuid)
 );
 
 CREATE TABLE Sales (
-    uuid SERIAL PRIMARY KEY,
-    salesInPersonUuid SERIAL,
-    salesOnlineUuid SERIAL,
+    uuid UUID PRIMARY KEY,
+    salesInPersonUuid UUID,
+    salesOnlineUuid UUID,
     dateSalesInPerson DATE,
     dateSalesOnline DATE,
 
@@ -269,64 +269,64 @@ CREATE TABLE Sales (
 );
 
 CREATE TABLE SalesTech (
-    saleUuid SERIAL,
+    saleUuid UUID,
     FOREIGN KEY (saleUuid) REFERENCES Sales(uuid),
-    techUuid SERIAL,
+    techUuid UUID,
     FOREIGN KEY (techUuid) REFERENCES Tech(uuid),
-    employeeUuid SERIAL,   
+    employeeUuid UUID,   
     FOREIGN KEY (employeeUuid) REFERENCES Employees(employeeUuid),
     price INT NOT NULL,
     returned BOOLEAN NOT NULL
 );
 
 CREATE TABLE SalesClothes (
-    saleUuid SERIAL,
+    saleUuid UUID,
     FOREIGN KEY (saleUuid) REFERENCES Sales(uuid),
-    clothesUuid SERIAL,
+    clothesUuid UUID,
     FOREIGN KEY (clothesUuid) REFERENCES Clothes(uuid),
-    employeeUuid SERIAL,   
+    employeeUuid UUID,   
     FOREIGN KEY (employeeUuid) REFERENCES Employees(employeeUuid),
     price INT NOT NULL,
     returned BOOLEAN NOT NULL
 );
 
 CREATE TABLE SalesFood (
-    saleUuid SERIAL,
+    saleUuid UUID,
     FOREIGN KEY (saleUuid) REFERENCES Sales(uuid),
-    foodUuid SERIAL,
+    foodUuid UUID,
     FOREIGN KEY (foodUuid) REFERENCES Food(uuid),
-    employeeUuid SERIAL,
+    employeeUuid UUID,
     FOREIGN KEY (employeeUuid) REFERENCES Employees(employeeUuid),
     price INT NOT NULL,
     returned BOOLEAN NOT NULL
 );
 
 CREATE TABLE SalesLibrary (
-    saleUuid SERIAL,
+    saleUuid UUID,
     FOREIGN KEY (saleUuid) REFERENCES Sales(uuid),
-    libraryUuid SERIAL,
+    libraryUuid UUID,
     FOREIGN KEY (libraryUuid) REFERENCES LibraryItems(uuid),
-    employeeUuid SERIAL,
+    employeeUuid UUID,
     FOREIGN KEY (employeeUuid) REFERENCES Employees(employeeUuid),
     price INT NOT NULL,
     returned BOOLEAN NOT NULL
 );
 
 CREATE TABLE PaymentMethods (
-    uuid SERIAL PRIMARY KEY,
+    uuid UUID PRIMARY KEY,
     paymentMethod VARCHAR(255) NOT NULL
 );
 
 CREATE TABLE Payments (
-    saleUuid SERIAL PRIMARY KEY,
+    saleUuid UUID PRIMARY KEY,
     FOREIGN KEY (saleUuid) REFERENCES Sales(uuid),
-    uuidMethod SERIAL,
+    uuidMethod UUID,
     FOREIGN KEY (uuidMethod) REFERENCES PaymentMethods(uuid),
     amount INT NOT NULL
 );
 
 CREATE TABLE EmployeeStats (
-    employeeUuid SERIAL,
+    employeeUuid UUID,
     FOREIGN KEY (employeeUuid) REFERENCES Employees(employeeUuid),
     dateES DATE NOT NULL,
     PRIMARY KEY (employeeUuid, dateES),
@@ -334,35 +334,35 @@ CREATE TABLE EmployeeStats (
 );
 
 CREATE TABLE TechStats (
-    techUuid SERIAL,
+    techUuid UUID,
     dateTechStats DATE,
     PRIMARY KEY (techUuid, dateTechStats),
     salesPerWeek INT NOT NULL
 );
 
 CREATE TABLE TechBrandStats (
-    uuid SERIAL PRIMARY KEY,
+    uuid UUID PRIMARY KEY,
     nameTBS VARCHAR(255) NOT NULL
 );
 
 CREATE TABLE TechModelsStats (
-    uuid SERIAL,
+    uuid UUID,
     dateTechModelsStats DATE NOT NULL,
     PRIMARY KEY (uuid, dateTechModelsStats),
-    brandUuid SERIAL,
+    brandUuid UUID,
     FOREIGN KEY (brandUuid) REFERENCES TechBrandStats(uuid),
     nameTMS VARCHAR(255) NOT NULL,
     percentageTMS INT NOT NULL
 );
 
 CREATE TABLE FoodStats (
-    foodUuid SERIAL PRIMARY KEY,
+    foodUuid UUID PRIMARY KEY,
     FOREIGN KEY (foodUuid) REFERENCES Food(uuid)
 
 );
 
 CREATE TABLE LibraryStats (
-    libraryUuid SERIAL,
+    libraryUuid UUID,
     dateLS DATE NOT NULL,
     FOREIGN KEY (libraryUuid) REFERENCES LibraryItems(uuid),
     PRIMARY KEY (libraryUuid, dateLS),
@@ -377,7 +377,7 @@ CREATE TABLE LibraryGenderStats (
 );
 
 CREATE TABLE ClothesStats(
-    clothesUuid SERIAL,
+    clothesUuid UUID,
     dateCS DATE NOT NULL,
     FOREIGN KEY (clothesUuid) REFERENCES Clothes(uuid),
     PRIMARY KEY (clothesUuid, dateCS),
@@ -397,13 +397,13 @@ CREATE TABLE GenderClothesStats (
 );
 
 CREATE TABLE ExpiredFoodStats (
-    foodLotUuid SERIAL,
+    foodLotUuid UUID,
     FOREIGN KEY (foodLotUuid) REFERENCES FoodLot(uuid),
     quantity INT NOT NULL
 );
 
 CREATE TABLE GenreLibraryStats (
-    uuidGenre SERIAL,
+    uuidGenre UUID,
     dateGLS DATE NOT NULL,
     FOREIGN KEY (uuidGenre) REFERENCES Genres(uuid),
     PRIMARY KEY (uuidGenre, dateGLS),
