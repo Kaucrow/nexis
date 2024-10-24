@@ -20,6 +20,12 @@ pub use rand::prelude::SliceRandom;
 pub use futures_util::stream::{ self, StreamExt, TryStreamExt };
 pub use std::collections::{ HashMap, HashSet };
 
+use argon2::{
+    password_hash::{
+        rand_core::OsRng, PasswordHasher, SaltString
+    },
+    Argon2
+};
 use once_cell::sync::Lazy;
 
 pub static ITEM_COLLS: Lazy<Vec<&'static str>> = Lazy::new(|| vec![
@@ -246,4 +252,12 @@ impl Dummy<Faker> for Lot {
             code: (0..code_amt).map(|_| ObjectIdWrapper::dummy_with_rng(config, rng)).collect(),
         }
     }
+}
+
+pub async fn hash(password: &[u8]) -> String {
+    let salt = SaltString::generate(&mut OsRng);
+    Argon2::default()
+        .hash_password(password, &salt)
+        .expect("Unable to hash password.")
+        .to_string()
 }

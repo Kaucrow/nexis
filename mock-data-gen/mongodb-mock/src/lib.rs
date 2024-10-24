@@ -7,5 +7,5 @@ pub mod store;
 pub mod user;
 pub mod other;
 
-pub use common::{ COLORS, ITEM_COLLS };
+pub use common::{ COLORS, ITEM_COLLS, hash };
 pub use other::JOBS;

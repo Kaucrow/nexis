@@ -1,14 +1,7 @@
 use std::iter::zip;
 
 use mongodb_mock::{
-    common::*,
-    clothes::Clothes,
-    store::Store,
-    food::Food,
-    library::LibraryItem,
-    tech::{ Cpu, Gpu, Tech, Keyboard, TechOther },
-    user::User,
-    other::Job,
+    clothes::Clothes, common::*, food::Food, library::LibraryItem, other::Job, store::Store, tech::{ Cpu, Gpu, Keyboard, Tech, TechOther }, user::{User, UserDetails}
 };
 
 #[tokio::main]
@@ -134,6 +127,24 @@ async fn main() -> mongodb::error::Result<()> {
     }
     users_coll.insert_many(users).await?;
     println!("- Inserted: users");
+
+    let custom_user_details =
+        UserDetails {
+            email: "someemail@test.com".to_string(),
+            username: "kaucrow".to_string(),
+            password: "12345678".to_string(),
+            name: "kaucrow".to_string(),
+        };
+    let custom_user = User::custom(
+        vec!["client", "employee", "admin"],
+        &custom_user_details,
+        &store_ids_values,
+        &client,
+        &Faker,
+        &mut rng
+    ).await;
+    users_coll.insert_one(custom_user).await?;
+    println!("- Inserted: custom user with details: {:?}", custom_user_details);
 
     let stores_coll: Collection<Store> = db.collection("store");
 

@@ -297,6 +297,14 @@ pub struct User {
     admin: Option<Box<Admin>>,
 }
 
+#[derive(Debug)]
+pub struct UserDetails {
+    pub email: String,
+    pub username: String,
+    pub password: String,
+    pub name: String,
+}
+
 impl User {
     pub async fn dummy_with_rng<R: Rng + ?Sized>(
         store_ids: &Vec<ObjectIdWrapper>,
@@ -338,6 +346,42 @@ impl User {
             client,
             employee,
             admin, 
-        } 
+        }
+    }
+
+    pub async fn custom<R: Rng + ?Sized>(
+        roles: Vec<&str>,
+        details: &UserDetails,
+        store_ids: &Vec<ObjectIdWrapper>,
+        mongo_client: &mongodb::Client,
+        config: &Faker,
+        rng: &mut R
+    ) -> Self {
+        let mut client: Option<Box<Client>> = None;
+        let mut employee: Option<Box<Employee>> = None;
+        let mut admin: Option<Box<Admin>> = None;
+
+        for role in roles {
+            match role {
+                "client" =>
+                    client = Some(Box::new(Client::dummy_with_rng(store_ids, mongo_client, config, rng).await)),
+                "employee" =>
+                    employee = Some(Box::new(Employee::dummy_with_rng(mongo_client, config, rng).await)),
+                "admin" =>
+                    admin = Some(Box::new(Admin {})),
+                _ => unimplemented!("Unknown role")
+            }
+        }
+
+        User {
+            _id: ObjectIdWrapper::dummy_with_rng(config, rng),
+            email: details.email.clone(),
+            username: details.username.clone(),
+            password: hash(details.password.as_bytes()).await,
+            name: details.name.clone(),
+            client,
+            employee,
+            admin,
+        }
     }
 }
