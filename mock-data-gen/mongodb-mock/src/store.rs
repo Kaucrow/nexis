@@ -72,7 +72,7 @@ pub struct DaySales {
     item: Vec<ItemCode>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 struct ItemCode {
     coll: String,
     _id: ObjectIdWrapper,
@@ -116,17 +116,34 @@ impl DaySales {
                 db.collection::<Document>(collection)
             };
 
-            let mut cursor = collection.aggregate(RND_ITEM_PIPELINE.clone()).await?;
+            let mut cursor = collection.aggregate(get_rnd_item_pipeline(1)).await?;
             if let Some(res) = cursor.try_next().await? {
                 if store == "food" {
-                    let item: FoodItemSimple = mongodb::bson::from_document(res)?;
+                    let item: FoodItemSimple = bson::from_document(res)?;
                     process_item(item, collection.name().to_string(), &mut items);
                 } else {
-                    let item: ItemSimple = mongodb::bson::from_document(res)?;
+                    let item: ItemSimple = bson::from_document(res)?;
                     process_item(item, collection.name().to_string(), &mut items);
                 }
             }
         }
+
+        for item in items.clone() {
+            let coll: Collection<Document> = db.collection(&item.coll);
+
+            let filter = doc! {
+                "_id": item._id.0,
+                "lot._id": item.lot.0,
+            };
+
+            let update = doc! {
+                "$pull": {
+                    "lot.$.code": item.code.0,
+                }
+            };
+
+            coll.update_one(filter, update).await?;
+        };
 
         Ok(
             DaySales {

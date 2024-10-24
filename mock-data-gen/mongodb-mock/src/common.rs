@@ -1,7 +1,7 @@
 pub use fake::{
     { Dummy, Fake, Faker, Rng },
     faker::{
-        lorem::en::Word,
+        lorem::en::{ Word, Words },
         name::en::Name,
         barcode::en::Isbn,
         internet::en::{ FreeEmail, Username, Password },
@@ -9,7 +9,7 @@ pub use fake::{
     },
 };
 pub use mongodb::{
-    bson::{ Bson, doc, Document, oid::ObjectId },
+    bson::{ self, Bson, doc, Document, oid::ObjectId },
     options::{ ClientOptions, ResolverConfig, ServerApi, ServerApiVersion },
     Client,
     Collection
@@ -22,23 +22,17 @@ pub use std::collections::{ HashMap, HashSet };
 
 use once_cell::sync::Lazy;
 
+pub static ITEM_COLLS: Lazy<Vec<&'static str>> = Lazy::new(|| vec![
+    "clothes", "food", "libraryItem", "techCpu", "techGpu", "tech", "techOther", "techKeyboard"
+]);
+
 pub static COLORS: Lazy<Vec<&'static str>> = Lazy::new(|| vec![
     "red", "green", "blue", "yellow", "orange", "teal", "purple", "pink", "white", "black", "brown"
 ]);
 
-pub static RND_ITEM_PIPELINE: Lazy<Vec<Document>> = Lazy::new(|| vec![
-    doc! { "$addFields": { "random": {"$rand": {} }}},
-    doc! { "$sort": { "random": 1 }},
-    doc! { "$limit": 1 },
-    doc! { "$match": { "lot": { "$elemMatch": { "code": { "$ne": [] }}}}},
-    doc! { "$project": { "_id": 1, "lot": 1 }},
-]);
-
 pub fn get_rnd_item_pipeline(item_amt: i64) -> Vec<Document> {
     vec![
-        doc! { "$addFields": { "random": {"$rand": {} }}},
-        doc! { "$sort": { "random": 1 }},
-        doc! { "$limit": item_amt },
+        doc! { "$sample": { "size": item_amt }},
         doc! { "$match": { "lot": { "$elemMatch": { "code": { "$ne": [] }}}}},
         doc! { "$project": { "_id": 1, "lot": 1 }},
     ]
@@ -142,14 +136,14 @@ pub async fn get_rnd_item_simple<R: Rng + ?Sized>(rng: &mut R, client: &Client, 
     if coll_name == &"food" {
         let item: FoodItemSimple = {
             if let Ok(Some(res)) = cursor.try_next().await {
-                mongodb::bson::from_document(res).unwrap()
+                bson::from_document(res).unwrap()
             } else { panic!("Err getting simple item in collection `{}`", coll_name) }
         };
         (SimpleItem::Food(item), coll_name.to_string())
     } else {
         let item: ItemSimple = {
             if let Ok(Some(res)) = cursor.try_next().await {
-                mongodb::bson::from_document(res).unwrap()
+                bson::from_document(res).unwrap()
             } else { panic!("Err getting simple item in collection `{}`", coll_name) }
         };
         (SimpleItem::Regular(item), coll_name.to_string())

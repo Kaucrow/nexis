@@ -13,6 +13,13 @@
             "dateAdded": "Date",
             "coll": "String",
             "item": "ObjectId"
+        }],
+        "reviews": null | [{
+            "stars": "Number",
+            "title": "String",
+            "comment": "String",
+            "coll": "String",
+            "item": "ObjectId"
         }]
     },
     "employee": null | {

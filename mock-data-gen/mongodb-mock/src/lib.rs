@@ -5,6 +5,7 @@ pub mod library;
 pub mod tech;
 pub mod store;
 pub mod user;
+pub mod other;
 
-pub use common::COLORS;
-pub use user::JOBS;
+pub use common::{ COLORS, ITEM_COLLS };
+pub use other::JOBS;

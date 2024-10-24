@@ -1,4 +1,4 @@
-use std::{iter::zip, mem::uninitialized};
+use std::iter::zip;
 
 use mongodb_mock::{
     common::*,
@@ -7,7 +7,8 @@ use mongodb_mock::{
     food::Food,
     library::LibraryItem,
     tech::{ Cpu, Gpu, Tech, Keyboard, TechOther },
-    user::{ User, Job },
+    user::User,
+    other::Job,
 };
 
 #[tokio::main]
@@ -98,12 +99,12 @@ async fn main() -> mongodb::error::Result<()> {
     println!("- Inserted: techs");
 
     let keyb_coll: Collection<Keyboard> = db.collection("techKeyboard");
-    let keybs: Vec<Keyboard> = (0..=50).map(|_| Keyboard::dummy_with_rng(&Faker, &mut rng)).collect();
+    let keybs: Vec<Keyboard> = (0..50).map(|_| Keyboard::dummy_with_rng(&Faker, &mut rng)).collect();
     keyb_coll.insert_many(keybs).await?;
     println!("- Inserted: keyboards");
 
     let tech_other_coll: Collection<TechOther> = db.collection("techOther");
-    let tech_others: Vec<TechOther> = (0..=50).map(|_| TechOther::dummy_with_rng(&Faker, &mut rng)).collect();
+    let tech_others: Vec<TechOther> = (0..50).map(|_| TechOther::dummy_with_rng(&Faker, &mut rng)).collect();
     tech_other_coll.insert_many(tech_others).await?;
     println!("- Inserted: other techs");
 
@@ -129,7 +130,7 @@ async fn main() -> mongodb::error::Result<()> {
     let users_coll: Collection<User> = db.collection("user");
     let mut users: Vec<User> = Vec::new();
     for _ in 0..50 {
-        users.push(User::dummy_with_rng(&store_ids, &client, &Faker, &mut rng).await);
+        users.push(User::dummy_with_rng(&store_ids_values, &client, &Faker, &mut rng).await);
     }
     users_coll.insert_many(users).await?;
     println!("- Inserted: users");
