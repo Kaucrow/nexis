@@ -44,7 +44,9 @@ impl Payment {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ClientSaleInfo {
+    #[serde(skip_serializing_if = "Option::is_none")]
     name: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     user: Option<ObjectIdWrapper>,
 }
 
@@ -162,15 +164,6 @@ pub struct Owner {
     income_percentage: f64,
 }
 
-impl Owner {
-    pub fn dummy_with_rng<R: rand::Rng + ?Sized>(owner: ObjectIdWrapper, rng: &mut R) -> Self {
-        Owner {
-            owner,
-            income_percentage: format!("{:.2}", rng.gen_range(1.0..100.0)).parse().expect(""),
-        }
-    }
-}
-
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Store {
     _id: ObjectIdWrapper,
@@ -208,15 +201,58 @@ impl Store {
             )
         }
 
-        let set_owners: Vec<ObjectIdWrapper> =
-            (0..rng.gen_range(1..3)).map(|_|
-                ObjectIdWrapper::dummy_with_rng(config, rng)
-            ).collect();
+        let db = client.database("nexis");
+        let users_coll: Collection<Document> = db.collection("user");
 
-        let set_employees: Vec<ObjectIdWrapper> =
-            (0..rng.gen_range(3..6)).map(|_|
-                ObjectIdWrapper::dummy_with_rng(config, rng)
-            ).collect();
+        let owners: HashMap<ObjectIdWrapper, f64> = {
+            let mut owners: HashMap<ObjectIdWrapper, f64> = HashMap::new();
+            let owners_amt = rng.gen_range(1..=3);
+
+            let mut cursor = users_coll.aggregate(vec![
+                doc! { "$match": { "admin": { "$exists": 1 }}},
+                doc! { "$sample": { "size": owners_amt as i32}},
+            ]).await?;
+                
+            let mut owner_ids: Vec<ObjectIdWrapper> = Vec::new();
+            while let Some(res) = cursor.try_next().await? {
+                if let Some(Bson::ObjectId(oid)) = res.get("_id") {
+                    owner_ids.push(ObjectIdWrapper(*oid));
+                }
+            }
+
+            let mut remaining_percentage = 100.0;
+            for i in 0..owners_amt {
+                let percentage = if i == owners_amt - 1 {
+                    remaining_percentage.round_to_2()
+                } else {
+                    let rnd_percentage = rng.gen_range(1.0..remaining_percentage / (owners_amt - i) as f64).round_to_2();
+                    remaining_percentage -= rnd_percentage;
+                    rnd_percentage
+                };
+
+                owners.insert(owner_ids[i].clone(), percentage);
+            }
+
+            owners
+        };
+
+        let employees: Vec<ObjectIdWrapper> = {
+            let mut employees: Vec<ObjectIdWrapper> = Vec::new();
+            let employees_amt = rng.gen_range(3..=8);
+
+            let mut cursor = users_coll.aggregate(vec![
+                doc!{ "$match": { "employee.schedule": { "$elemMatch": { "store": id.0 }}}},
+                doc!{ "$sample": { "size": employees_amt }}
+            ]).await?;
+
+            while let Some(res) = cursor.try_next().await? {
+                if let Some(Bson::ObjectId(oid)) = res.get("_id") {
+                    employees.push(ObjectIdWrapper(*oid));
+                }
+            }
+
+            employees
+        };
 
         let name = String::from(
             match store_type {
@@ -236,8 +272,13 @@ impl Store {
                 floor: rng.gen_range(0..1),
                 size: Size::dummy_with_rng(config, rng),
                 day_sales,
-                owner: set_owners.into_iter().map(|owner| Owner::dummy_with_rng(owner, rng)).collect(),
-                employee: set_employees,
+                owner: owners.into_iter().map(|(owner, percentage)|
+                    Owner {
+                        owner,
+                        income_percentage: percentage
+                    }
+                ).collect(),
+                employee: employees,
             }
         )
     }

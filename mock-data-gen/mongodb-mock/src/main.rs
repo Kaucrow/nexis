@@ -149,5 +149,9 @@ async fn main() -> mongodb::error::Result<()> {
     stores_coll.insert_one(store).await?;
     println!("- Inserted: library store");
 
+    let store: Store = Store::dummy_with_rng("tech", &store_ids, &client, &fake::Faker, &mut rng).await?;
+    stores_coll.insert_one(store).await?;
+    println!("- Inserted: tech store");
+
     Ok(())
 }

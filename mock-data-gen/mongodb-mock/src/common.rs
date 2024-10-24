@@ -166,21 +166,21 @@ pub struct ItemSimple {
     pub lot: Vec<Lot>,
 }
 
-impl Dummy<Faker> for Size {
-    fn dummy_with_rng<R: rand::Rng + ?Sized>(_config: &Faker, rng: &mut R) -> Self {
-        Size {
-            length: rng.gen_range(1.0..50.0),
-            width: rng.gen_range(1.0..50.0),
-            height: rng.gen_range(1.0..50.0),
-        } 
-    }
-}
-
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Size {
     length: f64,
     width: f64,
     height: f64, 
+}
+
+impl Dummy<Faker> for Size {
+    fn dummy_with_rng<R: rand::Rng + ?Sized>(_config: &Faker, rng: &mut R) -> Self {
+        Size {
+            length: (rng.gen_range(1.0..50.0) as f64).round_to_2(),
+            width: (rng.gen_range(1.0..50.0) as f64).round_to_2(),
+            height: (rng.gen_range(1.0..50.0) as f64).round_to_2(),
+        } 
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Hash)]
