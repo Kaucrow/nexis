@@ -1,8 +1,0 @@
-{
-    "_id": "ObjectId",
-    "User": "ObjectId",
-    "Feedback": [{
-        "comment": "String",
-        "Store": "ObjectId"
-    }]
-}
