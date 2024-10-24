@@ -1,6 +1,6 @@
 CREATE TABLE Users (
     uuid SERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
+    nameUser VARCHAR(255) NOT NULL,
     username VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL,
     password VARCHAR(255) NOT NULL
@@ -325,6 +325,88 @@ CREATE TABLE Payments (
     amount INT NOT NULL
 );
 
+CREATE TABLE EmployeeStats (
+    employeeUuid SERIAL,
+    FOREIGN KEY (employeeUuid) REFERENCES Employees(employeeUuid),
+    dateES DATE NOT NULL,
+    PRIMARY KEY (employeeUuid, dateES),
+    salesPerWeek INT NOT NULL
+);
 
+CREATE TABLE TechStats (
+    techUuid SERIAL,
+    dateTechStats DATE,
+    PRIMARY KEY (techUuid, dateTechStats),
+    salesPerWeek INT NOT NULL
+);
 
+CREATE TABLE TechBrandStats (
+    uuid SERIAL PRIMARY KEY,
+    nameTBS VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE TechModelsStats (
+    uuid SERIAL,
+    dateTechModelsStats DATE NOT NULL,
+    PRIMARY KEY (uuid, dateTechModelsStats),
+    brandUuid SERIAL,
+    FOREIGN KEY (brandUuid) REFERENCES TechBrandStats(uuid),
+    nameTMS VARCHAR(255) NOT NULL,
+    percentageTMS INT NOT NULL
+);
+
+CREATE TABLE FoodStats (
+    foodUuid SERIAL PRIMARY KEY,
+    FOREIGN KEY (foodUuid) REFERENCES Food(uuid)
+
+);
+
+CREATE TABLE LibraryStats (
+    libraryUuid SERIAL,
+    dateLS DATE NOT NULL,
+    FOREIGN KEY (libraryUuid) REFERENCES LibraryItems(uuid),
+    PRIMARY KEY (libraryUuid, dateLS),
+    salesPerWeek INT NOT NULL,
+    bookOfTheWeek VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE LibraryGenderStats (
+    dateLGS DATE PRIMARY KEY,
+    malePercentage INT NOT NULL,
+    femalePercentage INT NOT NULL
+);
+
+CREATE TABLE ClothesStats(
+    clothesUuid SERIAL,
+    dateCS DATE NOT NULL,
+    FOREIGN KEY (clothesUuid) REFERENCES Clothes(uuid),
+    PRIMARY KEY (clothesUuid, dateCS),
+    salesPerWeek INT NOT NULL
+);
+
+CREATE TABLE SizeClothesStats (
+    dateSCS DATE PRIMARY KEY,
+    percentageSCS INT NOT NULL,
+    sizeSCS VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE GenderClothesStats (
+    dateGCS DATE PRIMARY KEY,
+    malePercetage INT NOT NULL,
+    femalePercetage INT NOT NULL
+);
+
+CREATE TABLE ExpiredFoodStats (
+    foodLotUuid SERIAL,
+    FOREIGN KEY (foodLotUuid) REFERENCES FoodLot(uuid),
+    quantity INT NOT NULL
+);
+
+CREATE TABLE GenreLibraryStats (
+    uuidGenre SERIAL,
+    dateGLS DATE NOT NULL,
+    FOREIGN KEY (uuidGenre) REFERENCES Genres(uuid),
+    PRIMARY KEY (uuidGenre, dateGLS),
+    percentageGLS INT NOT NULL
+);
 
