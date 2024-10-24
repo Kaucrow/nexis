@@ -3,5 +3,8 @@ base.yaml
 development.yaml
 production.yaml
 
+# Rust
+cargo.lock
+
 # HTTPS Cert
 *.pem
