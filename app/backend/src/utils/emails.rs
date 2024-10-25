@@ -1,10 +1,10 @@
 use lettre::AsyncTransport;
+use mongodb::{ self, bson::oid::ObjectId };
 
 pub async fn send_email(
     sender_email: Option<String>,
     recipient_email: String,
-    recipient_first_name: String,
-    recipient_last_name: String,
+    recipient_name: String,
     subject: impl Into<String>,
     html_content: impl Into<String>,
     text_content: impl Into<String>,
@@ -27,7 +27,8 @@ pub async fn send_email(
         )
         .to(format!(
             "{} <{}>",
-            [recipient_first_name, recipient_last_name].join(" "),
+            //[recipient_first_name, recipient_last_name].join(" "),
+            recipient_name,
             recipient_email
         )
         .parse()
@@ -74,10 +75,9 @@ pub async fn send_email(
 
 pub async fn send_multipart_email(
     subject: String,
-    user_id: uuid::Uuid,
+    user_id: ObjectId,
     recipient_email: String,
-    recipient_first_name: String,
-    recipient_last_name: String,
+    recipient_name: String,
     template_filename: &str,
     redis_connection: &mut deadpool_redis::redis::aio::MultiplexedConnection
 ) -> Result<(), String> {
@@ -146,8 +146,7 @@ pub async fn send_multipart_email(
     tokio::spawn(send_email(
         None,
         recipient_email,
-        recipient_first_name,
-        recipient_last_name,
+        recipient_name,
         subject,
         html_text,
         text,

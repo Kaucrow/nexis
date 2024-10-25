@@ -1,6 +1,6 @@
-use actix_web::middleware;
 // src/startup.rs
-use sqlx;
+use actix_web::middleware;
+use mongodb::{ self, Client, options::{ ClientOptions, ResolverConfig } };
 use deadpool_redis;
 use std::{fs::File, io::BufReader};
 use rustls::{pki_types::PrivateKeyDer, ServerConfig};
@@ -14,34 +14,23 @@ pub struct Application {
 impl Application {
     pub async fn build(
         settings: crate::settings::Settings,
-        test_pool: Option<sqlx::postgres::PgPool>,
+        db: Option<mongodb::Database>,
     ) -> Result<Self, std::io::Error> {
-        let connection_pool = if let Some(pool) = test_pool {
-            pool
+        let db = if let Some(db) = db {
+            db
         } else if settings.debug {
-            get_connection_pool(&settings.database).await
+            get_mongodb_database(&settings.database).await.expect("")
         } else {
-            let db_url = std::env::var("DATABASE_URL").expect("Failed to get DATABASE_URL.");
-            match sqlx::postgres::PgPoolOptions::new()
-                .max_connections(5)
-                .connect(&db_url)
-                .await
-            {
-                Ok(pool) => pool,
-                Err(e) => {
-                    tracing::event!(target: "sqlx", tracing::Level::ERROR, "Couldn't establish DB conn.: {:#?}", e);
-                    panic!("Couldn't establish DB connection!")
-                }
-            }
+            let db_uri = std::env::var("DATABASE_URI").expect("Failed to get DATABASE_URI.");
+            // TODO: Handle errors with match
+            let options = ClientOptions::parse(db_uri).resolver_config(ResolverConfig::cloudflare()).await.expect("Failed to get client options");
+            let client = Client::with_options(options).expect("Failed to get database client");
+            let db = client.database(&settings.database.database_name);
+            db
         };
 
-        sqlx::migrate!()
-            .run(&connection_pool)
-            .await
-            .expect("Failed to migrate the database.");
-
         let port = settings.application.port;
-        let server = run(connection_pool, settings).await?;
+        let server = run(db, settings).await?;
 
         Ok(Self { port, server })
     }
@@ -55,20 +44,22 @@ impl Application {
     }
 }
 
-pub async fn get_connection_pool(
+pub async fn get_mongodb_database(
     settings: &crate::settings::DatabaseSettings,
-) -> sqlx::postgres::PgPool {
-    sqlx::postgres::PgPoolOptions::new()
-        .acquire_timeout(std::time::Duration::from_secs(2))
-        .connect_lazy_with(settings.connect_to_db())
+) -> Result<mongodb::Database, mongodb::error::Error> {
+    let options = ClientOptions::parse(&settings.uri).resolver_config(ResolverConfig::cloudflare()).await?;
+    let client = Client::with_options(options)?;
+    let db = client.database(&settings.database_name);
+
+    Ok(db)
 }
 
 async fn run(
-    db_pool: sqlx::postgres::PgPool,
+    db: mongodb::Database,
     settings: crate::settings::Settings,
 ) -> Result<actix_web::dev::Server, std::io::Error> {
-    // Database connection pool application state
-    let pool = actix_web::web::Data::new(db_pool);
+    // Database connection application state
+    let db = actix_web::web::Data::new(db);
 
     // Redis connection pool
     let cfg = deadpool_redis::Config::from_url(settings.clone().redis.uri);
@@ -113,7 +104,7 @@ async fn run(
             .service(crate::routes::health_check)
             .configure(crate::routes::auth_routes_config)
             // Add database pool to application state
-            .app_data(pool.clone())
+            .app_data(db.clone())
             // Add redis pool to application state
             .app_data(redis_pool_data.clone())
             .wrap(middleware::NormalizePath::trim())

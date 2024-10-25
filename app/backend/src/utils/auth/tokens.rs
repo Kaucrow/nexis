@@ -1,3 +1,4 @@
+use mongodb::{ bson::oid::ObjectId };
 use argon2::password_hash::rand_core::{OsRng, RngCore};
 use core::convert::TryFrom;
 use deadpool_redis::redis::AsyncCommands;
@@ -21,7 +22,7 @@ const SESSION_KEY_PREFIX: &str = "valid_session_key_for_";
 /// has at most an hour to live. Which means, it is destroyed after its time-to-live.
 #[tracing::instrument(name = "Issue pasetors token", skip(redis_connection))]
 pub async fn issue_confirmation_token_pasetors(
-    user_id: uuid::Uuid,
+    user_id: ObjectId,
     redis_connection: &mut deadpool_redis::redis::aio::MultiplexedConnection,
     is_for_password_change: Option<bool>,
 ) -> Result<String, deadpool_redis::redis::RedisError> {
@@ -90,7 +91,7 @@ pub async fn issue_confirmation_token_pasetors(
     // set custom expiration, default is 1 hour
     claims.expiration(&dt.to_rfc3339()).unwrap();
     claims
-        .add_additional("user_id", json!(user_id))
+        .add_additional("user_id", json!(user_id.to_string()))
         .unwrap();
     claims
         .add_additional("session_key", json!(session_key))
@@ -136,9 +137,11 @@ pub async fn verify_confirmation_token_pasetors(
 
     let uid = serde_json::to_value(claims.get_claim("user_id").unwrap()).unwrap();
 
+    tracing::debug!(target: "backend", "uid claim: {:#?}", uid);
+
     match serde_json::from_value::<String>(uid) {
-        Ok(uuid_string) => match uuid::Uuid::parse_str(&uuid_string) {
-            Ok(user_uuid) => {
+        Ok(uid) => match mongodb::bson::oid::ObjectId::parse_str(uid) {
+            Ok(uid) => {
                 let sss_key =
                     // convert to serde value to be able to get the session key from the value
                     serde_json::to_value(claims.get_claim("session_key").unwrap()).unwrap();
@@ -172,7 +175,7 @@ pub async fn verify_confirmation_token_pasetors(
                     .await
                     .map_err(|e| format!("{}", e))?;
 
-                Ok(crate::types::ConfirmationToken { user_id: user_uuid })
+                Ok(crate::types::ConfirmationToken { user_id: uid })
             }
             Err(e) => Err(format!("{}", e)),
         },

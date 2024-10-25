@@ -12,7 +12,7 @@ secret:
   # 256 bit encryption key https://acte.ltd/utils/randomkeygen
   secret_key: ""
   token_expiration: 30
-  # HMAC secret
+  # HMAC secret https://www.freeformatter.com/hmac-generator.html
   hmac_secret: ""
 
 frontend_url: "https://localhost:5173"

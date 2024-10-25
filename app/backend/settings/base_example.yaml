@@ -1,12 +1,8 @@
 # settings/base.yaml
 
 database:
-  username: "DB_USERNAME"
-  password: "DB_USER_PASSWORD"
-  port: 5432
-  host: 127.0.0.1
+  uri: "MONGODB_ATLAS_CONN_STRING"
   database_name: "DB_NAME"
-  require_ssl: false
 
 redis:
   uri: "redis://localhost/"

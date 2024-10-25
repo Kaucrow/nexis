@@ -1,3 +1,5 @@
+use mongodb::{ Collection, bson::{ doc, oid::ObjectId }};
+use anyhow::{ self, Result };
 use serde::Deserialize;
 use actix_web::{
     HttpResponse,
@@ -5,7 +7,7 @@ use actix_web::{
     web,
 };
 use sqlx::postgres::PgPool;
-use crate::types::SuccessResponse;
+use crate::types::{ SuccessResponse, User };
 
 #[derive(Deserialize)]
 pub struct Parameters {
@@ -14,12 +16,12 @@ pub struct Parameters {
 
 #[tracing::instrument(
     name = "Activating a new user",
-    skip(parameters, pool, redis_pool)
+    skip(parameters, db, redis_pool)
 )]
 #[actix_web::get("/register/verify")]
 pub async fn confirm(
     parameters: web::Query<Parameters>,
-    pool: web::Data<PgPool>,
+    db: web::Data<mongodb::Database>,
     redis_pool: web::Data<deadpool_redis::Pool>,
 ) -> HttpResponse {
     let settings = crate::settings::get_settings().expect("Failed to read settings.");
@@ -29,7 +31,7 @@ pub async fn confirm(
         .get()
         .await
         .map_err(|e| {
-            tracing::event!(target: "backend", tracing::Level::ERROR, "{}", e);
+            tracing::error!(target: "backend", "{}", e);
 
             // if the account cannot be activated (due to redis connection failed)
             HttpResponse::SeeOther()
@@ -61,7 +63,7 @@ pub async fn confirm(
         }
     };
 
-    match activate_new_user(&pool, confirmation_token.user_id).await {
+    match activate_new_user(&db, confirmation_token.user_id).await {
         Ok(_) => {
             tracing::event!(target: "backend", tracing::Level::INFO, "New user was activated successfully.");
 
@@ -84,22 +86,25 @@ pub async fn confirm(
     }
 }
 
-#[tracing::instrument(name = "Mark a user active", skip(pool), fields(
+#[tracing::instrument(name = "Mark a user active", skip(db), fields(
     new_user_user_id = %user_id
 ))]
 pub async fn activate_new_user(
-    pool: &PgPool,
-    user_id: uuid::Uuid,
-) -> Result<(), sqlx::Error> {
-    match sqlx::query("UPDATE users SET is_active=true WHERE id=$1")
-        .bind(user_id)
-        .execute(pool)
-        .await
-    {
-        Ok(_) => Ok(()),
-        Err(e) => {
-            tracing::error!("Failed to execute query: {:#?}", e);
-            Err(e)
-        }
+    db: &mongodb::Database,
+    user_id: ObjectId, 
+) -> Result<()> {
+    let users_coll: Collection<User> = db.collection("user");
+
+    let query = doc! { "_id": user_id };
+    let update = doc! { "$set": { "isActive": true }};
+
+    let res = users_coll.update_one(query, update).await?;
+
+    if res.matched_count == 0 {
+        tracing::error!(target: "mongodb", "No user found with the given id.");
+    } else {
+        tracing::debug!(target: "mongodb", "Set isActive to true on user.");
     }
+
+    Ok(())
 }

@@ -1,6 +1,7 @@
-use serde::{Deserialize, Serialize};
+use serde::{ Deserialize, Serialize };
+use mongodb::bson::oid::ObjectId;
 
 #[derive(Deserialize, Serialize)]
 pub struct ConfirmationToken {
-    pub user_id: uuid::Uuid,
+    pub user_id: ObjectId,
 }

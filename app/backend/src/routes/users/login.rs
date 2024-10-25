@@ -1,18 +1,20 @@
 use sqlx::{postgres::PgPool, Row};
+use anyhow::{ Result, anyhow };
+use mongodb::{ self, Collection, bson::doc };
 use actix_web::{web, HttpResponse};
-use crate::types::LoginUser;
+use crate::types::{ User, LoginUser };
 
 const USER_NOT_FOUND_MSG: &'static str = "A user with these details does not exist. If you registered with these details, ensure you activated your account by clicking on the link sent to your e-mail address.";
 
-#[tracing::instrument(name = "Logging a user in", skip(pool, user, session), fields(user_email = %user.email))]
+#[tracing::instrument(name = "Logging a user in", skip(db, user, session), fields(user_email = %user.email))]
 #[actix_web::post("/login")]
 async fn login_user(
     user: web::Json<LoginUser>,
-    pool: web::Data<PgPool>,
+    db: web::Data<mongodb::Database>,
     session: actix_session::Session,
 ) -> HttpResponse {
     tracing::info!(target: "backend", "Accessing LOGIN.");
-    match get_user_who_is_active(&pool, &user.email).await {
+    match get_user_who_is_active(db.get_ref(), &user.email).await {
         Ok(db_user) => {
             let password_hash = db_user.password.clone();
             let password = user.password.clone();
@@ -37,12 +39,8 @@ async fn login_user(
                     HttpResponse::Ok().json(crate::types::UserVisible {
                         id: db_user.id,
                         email: db_user.email,
-                        first_name: db_user.first_name,
-                        last_name: db_user.last_name,
+                        name: db_user.name,
                         is_active: db_user.is_active,
-                        is_superuser: db_user.is_superuser,
-                        date_joined: db_user.date_joined,
-                        thumbnail: db_user.thumbnail,
                     })
                 }
                 Err(e) => {
@@ -62,31 +60,27 @@ async fn login_user(
     }
 }
 
-#[tracing::instrument(name = "Getting a user from DB.", skip(pool, email),fields(user_email = %email))]
+#[tracing::instrument(name = "Getting a user from DB.", skip(db, email),fields(user_email = %email))]
 pub async fn get_user_who_is_active(
-    pool: &PgPool,
+    db: &mongodb::Database,
     email: &String,
-) -> Result<crate::types::User, sqlx::Error> {
-    match sqlx::query("SELECT id, email, password, first_name, last_name, is_superuser, thumbnail, date_joined FROM users WHERE email = $1 AND is_active = TRUE")
-        .bind(email)
-        .map(|row: sqlx::postgres::PgRow| crate::types::User {
-            id: row.get("id"),
-            email: row.get("email"),
-            password: row.get("password"),
-            first_name: row.get("first_name"),
-            last_name: row.get("last_name"),
-            is_active: true,
-            is_superuser: row.get("is_superuser"),
-            thumbnail: row.get("thumbnail"),
-            date_joined: row.get("date_joined"),
-        })
-        .fetch_one(pool)
-        .await
-    {
-        Ok(user) => Ok(user),
+) -> Result<crate::types::User> {
+    let users_coll: Collection<User> = db.collection("user");
+    let res = users_coll.find_one(
+        doc! { "email": email, "isActive": true }
+    ).await;
+
+    match res {
+        Ok(res) =>
+            if let Some(user) = res {
+                Ok(user)
+            } else {
+                tracing::event!(target: "sqlx", tracing::Level::ERROR, "User not found in DB.");
+                Err(anyhow!("User not found in DB."))
+            },
         Err(e) => {
-            tracing::event!(target: "sqlx", tracing::Level::ERROR, "User not found in DB: {:#?}", e);
-            Err(e)
+            tracing::event!(target: "mongodb", tracing::Level::ERROR, "Failed to query the mongodb database: {:#?}", e);
+            Err(anyhow!(e))
         }
     }
 }

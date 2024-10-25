@@ -1,5 +1,4 @@
 // src/settings.rs
-use sqlx::ConnectOptions;
 
 #[derive(serde::Deserialize, Clone)]
 pub struct Settings {
@@ -74,33 +73,9 @@ pub struct RedisSettings {
 
 #[derive(serde::Deserialize, Clone)]
 pub struct DatabaseSettings {
-    pub username: String,
-    pub password: String,
-    pub port: u16,
-    pub host: String,
+    pub uri: String,
     pub database_name: String,
-    pub require_ssl: bool,
 }
-
-impl DatabaseSettings {
-    pub fn connect_to_db(&self) -> sqlx::postgres::PgConnectOptions {
-        let ssl_mode = if self.require_ssl {
-            sqlx::postgres::PgSslMode::Require
-        } else {
-            sqlx::postgres::PgSslMode::Prefer
-        };
-        let options = sqlx::postgres::PgConnectOptions::new()
-            .host(&self.host)
-            .username(&self.username)
-            .password(&self.password)
-            .port(self.port)
-            .ssl_mode(ssl_mode)
-            .database(&self.database_name)
-            .log_statements(tracing::log::LevelFilter::Trace);
-        options
-    }
-}
-
 
 pub fn get_settings() -> Result<Settings, config::ConfigError> {
     let base_path = std::env::current_dir().expect("Failed to determinate the current directory");

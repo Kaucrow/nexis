@@ -57,7 +57,7 @@ Nexis follows a modular architecture, separating concerns between the frontend a
 ### Prerequisites
 * Node
 * Rust toolchain
-* PostgreSQL
+* MongoDB Atlas account
 * Redis
 * Mkcert (only if **developing**)
 * Nginx (only if **deploying**)
