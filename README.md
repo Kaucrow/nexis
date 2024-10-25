@@ -53,11 +53,43 @@ Nexis follows a modular architecture, separating concerns between the frontend a
   * MongoDB: Serves as the primary database for daily interactions, storing data that employees and users frequently access.
   * PostgreSQL: Acts as a data warehouse for storing comprehensive statistics and analytics.
 
-## Installation
+## Setup
+### Prerequisites
+* Node
+* Rust toolchain
+* PostgreSQL
+* Redis
+* Mkcert (only if **developing**)
+* Nginx (only if **deploying**)
 
-### Development
+### Setup for development
+#### Rust backend
+1. Set the `APP_ENVIRONMENT` environment variable to "development".
+2. `cd` into the rust backend directory.
+3. Set the settings .yaml files.
+4. Create the CA certificate:
+```
+    mkdir cert
+    cd cert
+    mkcert -cert-file cert.pem -key-file key.pem localhost
+```
+5. Ensure you are in the rust backend directory and run `cargo run`.
+5. Type `https://localhost/health-check` in a browser to verify connectivity.
 
-### Deployment
+#### Frontend
+1. `cd` into the frontend directory root.
+2. Run `npm install`.
+3. Create the CA certificate:
+```
+    mkdir cert
+    cd cert
+    mkcert -cert-file cert.pem -key-file key.pem localhost
+```
+4. Create a ".env" file in the frontend directory root, and set `VITE_API_URI_DEV` inside of it. If following this setup guide, it should be `https://localhost:443`.
+5. Set the `NODE_EXTRA_CA_CERTS` environment variable to the root CA .pem file path. If generating the certs with mkcert on Windows, set it to `C:\Users\YOUR_USER\AppData\Local\mkcert\rootCA.pem`.
+6. Ensure you are in the frontend directory root and run `npm run dev`.
+
+### Setup for deployment
 
 ## Developers
 This project is being developed for the third trimester of 2024 at [Universidad Rafael Urdaneta](https://en.wikipedia.org/wiki/Rafael_Urdaneta_University) by:

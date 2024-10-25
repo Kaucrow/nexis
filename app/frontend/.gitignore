@@ -26,4 +26,5 @@ vite.config.ts.timestamp-*
 # Sveltekit lib files
 !/src/lib
 
+package-lock.json
 !package.json

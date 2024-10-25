@@ -111,8 +111,6 @@ async fn run(
                 .build()
             )
             .service(crate::routes::health_check)
-            .service(crate::routes::get_num)
-            .service(crate::routes::add_num)
             .configure(crate::routes::auth_routes_config)
             // Add database pool to application state
             .app_data(pool.clone())
@@ -147,8 +145,8 @@ fn load_rustls_config() -> rustls::ServerConfig {
     let config = ServerConfig::builder().with_no_client_auth();
 
     // load TLS key/cert files
-    let cert_file = &mut BufReader::new(File::open("certificate/localhost+1.pem").unwrap());
-    let key_file = &mut BufReader::new(File::open("certificate/localhost+1-key.pem").unwrap());
+    let cert_file = &mut BufReader::new(File::open("cert/cert.pem").expect("cannot find `cert/cert.pem` file"));
+    let key_file = &mut BufReader::new(File::open("cert/key.pem").expect("cannot find `cert/key.pem` file"));
 
     // convert files to key/cert objects
     let cert_chain = certs(cert_file).collect::<Result<Vec<_>, _>>().unwrap();
