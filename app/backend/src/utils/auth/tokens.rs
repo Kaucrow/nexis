@@ -19,6 +19,7 @@ const EMAIL_KEY_PREFIX: &str = "email_";
 #[tracing::instrument(name = "Issue PASETO token for session uuid", skip(redis_pool))]
 pub async fn issue_session_token(
     user_id: ObjectId,
+    remember_me: bool,
     redis_pool: &deadpool_redis::Pool,
 ) -> Result<String> {
     let settings = crate::settings::get_settings().expect("Cannot read settings.");
@@ -34,29 +35,19 @@ pub async fn issue_session_token(
     let redis_key = format!("{}{}", SESSION_KEY_PREFIX, sss_uuid);
 
     // Build the redis token containing the user id.
-    let redis_token = {
-        let mut claims = Claims::new()?;
+    let redis_token = build_redis_token(&settings, user_id).await?;
 
-        claims.add_additional("user_id", json!(user_id.to_string()))?;
-
-        // Use the 256 bit secret key as the symmetric key 
-        let sk = SymmetricKey::<V4>::from(settings.secret.secret_key.as_bytes())?;
-
-        local::encrypt(
-            &sk,
-            &claims,
-            None,
-            Some(settings.secret.hmac_secret.as_bytes()),
-        )?
-    };
-
-    redis_conn.set::<_, _, ()>(redis_key, redis_token).await?;
+    redis_conn.set_ex::<_, _, ()>(redis_key, redis_token, settings.secret.session_token_expiration * 60).await?;
 
     // Build the session token to be set as a cookie, containing the UUID for the redis session key.
     let sss_token = {
         let mut claims = Claims::new()?;
 
         claims.add_additional("session_uuid", json!(sss_uuid))?;
+
+        if remember_me {
+            claims.add_additional("user_id", json!(user_id))?;
+        }
 
         // Use the 256 bit secret key as the symmetric key 
         let sk = SymmetricKey::<V4>::from(settings.secret.secret_key.as_bytes())?;
@@ -76,9 +67,10 @@ pub async fn issue_session_token(
 /// uses it to retrieve the session token from redis, where the
 /// key is the session key prefix plus the UUID.
 /// Returns the user id.
-#[tracing::instrument(name = "Verify PASETO token for session uuid", skip(redis_pool))]
+#[tracing::instrument(name = "Verify PASETO token for session uuid", skip(redis_pool, db))]
 pub async fn verify_session_token(
     sss_uuid_token: String,
+    db: &mongodb::Database,
     redis_pool: &deadpool_redis::Pool,
 ) -> Result<ObjectId> {
     let settings = crate::settings::get_settings().expect("Failed to read settings.");
@@ -105,30 +97,55 @@ pub async fn verify_session_token(
         bail!(types::error::Redis::ConnError("Failed to obtain redis connection".into()));
     };
 
-    let sss_token: String = redis_conn.get(format!("{}{}", SESSION_KEY_PREFIX, sss_uuid)).await?;
+    let redis_key = format!("{}{}", SESSION_KEY_PREFIX, sss_uuid);
+    let sss_token: Option<String> = redis_conn.get(redis_key.clone()).await?;
 
-    let validation_rules = ClaimsValidationRules::new();
-    let untrusted_token = UntrustedToken::<Local, V4>::try_from(&sss_token)?;
-    let trusted_token = local::decrypt(
-        &sk,
-        &untrusted_token,
-        &validation_rules,
-        None,
-        Some(settings.secret.hmac_secret.as_bytes())
-    )?;
+    if let Some(sss_token) = sss_token {
+        redis_conn.expire::<_, ()>(redis_key, (settings.secret.session_token_expiration * 60) as i64).await?;
 
-    let claims = trusted_token.payload_claims().expect("Failed to get token claims");
+        let validation_rules = ClaimsValidationRules::new();
+        let untrusted_token = UntrustedToken::<Local, V4>::try_from(&sss_token)?;
+        let trusted_token = local::decrypt(
+            &sk,
+            &untrusted_token,
+            &validation_rules,
+            None,
+            Some(settings.secret.hmac_secret.as_bytes())
+        )?;
 
-    let uid = serde_json::to_value(claims.get_claim("user_id").unwrap())?;
+        let claims = trusted_token.payload_claims().expect("Failed to get token claims");
 
-    match serde_json::from_value::<String>(uid) {
-        Ok(uid) => match ObjectId::parse_str(uid) {
-            Ok(uid) => {
-                Ok(uid)
-            }
-            Err(e) => Err(anyhow!(format!("{}", e))),
-        },
-        Err(e) => Err(anyhow!(format!("{}", e))), 
+        let uid = serde_json::to_value(claims.get_claim("user_id").unwrap())?;
+
+        match serde_json::from_value::<String>(uid) {
+            Ok(uid) => match ObjectId::parse_str(uid) {
+                Ok(uid) => {
+                    return Ok(uid)
+                }
+                Err(e) => bail!(format!("{}", e)),
+            },
+            Err(e) => bail!(format!("{}", e)), 
+        }
+    } else {
+        let user_id_claim = claims.get_claim("user_id");
+        if let Some(user_id_claim) = user_id_claim {
+            let user_id: ObjectId = serde_json::from_value(user_id_claim.clone())?;
+            let user =
+                crate::database::get_db_user(db, user_id)
+                .await?
+                .expect("Failed to find user in database.");
+
+            let redis_key = format!("{}{}", SESSION_KEY_PREFIX, sss_uuid);
+            let redis_token = build_redis_token(&settings, user.id).await?;
+
+            redis_conn.set_ex::<_, _, ()>(redis_key, redis_token, settings.secret.session_token_expiration * 60).await?;
+
+            Ok(user.id)
+        } else {
+            bail!(crate::types::error::Redis::SessionExpired(
+                "The session is expired and no user id was found for renewal".into()
+            ));
+        }
     }
 }
 
@@ -232,9 +249,10 @@ pub async fn issue_confirmation_token(
         if is_for_password_change.is_some() {
             chrono::Duration::hours(1)
         } else {
-            chrono::Duration::minutes(settings.secret.token_expiration)
+            chrono::Duration::minutes(settings.secret.email_token_expiration as i64)
         }
     };
+
     // For claims expiration
     let dt = current_date_time + time_to_live;
 
@@ -336,4 +354,24 @@ pub async fn verify_confirmation_token(
         .map_err(|e| anyhow!(format!("{}", e)))?;
 
     Ok(uid)
+}
+
+async fn build_redis_token(
+    settings: &crate::settings::Settings,
+    user_id: ObjectId,
+) -> Result<String> {
+    // Build the redis token containing the user id.
+    let mut claims = Claims::new()?;
+
+    claims.add_additional("user_id", json!(user_id.to_string()))?;
+
+    // Use the 256 bit secret key as the symmetric key 
+    let sk = SymmetricKey::<V4>::from(settings.secret.secret_key.as_bytes())?;
+
+    Ok(local::encrypt(
+        &sk,
+        &claims,
+        None,
+        Some(settings.secret.hmac_secret.as_bytes()),
+    )?)
 }

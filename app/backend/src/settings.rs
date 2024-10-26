@@ -14,7 +14,8 @@ pub struct Settings {
 #[derive(serde::Deserialize, Clone)]
 pub struct Secret {
     pub secret_key: String,
-    pub token_expiration: i64,
+    pub email_token_expiration: u64,
+    pub session_token_expiration: u64,
     pub hmac_secret: String,
 }
 

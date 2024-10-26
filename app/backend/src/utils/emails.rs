@@ -124,14 +124,14 @@ pub async fn send_multipart_email(
         }
     };
     let curr_date_time = chrono::Local::now();
-    let dt = curr_date_time + chrono::Duration::minutes(settings.secret.token_expiration);
+    let dt = curr_date_time + chrono::Duration::minutes(settings.secret.email_token_expiration as i64);
 
     let template = crate::ENV.get_template(template_filename).unwrap();
     let ctx = minijinja::context! {
         title => &title,
         confirmation_link => &confirmation_link,
         domain => &settings.frontend_url,
-        expiration_time => &settings.secret.token_expiration,
+        expiration_time => &settings.secret.email_token_expiration,
         exact_time => &dt.format("%A %B %d, %Y at %r").to_string()
     };
     let html_text = template.render(ctx).unwrap();

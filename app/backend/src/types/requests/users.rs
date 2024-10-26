@@ -40,4 +40,6 @@ pub struct NewUser {
 pub struct LoginUser {
     pub email: String,
     pub password: String,
+    #[serde(rename = "rememberMe")]
+    pub remember_me: bool,
 }

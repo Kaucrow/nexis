@@ -28,9 +28,9 @@ pub async fn log_out(
 
     let clear_cookie = {
         let mut cookie = Cookie::build("session_uuid", "")
-        .path("/")
-        .http_only(true)
-        .finish();
+            .path("/")
+            .http_only(true)
+            .finish();
         cookie.make_removal();
         cookie
     };

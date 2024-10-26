@@ -11,7 +11,8 @@ debug: false
 secret:
   # 256 bit encryption key https://acte.ltd/utils/randomkeygen
   secret_key: ""
-  token_expiration: 15
+  email_token_expiration: 30
+  session_token_expiration: 30
   # HMAC secret
   hmac_secret: ""
 

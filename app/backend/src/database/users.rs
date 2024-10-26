@@ -3,7 +3,7 @@ use anyhow::Result;
 use types::{ User, NewUser };
 
 #[tracing::instrument(
-    name = "Inserting new user into DB.",
+    name = "Inserting new user into DB",
     skip(db, new_user),
     fields(
         new_user_email = %new_user.email,
@@ -43,4 +43,18 @@ pub async fn insert_created_user_into_db(
     } else {
         Err(anyhow!("Failed to retrieve ObjectId"))
     }
+}
+
+#[tracing::instrument(name = "Getting user from DB")]
+pub async fn get_db_user(
+    db: &mongodb::Database,
+    user_id: ObjectId,
+) -> Result<Option<User>> {
+    let users_coll: Collection<User> = db.collection("user");
+
+    let user = users_coll.find_one(
+        doc! { "_id": user_id }
+    ).await?;
+
+    Ok(user)
 }

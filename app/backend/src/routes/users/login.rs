@@ -4,7 +4,14 @@ use types::{ User, LoginUser };
 
 const USER_NOT_FOUND_MSG: &'static str = "A user with these details does not exist. If you registered with these details, ensure you activated your account by clicking on the link sent to your e-mail address.";
 
-#[tracing::instrument(name = "Logging a user in", skip(req, db, user, redis_pool), fields(user_email = %user.email))]
+#[tracing::instrument(
+    name = "Logging a user in",
+    skip(req, db, user, redis_pool),
+    fields(
+        user_email = %user.email,
+        remember_me = %user.remember_me
+    )
+)]
 #[actix_web::post("/login")]
 async fn login_user(
     req: HttpRequest,
@@ -14,9 +21,11 @@ async fn login_user(
 ) -> HttpResponse {
     tracing::info!(target: "backend", "Accessing LOGIN.");
 
-    // TODO: Maybe check if the session uuid is actually valid in Redis.
     if req.cookie("session_uuid").is_some() {
-        return HttpResponse::Ok().json("You are already logged in.");
+        let sss_uuid_token = req.cookie("session_uuid").unwrap().value().to_string();
+        if let Ok(_) = utils::verify_session_token(sss_uuid_token, &db, &redis_pool).await {
+            return HttpResponse::Ok().json("You are already logged in.");
+        }
     }
 
     match get_user_who_is_active(db.get_ref(), &user.email).await {
@@ -32,7 +41,7 @@ async fn login_user(
 
             match verify_result.await {
                 Ok(()) => {
-                    let sss_uuid_token = match utils::issue_session_token(db_user.id, &redis_pool).await {
+                    let sss_uuid_token = match utils::issue_session_token(db_user.id, user.remember_me, &redis_pool).await {
                         Ok(token) =>
                             token,
                         Err(e) if e.is::<types::error::Redis>() =>
@@ -43,12 +52,19 @@ async fn login_user(
                         }
                     };
 
-                    HttpResponse::Ok()
-                        .cookie(Cookie::build("session_uuid", sss_uuid_token.to_string())
+                    let session_cookie = {
+                        let mut cookie = Cookie::build("session_uuid", sss_uuid_token.to_string())
                             .path("/")
                             .http_only(true)
-                            .finish()
-                        )
+                            .finish();
+                        if user.remember_me {
+                            cookie.make_permanent();
+                        }
+                        cookie
+                    };
+
+                    HttpResponse::Ok()
+                        .cookie(session_cookie)
                         .json(types::UserResponse {
                             email: db_user.email,
                             name: db_user.name,
