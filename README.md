@@ -17,7 +17,7 @@ Nexis allows customers to effortlessly browse and buy products, while owners can
 * [Features](#features)
 * [Technologies used](#technologies-used)
 * [Architecture](#architecture)
-* [Installation](#installation)
+* [Setup](#setup)
 * [Developers](#developers)
 * [License](#license)
 
@@ -63,7 +63,7 @@ Nexis follows a modular architecture, separating concerns between the frontend a
 * Nginx (only if **deploying**)
 
 ### Setup for development
-#### Rust backend
+#### Rust API
 1. Set the `APP_ENVIRONMENT` environment variable to "development".
 2. `cd` into the rust backend directory.
 3. Set the settings .yaml files.
@@ -90,6 +90,10 @@ Nexis follows a modular architecture, separating concerns between the frontend a
 6. Ensure you are in the frontend directory root and run `npm run dev`.
 
 ### Setup for deployment
+
+## Usage
+### Rust API
+View the [Rust API documentation](./app/backend/README.md).
 
 ## Developers
 This project is being developed for the third trimester of 2024 at [Universidad Rafael Urdaneta](https://en.wikipedia.org/wiki/Rafael_Urdaneta_University) by:
