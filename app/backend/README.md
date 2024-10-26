@@ -141,6 +141,7 @@ NOTE: Must contain either client, employee, or admin.
     * Unknown error: `HTTP 500`
 
 ### User Session Verification
+---
 * **URL**: `/users/verify-session`
 * **Method**: `GET`
 * **Description**: Verifies a user's session token.
@@ -150,6 +151,7 @@ NOTE: Must contain either client, employee, or admin.
     * Verification failed or session expired: `HTTP 401`
 
 ### User Logout
+---
 * **URL**: `/users/logout`
 * **Method**: `POST`
 * **Description**: Logs out a user, revoking the UUID token cookie and the session data token from Redis.
