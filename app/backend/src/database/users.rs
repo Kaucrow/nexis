@@ -1,6 +1,6 @@
-use anyhow::{ anyhow, Result };
-use mongodb::{ self, bson::oid::ObjectId, Collection };
-use crate::types::{ User, NewUser };
+use crate::prelude::*;
+use anyhow::Result;
+use types::{ User, NewUser };
 
 #[tracing::instrument(
     name = "Inserting new user into DB.",
@@ -15,6 +15,24 @@ pub async fn insert_created_user_into_db(
     new_user: NewUser
 ) -> Result<ObjectId> {
     let user_coll: Collection<User> = db.collection("user");
+
+    // Check if a user with the same email or username already exists
+    let existing_user = user_coll
+        .find_one(
+            doc! {
+                "$or": [
+                    { "email": &new_user.email },
+                    { "username": &new_user.username },
+                ]
+            },
+        )
+        .await?;
+
+    if existing_user.is_some() {
+        bail!(types::error::Mongodb::UserAlreadyExists(
+            "A user with this username or email already exists.".into()
+        ))
+    }
 
     let res = user_coll.insert_one(User::try_from(new_user)?).await?;
 

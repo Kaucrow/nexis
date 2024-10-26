@@ -24,4 +24,4 @@ pub use actix_web::{
 };
 pub use anyhow::{ anyhow, bail };
 pub use uuid::Uuid;
-pub use crate::types;
+pub use crate::{ types, utils };

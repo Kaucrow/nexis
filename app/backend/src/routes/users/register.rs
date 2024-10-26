@@ -46,9 +46,17 @@ pub async fn register_user(
     let user_id = match insert_created_user_into_db(db.get_ref(), create_new_user.clone()).await {
         Ok(id) => id,
         Err(e) => {
-            // TODO: Handle a repeated username or email
-            tracing::event!(target: "mongodb", tracing::Level::ERROR, "Failed to insert user into DB: {:#?}", e);
-            return HttpResponse::InternalServerError().finish();
+            if let Some(e) = e.downcast_ref::<types::error::Mongodb>() {
+                match e {
+                    types::error::Mongodb::UserAlreadyExists(msg) => {
+                        tracing::error!(target: "mongodb", msg);
+                        return HttpResponse::Conflict().json(msg);
+                    }
+                }
+            } else {
+                tracing::error!(target: "mongodb", "Failed to insert user into DB: {:#?}", e);
+                return HttpResponse::InternalServerError().finish();
+            }
         }
     };
 
