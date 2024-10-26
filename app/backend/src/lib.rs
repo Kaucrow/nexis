@@ -5,6 +5,7 @@ pub mod telemetry;
 pub mod utils;
 pub mod types;
 pub mod database;
+pub mod prelude;
 
 use std::{path::Path, fs};
 use once_cell::sync::Lazy;

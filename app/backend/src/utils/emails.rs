@@ -1,5 +1,5 @@
+use crate::prelude::*;
 use lettre::AsyncTransport;
-use mongodb::{ self, bson::oid::ObjectId };
 
 pub async fn send_email(
     sender_email: Option<String>,
@@ -85,7 +85,7 @@ pub async fn send_multipart_email(
     let settings = crate::settings::get_settings().expect("Unable to load settings.");
     let title = subject.clone();
 
-    let issued_token = match crate::utils::issue_confirmation_token_pasetors(
+    let issued_token = match crate::utils::issue_confirmation_token(
         user_id,
         redis_connection,
         None,

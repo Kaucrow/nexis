@@ -1,5 +1,4 @@
-use mongodb::{ self, bson::oid::ObjectId };
-use actix_web::{ web, HttpResponse };
+use crate::prelude::*;
 use crate::{
     utils::{
         auth::password::hash,
@@ -8,7 +7,6 @@ use crate::{
     database::insert_created_user_into_db,
     types::{
         NewUser,
-        NewClient,
         SuccessResponse,
         ErrorResponse,
     },

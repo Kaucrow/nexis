@@ -1,12 +1,5 @@
-use mongodb::{ Collection, bson::{ doc, oid::ObjectId }};
-use anyhow::{ self, Result };
-use serde::Deserialize;
-use actix_web::{
-    HttpResponse,
-    http,
-    web,
-};
-use sqlx::postgres::PgPool;
+use crate::prelude::*;
+use anyhow::Result;
 use crate::types::{ SuccessResponse, User };
 
 #[derive(Deserialize)]
@@ -43,7 +36,7 @@ pub async fn confirm(
         })
         .expect("Redis connection cannot be obtained.");
 
-    let confirmation_token = match crate::utils::verify_confirmation_token_pasetors(
+    let confirmation_token = match crate::utils::verify_confirmation_token(
         parameters.token.clone(),
         &mut redis_con,
         None

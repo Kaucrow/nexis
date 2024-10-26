@@ -1,17 +1,15 @@
-use sqlx::{postgres::PgPool, Row};
-use anyhow::{ Result, anyhow };
-use mongodb::{ self, Collection, bson::doc };
-use actix_web::{web, HttpResponse};
+use crate::prelude::*;
+use anyhow::Result;
 use crate::types::{ User, LoginUser };
 
 const USER_NOT_FOUND_MSG: &'static str = "A user with these details does not exist. If you registered with these details, ensure you activated your account by clicking on the link sent to your e-mail address.";
 
-#[tracing::instrument(name = "Logging a user in", skip(db, user, session), fields(user_email = %user.email))]
+#[tracing::instrument(name = "Logging a user in", skip(db, user, redis_pool), fields(user_email = %user.email))]
 #[actix_web::post("/login")]
 async fn login_user(
     user: web::Json<LoginUser>,
     db: web::Data<mongodb::Database>,
-    session: actix_session::Session,
+    redis_pool: web::Data<deadpool_redis::Pool>
 ) -> HttpResponse {
     tracing::info!(target: "backend", "Accessing LOGIN.");
     match get_user_who_is_active(db.get_ref(), &user.email).await {
@@ -27,21 +25,19 @@ async fn login_user(
 
             match verify_result.await {
                 Ok(()) => {
-                    tracing::info!(target: "backend", "User logged in successfully.");
-                    session.renew();
-                    session
-                        .insert(crate::types::USER_ID_KEY, db_user.id)
-                        .expect("`user_id` cannot be inserted into session");
-                    session
-                        .insert(crate::types::USER_EMAIL_KEY, &db_user.email)
-                        .expect("`user_email` cannot be inserted into session");
+                    let sss_uuid_token = crate::utils::issue_session_token(db_user.id, &redis_pool).await.expect("Failed to issue a session token");
 
-                    HttpResponse::Ok().json(crate::types::UserVisible {
-                        id: db_user.id,
-                        email: db_user.email,
-                        name: db_user.name,
-                        is_active: db_user.is_active,
-                    })
+                    HttpResponse::Ok()
+                        .cookie(Cookie::build("session_uuid", sss_uuid_token.to_string())
+                            .path("/")
+                            .http_only(true)
+                            .finish()
+                        )
+                        .json(crate::types::UserVisible {
+                            email: db_user.email,
+                            name: db_user.name,
+                            is_active: db_user.is_active,
+                        })
                 }
                 Err(e) => {
                     tracing::event!(target: "backend", tracing::Level::ERROR, "Wrong password: {:#?}", e);

@@ -1,4 +1,4 @@
-use anyhow::{ anyhow, Result };
+use anyhow::anyhow;
 use serde::{Deserialize, Serialize};
 use chrono::{ DateTime, Utc };
 use mongodb::bson::oid::ObjectId;
@@ -132,7 +132,6 @@ impl TryFrom<NewUser> for User {
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct UserVisible {
-    pub id: ObjectId,
     pub email: String,
     pub name: String,
     #[serde(rename = "isActive")]

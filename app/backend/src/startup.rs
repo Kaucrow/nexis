@@ -1,9 +1,8 @@
 // src/startup.rs
+use crate::prelude::*;
 use actix_web::middleware;
-use mongodb::{ self, Client, options::{ ClientOptions, ResolverConfig } };
-use deadpool_redis;
-use std::{fs::File, io::BufReader};
-use rustls::{pki_types::PrivateKeyDer, ServerConfig};
+use std::{ fs::File, io::BufReader };
+use rustls::{ pki_types::PrivateKeyDer, ServerConfig };
 use rustls_pemfile::{certs, pkcs8_private_keys};
 
 pub struct Application {
@@ -24,7 +23,7 @@ impl Application {
             let db_uri = std::env::var("DATABASE_URI").expect("Failed to get DATABASE_URI.");
             // TODO: Handle errors with match
             let options = ClientOptions::parse(db_uri).resolver_config(ResolverConfig::cloudflare()).await.expect("Failed to get client options");
-            let client = Client::with_options(options).expect("Failed to get database client");
+            let client = mongodb::Client::with_options(options).expect("Failed to get database client");
             let db = client.database(&settings.database.database_name);
             db
         };
@@ -48,7 +47,7 @@ pub async fn get_mongodb_database(
     settings: &crate::settings::DatabaseSettings,
 ) -> Result<mongodb::Database, mongodb::error::Error> {
     let options = ClientOptions::parse(&settings.uri).resolver_config(ResolverConfig::cloudflare()).await?;
-    let client = Client::with_options(options)?;
+    let client = mongodb::Client::with_options(options)?;
     let db = client.database(&settings.database_name);
 
     Ok(db)
@@ -68,9 +67,6 @@ async fn run(
         .expect("Cannot create deadpool redis.");
     let redis_pool_data = actix_web::web::Data::new(redis_pool);
 
-    // For session
-    let secret_key = actix_web::cookie::Key::from(settings.secret.hmac_secret.as_bytes());
-
     /*let cookie_secure =
         if settings.application.protocol == "https" { true }
         else { false };*/
@@ -85,13 +81,12 @@ async fn run(
                     actix_web::http::header::AUTHORIZATION,
                     actix_web::http::header::ACCEPT,
                 ])
-                .allowed_header("ngrok-skip-browser-warning")
                 .allowed_header(actix_web::http::header::CONTENT_TYPE)
                 .expose_headers(&[actix_web::http::header::CONTENT_DISPOSITION])
                 .supports_credentials()
                 .max_age(3600),
             )
-            .wrap(
+            /*.wrap(
                 actix_session::SessionMiddleware::builder(
                     actix_session::storage::CookieSessionStore::default(),
                     secret_key.clone(),
@@ -100,7 +95,7 @@ async fn run(
                 .cookie_same_site(actix_web::cookie::SameSite::Lax)
                 .cookie_secure(true)
                 .build()
-            )
+            )*/
             .service(crate::routes::health_check)
             .configure(crate::routes::auth_routes_config)
             // Add database pool to application state

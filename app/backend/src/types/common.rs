@@ -1,4 +1,4 @@
-use serde::Serialize;
+use crate::prelude::*;
 
 #[derive(Serialize)]
 pub struct SuccessResponse {
