@@ -25,7 +25,16 @@ async fn login_user(
 
             match verify_result.await {
                 Ok(()) => {
-                    let sss_uuid_token = crate::utils::issue_session_token(db_user.id, &redis_pool).await.expect("Failed to issue a session token");
+                    let sss_uuid_token = match crate::utils::issue_session_token(db_user.id, &redis_pool).await {
+                        Ok(token) =>
+                            token,
+                        Err(e) if e.is::<crate::types::error::Redis>() =>
+                            return HttpResponse::InternalServerError().finish(),
+                        Err(e) => {
+                            tracing::error!(target: "backend", "An unexpected error occurred: {}", e);
+                            return HttpResponse::InternalServerError().finish();
+                        }
+                    };
 
                     HttpResponse::Ok()
                         .cookie(Cookie::build("session_uuid", sss_uuid_token.to_string())
@@ -33,10 +42,12 @@ async fn login_user(
                             .http_only(true)
                             .finish()
                         )
-                        .json(crate::types::UserVisible {
+                        .json(crate::types::UserResponse {
                             email: db_user.email,
                             name: db_user.name,
-                            is_active: db_user.is_active,
+                            client: None,
+                            employee: None,
+                            admin: None,
                         })
                 }
                 Err(e) => {

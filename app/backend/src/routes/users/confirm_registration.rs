@@ -19,26 +19,10 @@ pub async fn confirm(
 ) -> HttpResponse {
     let settings = crate::settings::get_settings().expect("Failed to read settings.");
     tracing::event!(target: "backend", tracing::Level::INFO, "Token {:#?}", parameters.token);
-
-    let mut redis_con = redis_pool
-        .get()
-        .await
-        .map_err(|e| {
-            tracing::error!(target: "backend", "{}", e);
-
-            // if the account cannot be activated (due to redis connection failed)
-            HttpResponse::SeeOther()
-                .insert_header((
-                    http::header::LOCATION,
-                    format!("{}/auth/error", settings.frontend_url),
-                ))
-                .finish()
-        })
-        .expect("Redis connection cannot be obtained.");
-
-    let confirmation_token = match crate::utils::verify_confirmation_token(
+ 
+    let user_id = match crate::utils::verify_confirmation_token(
         parameters.token.clone(),
-        &mut redis_con,
+        &redis_pool,
         None
     )
     .await
@@ -47,7 +31,7 @@ pub async fn confirm(
         Err(e) => {
             tracing::event!(target: "backend", tracing::Level::ERROR, "{:#?}", e);
 
-            // if the token has expired or has already been used
+            // If the token has expired or has already been used
             return HttpResponse::SeeOther().insert_header((
                     http::header::LOCATION,
                     format!("{}/auth/regenerate-token", settings.frontend_url)
@@ -56,11 +40,11 @@ pub async fn confirm(
         }
     };
 
-    match activate_new_user(&db, confirmation_token.user_id).await {
+    match activate_new_user(&db, user_id).await {
         Ok(_) => {
             tracing::event!(target: "backend", tracing::Level::INFO, "New user was activated successfully.");
 
-            // if the user is activated successfully
+            // If the user is activated successfully
             HttpResponse::Ok().json(
                 SuccessResponse{ message: "User activated successfully.".to_string() }
             )
@@ -68,7 +52,7 @@ pub async fn confirm(
         Err(e) => {
             tracing::event!(target: "backend", tracing::Level::ERROR, "Cannot activate account: {}", e);
 
-            // if the account cannot be activated
+            // If the account cannot be activated
             HttpResponse::SeeOther()
                 .insert_header((
                     http::header::LOCATION,

@@ -1,7 +1,12 @@
 pub mod common;
-pub mod users;
-pub mod tokens;
+pub mod database;
+pub mod responses;
+pub mod requests;
+pub mod error;
 
-pub use common::{ SuccessResponse, ErrorResponse, USER_ID_KEY, USER_EMAIL_KEY };
-pub use users::{ User, UserVisible, NewUser, NewClient, LoginUser };
-pub use tokens::ConfirmationToken;
+pub use common::{ USER_ID_KEY, USER_EMAIL_KEY };
+pub use database::mongodb::users::User;
+pub use responses::{ SuccessResponse, ErrorResponse, UserResponse };
+pub use requests::users::{ NewUser, LoginUser };
+
+use database::mongodb;

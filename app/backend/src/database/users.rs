@@ -1,6 +1,6 @@
 use anyhow::{ anyhow, Result };
 use mongodb::{ self, bson::oid::ObjectId, Collection };
-use crate::types::users::{ User, NewUser };
+use crate::types::{ User, NewUser };
 
 #[tracing::instrument(
     name = "Inserting new user into DB.",

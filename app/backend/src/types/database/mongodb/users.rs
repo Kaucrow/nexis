@@ -2,6 +2,7 @@ use anyhow::anyhow;
 use serde::{Deserialize, Serialize};
 use chrono::{ DateTime, Utc };
 use mongodb::bson::oid::ObjectId;
+use crate::types::requests::users::NewUser;
 
 #[derive(Debug, Serialize, Deserialize)]
 struct CartItem {
@@ -34,7 +35,7 @@ struct Client {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-struct Schedule {
+pub struct Schedule {
     #[serde(rename = "phoneNum")]
     pub enter_date: DateTime<Utc>,
     pub exit_date: DateTime<Utc>,
@@ -128,53 +129,4 @@ impl TryFrom<NewUser> for User {
             Err(anyhow!("New user has no role."))
         }
     }
-}
-
-#[derive(Debug, Deserialize, Serialize)]
-pub struct UserVisible {
-    pub email: String,
-    pub name: String,
-    #[serde(rename = "isActive")]
-    pub is_active: bool,
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct NewClient {
-    pub age: u8,
-    pub gender: String,
-    #[serde(rename = "phoneNum")]
-    pub phone_num: String,
-    pub interests: Vec<String>,
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct NewEmployee {
-    pub age: u8,
-    pub gender: String,
-    #[serde(rename = "phoneNum")]
-    pub phone_num: String,
-    schedule: Vec<Schedule>,
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct NewAdmin {}
-
-#[derive(Deserialize, Serialize, Debug, Clone)]
-pub struct NewUser {
-    pub email: String,
-    pub username: String,
-    pub password: String,
-    pub name: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub client: Option<Box<NewClient>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub employee: Option<Box<NewEmployee>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub admin: Option<Box<NewAdmin>>,
-}
-
-#[derive(Deserialize, Serialize, Debug)]
-pub struct LoginUser {
-    pub email: String,
-    pub password: String,
 }

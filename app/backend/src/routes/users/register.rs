@@ -1,3 +1,4 @@
+use crate::database::get_redis_conn;
 use crate::prelude::*;
 use crate::{
     utils::{
@@ -8,7 +9,6 @@ use crate::{
     types::{
         NewUser,
         SuccessResponse,
-        ErrorResponse,
     },
 };
 
@@ -25,17 +25,11 @@ pub async fn register_user(
     redis_pool: web::Data<deadpool_redis::Pool>,
 ) -> HttpResponse {
     tracing::event!(target: "backend", tracing::Level::INFO, "Reached /users/register");
-    // open redis connection
-    let mut redis_con = redis_pool
-        .get()
-        .await
-        .map_err(|e| {
-            tracing::event!(target: "backend", tracing::Level::ERROR, "{}", e);
-            actix_web::HttpResponse::InternalServerError().json(ErrorResponse {
-                error: "We cannot activate your account at the moment".to_string(),
-            })
-        })
-        .expect("Redis connection cannot be obtained.");
+
+    // Ensure the redis server is up before attempting to register a user.
+    if let Err(_) = get_redis_conn(&redis_pool).await {
+        return HttpResponse::InternalServerError().json("Your account cannot be registered at the moment.")
+    };
 
     let hashed_password = hash(new_user.0.password.as_bytes()).await;
     
@@ -64,7 +58,7 @@ pub async fn register_user(
         create_new_user.email,
         create_new_user.name,
         "verification_email.html",
-        &mut redis_con
+        &redis_pool
     )
     .await
     .unwrap();

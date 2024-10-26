@@ -22,5 +22,6 @@ pub use actix_web::{
     web,
     cookie::Cookie
 };
-pub use anyhow::anyhow;
+pub use anyhow::{ anyhow, bail };
 pub use uuid::Uuid;
+pub use crate::types;

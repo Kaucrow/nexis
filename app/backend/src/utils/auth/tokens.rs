@@ -8,11 +8,12 @@ use hex;
 use serde_json::json;
 
 /// Store the session key prefix as a const so it can't be typo'd anywhere it's used.
-const SESSION_KEY_PREFIX: &str = "valid_session_key_for_";
-const EMAIL_KEY_PREFIX: &str = "valid_email_key_for_";
+const SESSION_KEY_PREFIX: &str = "session_";
+/// Store the email key prefix as a const so it can't be typo'd anywhere it's used.
+const EMAIL_KEY_PREFIX: &str = "email_";
 
 /// Issues a PASETO token to a user for storing the session.
-/// Returns the session UUID which should be set in a PASETO as a cookie,
+/// Returns the session UUID token which should be set as a cookie,
 /// and sets a key-value pair in Redis where this UUID is the key
 /// and the session token is the value. This token has the user's id encoded.
 #[tracing::instrument(name = "Issue PASETO token for session uuid", skip(redis_pool))]
@@ -23,10 +24,16 @@ pub async fn issue_session_token(
     let settings = crate::settings::get_settings().expect("Cannot read settings.");
 
     let sss_uuid = Uuid::new_v4();
-    let mut redis_conn = get_redis_conn(redis_pool).await?;
+
+    let mut redis_conn = if let Ok(conn) = get_redis_conn(redis_pool).await {
+        conn
+    } else {
+        bail!(crate::types::error::Redis::ConnError("Failed to obtain redis connection.".into()));
+    };
 
     let redis_key = format!("{}{}", SESSION_KEY_PREFIX, sss_uuid);
 
+    // Build the redis token containing the user id.
     let redis_token = {
         let mut claims = Claims::new()?;
 
@@ -45,6 +52,7 @@ pub async fn issue_session_token(
 
     redis_conn.set::<_, _, ()>(redis_key, redis_token).await?;
 
+    // Build the session token to be set as a cookie, containing the UUID for the redis session key.
     let sss_token = {
         let mut claims = Claims::new()?;
 
@@ -64,10 +72,10 @@ pub async fn issue_session_token(
     Ok(sss_token)
 }
 
-/// Fetches 
-/// Returns the session UUID which should be set as a cookie,
-/// and sets a key-value pair in Redis where this UUID is the key
-/// and the session token is the value. This token has the user's id encoded.
+/// Retrieves the session UUID from the session uuid token, and
+/// uses it to retrieve the session token from redis, where the
+/// key is the session key prefix plus the UUID.
+/// Returns the user id.
 #[tracing::instrument(name = "Verify PASETO token for session uuid", skip(redis_pool))]
 pub async fn verify_session_token(
     sss_uuid_token: String,
@@ -91,7 +99,11 @@ pub async fn verify_session_token(
 
     let sss_uuid: Uuid = serde_json::from_value(sss_uuid_claim.clone())?;
 
-    let mut redis_conn = get_redis_conn(redis_pool).await?;
+    let mut redis_conn = if let Ok(conn) = get_redis_conn(redis_pool).await {
+        conn
+    } else {
+        bail!(types::error::Redis::ConnError("Failed to obtain redis connection".into()));
+    };
 
     let sss_token: String = redis_conn.get(format!("{}{}", SESSION_KEY_PREFIX, sss_uuid)).await?;
 
@@ -120,10 +132,10 @@ pub async fn verify_session_token(
     }
 }
 
-/// Fetches 
-/// Returns the session UUID which should be set as a cookie,
-/// and sets a key-value pair in Redis where this UUID is the key
-/// and the session token is the value. This token has the user's id encoded.
+
+/// Retrieves the session UUID from the session uuid token, and
+/// uses it to delete the session token from redis, where the
+/// key is the session key prefix plus the UUID.
 #[tracing::instrument(name = "Revoke PASETO token for session uuid", skip(redis_pool))]
 pub async fn revoke_session_token(
     sss_uuid_token: String,
@@ -147,7 +159,11 @@ pub async fn revoke_session_token(
 
     let sss_uuid: Uuid = serde_json::from_value(sss_uuid_claim.clone())?;
 
-    let mut redis_conn = get_redis_conn(redis_pool).await?;
+    let mut redis_conn = if let Ok(conn) = get_redis_conn(redis_pool).await {
+        conn
+    } else {
+        bail!(types::error::Redis::ConnError("Failed to obtain redis connection".into()));
+    };
     
     redis_conn.del::<_, ()>(format!("{}{}", SESSION_KEY_PREFIX, sss_uuid)).await?;
     
@@ -157,18 +173,19 @@ pub async fn revoke_session_token(
 /// Issues a PASETO token to a user for email confirmation operations. 
 /// The token has the user's id encoded. A session_key is also encoded.
 /// This key is used to destroy the token in redis as soon as it's been verified.
-/// Depending on its usage, the token issued has at most an hour to live.
-/// Which means, it is destroyed after its time-to-live.
-#[tracing::instrument(name = "Issue PASETO token for email confirmation", skip(redis_connection))]
+/// Depending on its usage, the token's TTL is at most an hour.
+/// The token in redis is simply the email key prefix plus 128 bytes of random data.
+/// Returns the PASETO token.
+#[tracing::instrument(name = "Issue PASETO token for email confirmation", skip(redis_pool))]
 pub async fn issue_confirmation_token(
     user_id: ObjectId,
-    redis_connection: &mut deadpool_redis::redis::aio::MultiplexedConnection,
+    redis_pool: &deadpool_redis::Pool,
     is_for_password_change: Option<bool>,
-) -> Result<String, redis::RedisError> {
-    // I just generate 128 bytes of random data for the session key
-    // from something that is cryptographically secure (rand::CryptoRng)
+) -> Result<String> {
+    // Just generate 128 bytes of random data for the session key
+    // from something that is cryptographically secure (rand::CryptoRng).
     //
-    // You don't necessarily need a random value, but you'll want something
+    // A random value is not neccesarily needed, but you'll want something
     // that is sufficiently not able to be guessed (you don't want someone getting
     // an old token that is supposed to not be live, and being able to get a valid
     // token from that). 
@@ -189,22 +206,28 @@ pub async fn issue_confirmation_token(
         }
     };
 
-    redis_connection
+    let mut redis_conn = if let Ok(conn) = get_redis_conn(redis_pool).await {
+        conn
+    } else {
+        bail!(types::error::Redis::ConnError("Failed to obtain redis connection".into()))
+    };
+
+    redis_conn
         .set::<_, _, ()>(
             redis_key.clone(),
-            // since we only validate that the key exists
+            // Since we only validate that the key exists
             // to indicate the session is "live", it can have any value
-            String::new(),
+            ""
         )
         .await
         .map_err(|e| {
-            tracing::event!(target: "backend", tracing::Level::ERROR, "RedisError (set): {}", e);
+            tracing::error!(target: "redis", "Error setting email confirmation token: {}", e);
             e
         })?;
 
     let settings = crate::settings::get_settings().expect("Cannot load settings.");
     let current_date_time = chrono::Local::now();
-    // for redis expiration
+    // For redis expiration
     let time_to_live = {
         if is_for_password_change.is_some() {
             chrono::Duration::hours(1)
@@ -212,10 +235,10 @@ pub async fn issue_confirmation_token(
             chrono::Duration::minutes(settings.secret.token_expiration)
         }
     };
-    // for claims expiration
+    // For claims expiration
     let dt = current_date_time + time_to_live;
 
-    redis_connection
+    redis_conn
         .expire::<_, ()>(
             redis_key.clone(),
             time_to_live.num_seconds().try_into().unwrap()
@@ -227,7 +250,7 @@ pub async fn issue_confirmation_token(
         })?;
 
     let mut claims = Claims::new().unwrap();
-    // set custom expiration, default is 1 hour
+    // Set custom expiration, default is 1 hour
     claims.expiration(&dt.to_rfc3339()).unwrap();
     claims
         .add_additional("user_id", json!(user_id.to_string()))
@@ -236,7 +259,7 @@ pub async fn issue_confirmation_token(
         .add_additional("email_key", json!(email_key))
         .unwrap();
 
-    // use the 256 bit secret key as the symmetric key 
+    // Use the 256 bit secret key as the symmetric key 
     let sk = SymmetricKey::<V4>::from(settings.secret.secret_key.as_bytes()).unwrap();
 
     Ok(local::encrypt(
@@ -244,25 +267,25 @@ pub async fn issue_confirmation_token(
         &claims,
         None,
         Some(settings.secret.hmac_secret.as_bytes()),
-    )
-    .unwrap())
+    ).unwrap())
 }
 
-/// Verifies and destroys a token. A token is destroyed immediately after
-/// it has successfully been verified and all encoded data extracted.
-/// Redis is used for such destruction.
-#[tracing::instrument(name = "Verify PASETO token for email confirmation", skip(token, redis_connection))]
+/// Verifies and destroys an email confirmation token.
+/// The token is destroyed in redis immediately after it has successfully been
+/// verified and all encoded data extracted.
+/// Returns the user id.
+#[tracing::instrument(name = "Verify PASETO token for email confirmation", skip(token, redis_pool))]
 pub async fn verify_confirmation_token(
     token: String,
-    redis_connection: &mut deadpool_redis::redis::aio::MultiplexedConnection,
+    redis_pool: &deadpool_redis::Pool,
     is_password: Option<bool>
-) -> Result<crate::types::ConfirmationToken, String> {
+) -> Result<ObjectId> {
     let settings = crate::settings::get_settings().expect("Cannot read settings.");
     let sk = SymmetricKey::<V4>::from(settings.secret.secret_key.as_bytes()).unwrap();
 
     let validation_rules = ClaimsValidationRules::new();
     let untrusted_token = UntrustedToken::<Local, V4>::try_from(&token)
-        .map_err(|e| format!("TokenValidation: {}", e))?;
+        .map_err(|e| anyhow!(format!("TokenValidation: {}", e)))?;
     let trusted_token = local::decrypt(
         &sk,
         &untrusted_token,
@@ -270,54 +293,47 @@ pub async fn verify_confirmation_token(
         None,
         Some(settings.secret.hmac_secret.as_bytes()),
     )
-    .map_err(|e| format!("Pasetor: {}", e))?;
+    .map_err(|e| anyhow!(format!("PASETO: {}", e)))?;
 
     let claims = trusted_token.payload_claims().unwrap();
 
-    let uid = serde_json::to_value(claims.get_claim("user_id").unwrap()).unwrap();
+    let uid_claim = claims.get_claim("user_id").expect("Failed to get `user_id` claim in token.");
 
-    tracing::debug!(target: "backend", "uid claim: {:#?}", uid);
+    let uid: ObjectId = serde_json::from_value(uid_claim.clone())?;
 
-    match serde_json::from_value::<String>(uid) {
-        Ok(uid) => match ObjectId::parse_str(uid) {
-            Ok(uid) => {
-                let email_key =
-                    // Convert to serde value to be able to get the session key from the value
-                    serde_json::to_value(claims.get_claim("email_key").unwrap()).unwrap();
-                let email_key = match serde_json::from_value::<String>(email_key) {
-                    Ok(email_key) => email_key,
-                    Err(e) => return Err(format!("{}", e)),
-                };
+    let email_key_claim = claims.get_claim("email_key").unwrap();
+    let email_key: String = serde_json::from_value(email_key_claim.clone())?;
 
-                let redis_key = {
-                    if is_password.is_some() {
-                        format!(
-                            "{}{}is_for_password_change",
-                            EMAIL_KEY_PREFIX, email_key
-                        )
-                    } else {
-                        format!("{}{}", EMAIL_KEY_PREFIX, email_key)
-                    }
-                };
+    let redis_key = {
+        if is_password.is_some() {
+            format!(
+                "{}{}is_for_password_change",
+                EMAIL_KEY_PREFIX, email_key
+            )
+        } else {
+            format!("{}{}", EMAIL_KEY_PREFIX, email_key)
+        }
+    };
 
-                if redis_connection
-                    .get::<_, Option<String>>(redis_key.clone())
-                    .await
-                    .map_err(|e| format!("{}", e))?
-                    .is_none()
-                {
-                    return Err("Token has been used or expired.".to_string())
-                }
+    let mut redis_conn = if let Ok(conn) = get_redis_conn(redis_pool).await {
+        conn
+    } else {
+        bail!(crate::types::error::Redis::ConnError("Failed to obtain redis connection.".into()));
+    };
 
-                redis_connection
-                    .del::<_, ()>(redis_key.clone())
-                    .await
-                    .map_err(|e| format!("{}", e))?;
-
-                Ok(crate::types::ConfirmationToken { user_id: uid })
-            }
-            Err(e) => Err(format!("{}", e)),
-        },
-        Err(e) => Err(format!("{}", e)),
+    if redis_conn
+        .get::<_, Option<String>>(redis_key.clone())
+        .await
+        .map_err(|e| anyhow!(format!("{}", e)))?
+        .is_none()
+    {
+        bail!("Token has been used or expired.".to_string())
     }
+
+    redis_conn
+        .del::<_, ()>(redis_key.clone())
+        .await
+        .map_err(|e| anyhow!(format!("{}", e)))?;
+
+    Ok(uid)
 }

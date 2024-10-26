@@ -79,7 +79,7 @@ pub async fn send_multipart_email(
     recipient_email: String,
     recipient_name: String,
     template_filename: &str,
-    redis_connection: &mut deadpool_redis::redis::aio::MultiplexedConnection
+    redis_pool: &deadpool_redis::Pool,
 ) -> Result<(), String> {
     // can be optimized by making the settings static
     let settings = crate::settings::get_settings().expect("Unable to load settings.");
@@ -87,7 +87,7 @@ pub async fn send_multipart_email(
 
     let issued_token = match crate::utils::issue_confirmation_token(
         user_id,
-        redis_connection,
+        &redis_pool,
         None,
     )
     .await

@@ -17,7 +17,14 @@ pub async fn log_out(
             );
         };
 
-    crate::utils::revoke_session_token(sss_uuid_token, &redis_pool).await.expect("Failed to revoke the session token");
+    match crate::utils::revoke_session_token(sss_uuid_token, &redis_pool).await {
+        Ok(_) => {},
+        Err(e) if e.is::<types::error::Redis>() => return HttpResponse::InternalServerError().finish(),
+        Err(e) => {
+            tracing::error!(target: "backend", "An unexpected error occurred: {}", e);
+            return HttpResponse::InternalServerError().finish();
+        }
+    };
 
     let clear_cookie = {
         let mut cookie = Cookie::build("session_uuid", "")
