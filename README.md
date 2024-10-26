@@ -18,6 +18,8 @@ Nexis allows customers to effortlessly browse and buy products, while owners can
 * [Technologies used](#technologies-used)
 * [Architecture](#architecture)
 * [Setup](#setup)
+    * [For development](#setup-for-development)
+    * [For deployment](#setup-for-deployment)
 * [Developers](#developers)
 * [License](#license)
 
