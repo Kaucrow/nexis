@@ -1,6 +1,6 @@
 import os
 import toml
-from .utils import red
+from .colors import red
 
 class DatabaseSettings:
     uri: str

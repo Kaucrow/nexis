@@ -1,6 +1,7 @@
-from colorama import Fore, Style, init
+import redis
+from nexis_py.settings import get_settings, Settings
 
-init(autoreset=True)
-
-def red(text):
-    return f"{Fore.RED}{text}{Style.RESET_ALL}"
+def get_redis_conn():
+    settings: Settings = get_settings()
+    client = redis.from_url(settings.redis.uri)
+    return client

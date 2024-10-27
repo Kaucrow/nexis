@@ -1,12 +1,12 @@
 from flask import Flask
-from nexis_py.settings import get_settings, Settings
-from nexis_py.routes.user import auth_blueprint
-from nexis_py.utils import red
+from .routes import root_blueprint
+from .routes.users import users_blueprint
 
 def create_app():
     app = Flask(__name__)
 
     # Register blueprints
-    app.register_blueprint(auth_blueprint, url_prefix="/auth")
+    app.register_blueprint(root_blueprint)
+    app.register_blueprint(users_blueprint, url_prefix="/users")
 
     return app

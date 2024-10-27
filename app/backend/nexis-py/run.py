@@ -1,6 +1,6 @@
 from nexis_py import create_app
 from nexis_py.settings import get_settings
-from nexis_py.utils import red
+from nexis_py.colors import red
 
 app = create_app()
 settings = get_settings()
