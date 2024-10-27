@@ -1,0 +1,14 @@
+debug = true
+frontend_url = "https://localhost:5173"
+
+[application]
+protocol = "https"
+host = "localhost"
+base_url = "https://localhost"
+port = 444
+
+[secret]
+# 256 bit encryption key https://acte.ltd/utils/randomkeygen
+token_key = ""
+# HMAC secret https://www.freeformatter.com/hmac-generator.html
+hmac_secret = ""

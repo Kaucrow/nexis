@@ -1,0 +1,9 @@
+.venv
+__pycache__
+
+**/*.toml
+!base_example.toml
+!development_example.toml
+!production_example.toml
+
+**/*.pem

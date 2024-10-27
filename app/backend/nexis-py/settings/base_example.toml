@@ -1,0 +1,6 @@
+[database]
+uri = "MONGODB_ATLAS_CONN_STRING"
+name = "DB_NAME"
+
+[redis]
+uri = "redis://localhost/"
