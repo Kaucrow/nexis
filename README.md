@@ -96,7 +96,7 @@ Nexis follows a modular architecture, separating concerns between the frontend a
 
 ## Usage
 ### Rust API
-View the [Rust API documentation](./app/backend/README.md).
+View the [Rust API documentation](./app/backend/nexis-rs/README.md).
 
 ## Developers
 This project is being developed for the third trimester of 2024 at [Universidad Rafael Urdaneta](https://en.wikipedia.org/wiki/Rafael_Urdaneta_University) by:
