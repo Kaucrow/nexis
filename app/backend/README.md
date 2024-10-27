@@ -155,7 +155,7 @@ NOTE: Must contain either client, employee, or admin.
 * **URL**: `/users/logout`
 * **Method**: `POST`
 * **Description**: Logs out a user, revoking the UUID token cookie and the session data token from Redis.
-* Response:
+* **Response**:
     * Success: `HTTP 200` `Clear cookie: session_uuid`
     * Session token cookie not present: `HTTP 400`
     * Unknown error: `HTTP 500`
