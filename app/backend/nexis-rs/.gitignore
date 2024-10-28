@@ -1,0 +1,11 @@
+# Setting files
+*.yaml
+!base_example.yaml
+!development_example.yaml
+!production_example.yaml
+
+# Rust
+cargo.lock
+
+# HTTPS Cert
+*.pem

@@ -7,7 +7,6 @@
     "tdp": "Number",
     "ports": ["String"],
     "dedicated": "Boolean",
-    "soldSep": "Boolean",
     "warranty": null | "String",
     "memory": {
         "sizeGb": "Number",

@@ -1,0 +1,18 @@
+# settings/base.yaml
+
+database:
+  uri: "MONGODB_ATLAS_CONN_STRING"
+  database_name: "DB_NAME"
+
+redis:
+  uri: "redis://localhost/"
+  pool_max_open: 16
+  pool_max_idle: 8
+  pool_timeout_seconds: 1
+  pool_expire_seconds: 60
+
+email:
+  host: "smtp.gmail.com"
+  host_user: "SENDER_EMAIL"
+  # Check [gmail > settings > security > 2FA > App passwords] to obtain the host user password.
+  host_user_password: "SENDER_EMAIL_APP_PASSWORD"
