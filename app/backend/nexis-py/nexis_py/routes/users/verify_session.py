@@ -1,7 +1,8 @@
-from flask import request, jsonify
+from flask import request
 from nexis_py.utils.auth.tokens import decode_paseto
-from nexis_py.utils import get_redis_conn
+from nexis_py.utils import get_redis_conn, get_mongo_conn
 from nexis_py.types.responses import ErrorResponse
+from bson.objectid import ObjectId
 from . import users_blueprint
 
 SESSION_KEY_PREFIX = "session_"
@@ -33,8 +34,21 @@ def verify_session():
             claims = decode_paseto(sss_token)
             print(claims["user_id"])
         else:
-            # TODO: Renew the session if possible
-            pass
+            print("REACHED RENEWAL")
+            db = get_mongo_conn()
+
+            try:
+                user_id = claims["user_id"]
+            except Exception:
+                return ErrorResponse("Session expired and `user_id` claim is not present.", 401)
+            
+            users_coll = db['user']
+
+            user = users_coll.find_one({
+                "_id": ObjectId(user_id)
+            })
+        
+            redis_conn.set(f"{SESSION_KEY_PREFIX}{sss_uuid}", )
 
         return "", 200
     except Exception:
