@@ -5,11 +5,12 @@
 @tailwind utilities;
 
 html {
-    @tw-apply bg-neutral-50;
+    @tw-apply tw-bg-primary-background;
+    
 }
 
 html.dark {
-    @tw-apply bg-neutral-900;
+    @tw-apply tw-bg-primary-background;
 }
 
 @layer utilities {
