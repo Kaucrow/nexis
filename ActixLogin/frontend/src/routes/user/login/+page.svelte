@@ -1,29 +1,13 @@
-<script lang="ts">
-    import Header from "$lib/components/Header.svelte";
-</script>
-
-<Header />
-
-<p class="dark:text-neutral-200 text-neutral-700 text-lg ml-12 mt-6">
-    The homepage! :0
-</p>
-
-<div class="tw-bg-blue-500">
-    <p>
-        Hola mi pana
-    </p>
-</div>
-
 <section class="vh-100 gradient-custom">
     <div class="container py-4 h-100">
       <div class="row d-flex justify-content-center align-items-center h-100">
         <div class="col-12 col-md-8 col-lg-6 col-xl-5">
-          <div class="card tw-bg-primary text-white" style="border-radius: 1rem;">
+          <div class="card tw-bg-primary-dark text-white" style="border-radius: 1rem;">
             <div class="card-body p-5 text-center">
   
               <div class="mb-md-5 mt-md-4 pb-5">
   
-                <h2 class="fw-bold mb-2 text-uppercase">Login</h2>
+                <h2 class="fw-bold mb-2 text-uppercase tw-text-lg">Login</h2>
                 <p class="text-white-50 mb-5">Please enter your login and password!</p>
   
                 <div data-mdb-input-init class="form-outline form-white mb-4">
