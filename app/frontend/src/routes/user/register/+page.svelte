@@ -4,7 +4,7 @@
         <div class="col-12 col-lg-9 col-xl-7">
           <div class="card shadow-2-strong card-registration tw-bg-primary-dark text-white" style="border-radius: 15px;">
             <div class="card-body p-4 p-md-5">
-              <h3 class="mb-4 pb-2 pb-md-0 mb-md-5 tw-text-4xl text-center">Registration Form</h3>
+              <h3 class="mb-4 pb-2 pb-md-0 mb-md-5 tw-text-4xl text-center text-uppercase fw-bold">Registration Form</h3>
               <form>
   
                 <div class="row">
@@ -12,7 +12,7 @@
   
                     <div data-mdb-input-init class="form-outline tw-text-center">
                       <input type="text" id="firstName" class="form-control form-control-lg " />
-                      <label class="form-label" for="firstName">First Name</label>
+                      <label class="form-label mt-2" for="firstName">First Name</label>
                     </div>
   
                   </div>
@@ -20,7 +20,7 @@
   
                     <div data-mdb-input-init class="form-outline tw-text-center">
                       <input type="text" id="lastName" class="form-control form-control-lg" />
-                      <label class="form-label" for="lastName">Last Name</label>
+                      <label class="form-label mt-2" for="lastName">Last Name</label>
                     </div>
   
                   </div>
@@ -31,7 +31,7 @@
   
                     <div data-mdb-input-init class="form-outline datepicker w-100 tw-text-center">
                       <input type="text" class="form-control form-control-lg" id="birthdayDate" />
-                      <label for="birthdayDate" class="form-label">Birthday</label>
+                      <label for="birthdayDate" class="form-label mt-2">Birthday</label>
                     </div>
   
                   </div>
@@ -65,7 +65,7 @@
   
                     <div data-mdb-input-init class="form-outline tw-text-center">
                       <input type="email" id="emailAddress" class="form-control form-control-lg" />
-                      <label class="form-label" for="emailAddress">Email</label>
+                      <label class="form-label mt-2" for="emailAddress">Email</label>
                     </div>
   
                   </div>
@@ -73,11 +73,13 @@
   
                     <div data-mdb-input-init class="form-outline tw-text-center">
                       <input type="tel" id="phoneNumber" class="form-control form-control-lg" />
-                      <label class="form-label" for="phoneNumber">Phone Number</label>
+                      <label class="form-label mt-2" for="phoneNumber">Phone Number</label>
                     </div>
   
                   </div>
                 </div>
+
+                
 
                 
                 <div class="mt-2 d-flex justify-content-center align-items-center">
