@@ -1,5 +1,5 @@
-from flask import Blueprint
+from fastapi import APIRouter
 
-users_blueprint = Blueprint("users", __name__)
+router = APIRouter()
 
 from . import verify_session

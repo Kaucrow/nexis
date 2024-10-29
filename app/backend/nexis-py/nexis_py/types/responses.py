@@ -1,9 +1,17 @@
-from flask import jsonify, Response
-from typing import Tuple
+from fastapi.responses import JSONResponse
 
-def ErrorResponse(msg: str, status=500) -> Tuple[Response, int]:
-    response = {
-        "error": msg
-    }
+def SuccessResponse(msg: str, status=200) -> JSONResponse:
+    return JSONResponse(
+        content={
+            "message": msg
+        },
+        status_code=status
+    )
 
-    return jsonify(response), status
+def ErrorResponse(msg: str, status=500) -> JSONResponse:
+    return JSONResponse(
+        content={
+            "error": msg
+        },
+        status_code=status
+    )

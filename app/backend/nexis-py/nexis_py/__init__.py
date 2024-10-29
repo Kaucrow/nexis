@@ -1,12 +1,12 @@
-from flask import Flask
-from .routes import root_blueprint
-from .routes.users import users_blueprint
+from fastapi import FastAPI
+from . import routes
+from .routes import users
 
 def create_app():
-    app = Flask(__name__)
+    app = FastAPI()
 
-    # Register blueprints
-    app.register_blueprint(root_blueprint)
-    app.register_blueprint(users_blueprint, url_prefix="/users")
+    # Register routes
+    app.include_router(routes.router)
+    app.include_router(users.router, prefix="/users")
 
     return app

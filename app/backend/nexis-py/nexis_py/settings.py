@@ -29,10 +29,12 @@ class ApplicationSettings:
         self.port = application_data["port"]
 
 class SecretSettings:
+    session_token_expiration: int
     token_key: str
     hmac_secret: str
 
     def __init__(self, secret_data):
+        self.session_token_expiration = secret_data["session_token_expiration"]
         self.token_key = secret_data["token_key"]
         self.hmac_secret = secret_data["hmac_secret"]
 

@@ -8,6 +8,7 @@ base_url = "https://localhost"
 port = 8081
 
 [secret]
+session_token_expiration = 30
 # HMAC secret https://www.freeformatter.com/hmac-generator.html
 token_key = ""
 # HMAC secret https://www.freeformatter.com/hmac-generator.html
