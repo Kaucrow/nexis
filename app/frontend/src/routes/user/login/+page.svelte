@@ -67,7 +67,7 @@
         <div class="card tw-bg-primary-dark text-white login-card" style="border-radius: 1rem;">
           <div class="card-body p-4 pt-2 custom-height">
 
-            <div class="mb-md-5 mt-md-4 pb-5">
+            <div class="mb-md-2 mt-md-4 pb-4">
               <h2 class="mb-3 tw-text-2xl">Welcome back!</h2>
               <h2 class=" mb-3 tw-text-3xl ">Sign in</h2>
               <p class="text-white-50 mb-3">Please enter your details</p>

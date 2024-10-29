@@ -1,43 +1,86 @@
+<style>
+  .form-container {
+    transform: scale(0.8);
+    transform-origin: center;
+  }
+  .btn-custom {
+    width: 80%; 
+    background-color: #E2F1E7; 
+    color: #1D2B34; 
+    border: none; 
+    padding: 0.75rem 1.25rem; 
+    font-size: 1rem; 
+    border-radius: 2rem; 
+    margin-bottom: 2rem;
+  }
+  .custom-input {
+    background-color: #1D2B34;
+    color: white; 
+    border: none; 
+  }
+  .full-height-image {
+    position: absolute;
+    height: 100vh;
+    width: 28%;
+    right: 0;
+    top: 0;
+    object-fit: cover;
+  }
+  .form-container {
+    margin-right: 30%;
+    width: 75%;
+  }
+  .login-card{
+    border-top: 8px solid #243642;
+  }
+
+</style>
+
 <section class="vh-100 gradient-custom " style="background-color: #090d10">
-    <div class="container py-5 h-100">
+  <img src={mall2} alt="Mall Image" class="full-height-image">
+    <div class="container py-1 h-100">
       <div class="row justify-content-center align-items-center h-100">
-        <div class="col-12 col-lg-9 col-xl-7">
-          <div class="card shadow-2-strong card-registration tw-bg-primary-dark text-white" style="border-radius: 15px;">
-            <div class="card-body p-4 p-md-5">
-              <h3 class="mb-4 pb-2 pb-md-0 mb-md-5 tw-text-4xl text-center text-uppercase fw-bold">Registration Form</h3>
+        <div class="col-12 col-lg-9 col-xl-7 form-container">
+          <div class="card shadow-2-strong card-registration tw-bg-primary-dark text-white login-card" style="border-radius: 15px;">
+            <div class="card-body p-4 p-md-5 ">
+              <h3 class="tw-text-2xl pb-2">Welcome!</h3>
+              <h3 class="mb-2 pb-2 pb-md-0 mb-md-4 tw-text-3xl">Sign up to Nexis</h3>
               <form>
-  
+
                 <div class="row">
                   <div class="col-md-6 mb-4">
   
-                    <div data-mdb-input-init class="form-outline tw-text-center">
-                      <input type="text" id="firstName" class="form-control form-control-lg " />
-                      <label class="form-label mt-2" for="firstName">First Name</label>
+                    <div data-mdb-input-init class="form-outline">
+                      <label class="form-label " for="emailAddress">Email</label>
+                      <input type="email" id="emailAddress" class="form-control form-control-lg custom-input" />
                     </div>
   
                   </div>
-                  <div class="col-md-6 mb-4">
+                  <div class="col-md-6 mb-4 ">
   
-                    <div data-mdb-input-init class="form-outline tw-text-center">
-                      <input type="text" id="lastName" class="form-control form-control-lg" />
-                      <label class="form-label mt-2" for="lastName">Last Name</label>
+                    <div data-mdb-input-init class="form-outline">
+                      <label class="form-label " for="phoneNumber">Phone Number</label>
+                      <input type="tel" id="phoneNumber" class="form-control form-control-lg custom-input" />
+                      
                     </div>
   
                   </div>
                 </div>
   
                 <div class="row">
-                  <div class="col-md-6 mb-4 d-flex align-items-center">
+                  <div class="col-md-6 mb-4">
   
-                    <div data-mdb-input-init class="form-outline datepicker w-100 tw-text-center">
-                      <input type="text" class="form-control form-control-lg" id="birthdayDate" />
-                      <label for="birthdayDate" class="form-label mt-2">Birthday</label>
+                    <div data-mdb-input-init class="form-outline ">
+                      <label class="form-label" for="firstName">Username</label>
+                      <input type="text" id="firstName" class="form-control form-control-lg custom-input" />
+                      
                     </div>
   
                   </div>
-                  <div class="col-md-6 mb-4">
+
+                  <div class="col-md-6 mb-3">
   
-                    <h6 class="mb-2 pb-1">Gender: </h6>
+                    <h6 class="mb-2 pb-3">Gender: </h6>
   
                     <div class="form-check form-check-inline">
                       <input class="form-check-input" type="radio" name="inlineRadioOptions" id="femaleGender"
@@ -58,35 +101,38 @@
                     </div>
   
                   </div>
+                  
                 </div>
-  
+
                 <div class="row">
-                  <div class="col-md-6 mb-4 pb-2">
-  
-                    <div data-mdb-input-init class="form-outline tw-text-center">
-                      <input type="email" id="emailAddress" class="form-control form-control-lg" />
-                      <label class="form-label mt-2" for="emailAddress">Email</label>
+                  <div class="col-md-6 mb-4 d-flex align-items-center">
+                    <div data-mdb-input-init class="form-outline form-white w-100">
+                      <label class="form-label" for="typePasswordX">Password</label>
+                      <input type="password" id="typePasswordX" class="form-control form-control-lg custom-input" />
                     </div>
-  
                   </div>
-                  <div class="col-md-6 mb-4 pb-2">
-  
-                    <div data-mdb-input-init class="form-outline tw-text-center">
-                      <input type="tel" id="phoneNumber" class="form-control form-control-lg" />
-                      <label class="form-label mt-2" for="phoneNumber">Phone Number</label>
+                  <div class="col-md-6 mb-4 d-flex align-items-center">
+                    <div data-mdb-input-init class="form-outline datepicker w-100">
+                      <label for="birthdayDate" class="form-label ">Birth date (MM/DD/YY)</label>
+                      <input type="text" class="form-control form-control-lg custom-input" id="birthdayDate" />
                     </div>
-  
                   </div>
                 </div>
-
                 
-
+                <div class="row">
+                  <div class="col-md-6 mb-4 d-flex align-items-center">
+                    <div data-mdb-input-init class="form-outline form-white w-100">
+                      <label class="form-label" for="typeRepeatPasswordX">Repeat Password</label>
+                      <input type="password" id="typeRepeatPasswordX" class="form-control form-control-lg custom-input" />
+                    </div>
+                  </div>
+                </div>
                 
                 <div class="mt-2 d-flex justify-content-center align-items-center">
-                    <button data-mdb-button-init data-mdb-ripple-init class="btn btn-outline-light btn-lg px-5" type="submit">Register</button>
+                  <button data-mdb-button-init data-mdb-ripple-init class="btn btn-custom" type="submit">Register</button>
                 </div>
 
-                <div class="mt-3 pt-2 d-flex justify-content-center align-items-center">
+                <div class="mt-2 pt-2 d-flex justify-content-center align-items-center">
                     <p class="mt-2 mb-0">Already have an account? <a href="/user/login" class="text-white-50 fw-bold">Sign In</a></p>
                 </div>
   
@@ -97,9 +143,10 @@
         </div>
       </div>
     </div>
-    <img src={logo} alt="Nexis Logo" width="100px" height="100px" style="position: absolute; top: 10px; right: 10px;">
+    <img src={logo} alt="Nexis Logo" width="100px" height="100px" style="position: absolute; top: 10px; left: 10px;">
   </section>
 
   <script>
     import logo from '$lib/assets/Nexis.png';
+    import mall2 from '$lib/assets/mall2.jpg'
   </script>
