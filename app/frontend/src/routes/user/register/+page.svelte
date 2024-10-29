@@ -97,7 +97,7 @@
         </div>
       </div>
     </div>
-    <img src={logo} alt="Nexis Logo" width="100px" height="100px" style="position: absolute; bottom: 10px; right: 10px;">
+    <img src={logo} alt="Nexis Logo" width="100px" height="100px" style="position: absolute; top: 10px; right: 10px;">
   </section>
 
   <script>

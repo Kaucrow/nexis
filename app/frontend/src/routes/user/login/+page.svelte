@@ -40,14 +40,31 @@
     text-align: center;
     margin-bottom: 0;
   }
+  .full-height-image {
+    position: absolute;
+    height: 100vh;
+    width: 30%;
+    left: 0;
+    top: 0;
+    object-fit: cover;
+  }
+  .login-container {
+    margin-left: 30%;
+    width: 75%;
+  }
+  .login-card{
+    border-top: 8px solid #243642;
+  }
+  
   
 </style>
 
-<section class="vh-100 gradient-custom" style="background-color: #090d10;">
+<section class="vh-100 gradient-custom" style="background-color: #090d10; position: relative;">
+  <img src={mall} alt="Mall Image" class="full-height-image">
   <div class="container py-4 h-100">
     <div class="row d-flex justify-content-center align-items-center h-100 ">
-      <div class="col-12 col-md-8 col-lg-6 col-xl-5 custom-width">
-        <div class="card tw-bg-primary-dark text-white" style="border-radius: 1rem;">
+      <div class="col-12 col-md-8 col-lg-6 col-xl-5 custom-width login-container">
+        <div class="card tw-bg-primary-dark text-white login-card" style="border-radius: 1rem;">
           <div class="card-body p-4 pt-2 custom-height">
 
             <div class="mb-md-5 mt-md-4 pb-5">
@@ -89,4 +106,10 @@
       </div>
     </div>
   </div>
+  <img src={logo} alt="Nexis Logo" width="100px" height="100px" style="position: absolute; top: 10px; right: 10px;">
 </section>
+
+<script>
+  import logo from '$lib/assets/Nexis.png';
+  import mall from '$lib/assets/mall.jpg';
+</script>
