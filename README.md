@@ -60,6 +60,7 @@ Nexis follows a modular architecture, separating concerns between the frontend a
 ### Prerequisites
 * Node
 * Rust toolchain
+* Python 3
 * MongoDB Atlas account
 * Redis
 * Mkcert (only if **developing**)
@@ -79,6 +80,20 @@ Nexis follows a modular architecture, separating concerns between the frontend a
 5. Ensure you are in the rust backend directory and run `cargo run`.
 5. Type `https://localhost/health-check` in a browser to verify connectivity.
 
+#### Python API
+1. Set the `APP_ENVIRONMENT` environment variable to "development".
+2. `cd` into the python backend directory.
+3. Install the API's dependencies by running `pip install requirements.txt`
+4. Set the settings .toml files.
+5. Create the CA certificate:
+```
+    mkdir cert
+    cd cert
+    mkcert -cert-file cert.pem -key-file key.pem localhost
+```
+5. Ensure you are in the python backend directory and run `python run.py`.
+5. Type `https://localhost:444/health-check` in a browser to verify connectivity.
+
 #### Frontend
 1. `cd` into the frontend directory root.
 2. Run `npm install`.
@@ -92,11 +107,22 @@ Nexis follows a modular architecture, separating concerns between the frontend a
 5. Set the `NODE_EXTRA_CA_CERTS` environment variable to the root CA .pem file path. If generating the certs with mkcert on Windows, set it to `C:\Users\YOUR_USER\AppData\Local\mkcert\rootCA.pem`.
 6. Ensure you are in the frontend directory root and run `npm run dev`.
 
+<br>
+<div align="center">
+    <h3>IMPORTANT NOTE</h3>
+</div>
+
+Ensure that the secret key and HMAC secret in both APIs is the same. Otherwise, authentication on the Python API will fail.
+<br><br>
+
 ### Setup for deployment
 
 ## Usage
 ### Rust API
 View the [Rust API documentation](./app/backend/nexis-rs/README.md).
+
+### Python API
+View the [Python API documentation](./app/backend/nexis-py/README.md).
 
 ## Developers
 This project is being developed for the third trimester of 2024 at [Universidad Rafael Urdaneta](https://en.wikipedia.org/wiki/Rafael_Urdaneta_University) by:
