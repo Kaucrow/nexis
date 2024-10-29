@@ -1,5 +1,5 @@
-from flask import Blueprint
+from fastapi import APIRouter
 
-root_blueprint = Blueprint("/", __name__)
+router = APIRouter()
 
 from . import health_check

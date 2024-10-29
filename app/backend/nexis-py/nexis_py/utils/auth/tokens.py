@@ -1,9 +1,10 @@
 import json
 from pyseto import pyseto, Key
 from bson.objectid import ObjectId
+from fastapi import Response, status
 from nexis_py.settings import Settings, get_settings
-from nexis_py.types.responses import ErrorResponse
 from nexis_py.utils import get_mongo_conn, get_redis_conn
+from nexis_py.types.responses import ErrorResponse
 
 SESSION_KEY_PREFIX = "session_"
 
@@ -45,14 +46,9 @@ def build_token(claims):
 # from the cookies, and the session data token from redis.
 # Returns a tuple where the first element is a message, and
 # the second is an HTTP response code.
-def verify_session_token(request):
-    # Extract cookie
-    session_uuid_token = request.cookies.get("session_uuid")
-    if not session_uuid_token:
-        return ErrorResponse("Session cookie is missing.", 400)
-
+def verify_session_token(sss_uuid_token):
     try:
-        claims = get_token_claims(session_uuid_token)
+        claims = get_token_claims(sss_uuid_token)
 
         try:
             sss_uuid = claims["session_uuid"]
@@ -99,7 +95,7 @@ def verify_session_token(request):
             settings: Settings = get_settings()
             redis_conn.set(f"{SESSION_KEY_PREFIX}{sss_uuid}", sss_data_token, ex=settings.secret.session_token_expiration * 60)
 
-        return "", 200 
+        return Response(status_code=status.HTTP_200_OK)
 
     except Exception:
         return ErrorResponse("Failed to verify session.", 401)

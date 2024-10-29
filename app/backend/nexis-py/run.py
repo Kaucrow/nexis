@@ -1,3 +1,4 @@
+import uvicorn
 from nexis_py import create_app
 from nexis_py.settings import get_settings
 from nexis_py.colors import red
@@ -8,12 +9,12 @@ settings = get_settings()
 if __name__ == "__main__":
     if settings.application.protocol == "https":
         try:
-            app.run(
-                ssl_context=(
-                    "cert/cert.pem","cert/key.pem"
-                ),
+            uvicorn.run(
+                "run:app",
                 host=settings.application.host,
-                port=settings.application.port
+                port=settings.application.port,
+                ssl_certfile="cert/cert.pem",
+                ssl_keyfile="cert/key.pem",
             )
         except FileNotFoundError:
             print(
@@ -22,7 +23,8 @@ if __name__ == "__main__":
             )
             exit(1)
     else:
-        app.run(
+        uvicorn.run(
+            "run:app",
             host=settings.application.host,
             port=settings.application.port
         )

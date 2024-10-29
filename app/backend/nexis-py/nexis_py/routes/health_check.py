@@ -1,8 +1,9 @@
-from flask import jsonify
-from . import root_blueprint
+from fastapi.responses import JSONResponse
+from . import router
 
-@root_blueprint.route("/health-check", methods=["GET"])
+@router.get("/health-check")
 def health_check():
-    return jsonify(
-        "Python API is safe and healthy! :)"
-    ), 200
+    return JSONResponse(
+        content="Python API is safe and healthy! :)",
+        status_code=200
+    )
