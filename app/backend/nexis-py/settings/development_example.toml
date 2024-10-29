@@ -8,6 +8,7 @@ base_url = "https://localhost"
 port = 444
 
 [secret]
+session_token_expiration = 30
 # 256 bit encryption key https://acte.ltd/utils/randomkeygen
 token_key = ""
 # HMAC secret https://www.freeformatter.com/hmac-generator.html
