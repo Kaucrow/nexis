@@ -1,4 +1,10 @@
 <style>
+
+  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
+
+  .gradient-custom {
+    font-family: 'Poppins', sans-serif;
+  }
   .custom-input {
     background-color: #1D2B34;
     color: white; 
@@ -55,7 +61,14 @@
   .login-card{
     border-top: 8px solid #243642;
   }
-  
+  .custom-input{
+    font-size: 1.1em;
+  }
+  ::placeholder {
+    color: #ccc;
+    opacity: 1;
+    
+  }
   
 </style>
 
@@ -67,20 +80,20 @@
         <div class="card tw-bg-primary-dark text-white login-card" style="border-radius: 1rem;">
           <div class="card-body p-4 pt-2 custom-height">
 
-            <div class="mb-md-2 mt-md-4 pb-4">
-              <h2 class="mb-3 tw-text-2xl">Welcome back!</h2>
-              <h2 class=" mb-3 tw-text-3xl ">Sign in</h2>
+            <div class="mb-md-2 mt-md-3 pb-4">
+              <h2 class="mb-3 tw-text-xl">Welcome back!</h2>
+              <h2 class=" mb-1 tw-text-2xl ">Sign in</h2>
               <p class="text-white-50 mb-3">Please enter your details</p>
 
               <div data-mdb-input-init class="form-outline  mb-4">
                 <label class="form-label mt-2" for="typeEmailX">Username or Email</label>
-                <input type="email" id="typeEmailX" class="form-control form-control-lg custom-input" />
+                <input type="email" id="typeEmailX" class="form-control form-control-lg custom-input" placeholder="Enter your username or email" />
                 
               </div>
 
               <div data-mdb-input-init class="form-outline form-white mb-4">
                 <label class="form-label mt-2" for="typePasswordX">Password</label>
-                <input type="password" id="typePasswordX" class="form-control form-control-lg custom-input" />
+                <input type="password" id="typePasswordX" class="form-control form-control-lg custom-input" placeholder="Enter your password" />
                 
               </div>
 

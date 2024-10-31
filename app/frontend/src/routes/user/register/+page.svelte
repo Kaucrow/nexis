@@ -1,4 +1,9 @@
 <style>
+  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
+
+.gradient-custom {
+  font-family: 'Poppins', sans-serif;
+}
   .form-container {
     transform: scale(0.8);
     transform-origin: center;
@@ -33,6 +38,11 @@
   .login-card{
     border-top: 8px solid #243642;
   }
+  ::placeholder {
+    color: #ccc;
+    opacity: 1;
+    
+  }
 
 </style>
 
@@ -52,7 +62,7 @@
   
                     <div data-mdb-input-init class="form-outline">
                       <label class="form-label " for="emailAddress">Email</label>
-                      <input type="email" id="emailAddress" class="form-control form-control-lg custom-input" />
+                      <input type="email" id="emailAddress" class="form-control form-control-lg custom-input" placeholder="Enter your email"/>
                     </div>
   
                   </div>
@@ -60,7 +70,7 @@
   
                     <div data-mdb-input-init class="form-outline">
                       <label class="form-label " for="phoneNumber">Phone Number</label>
-                      <input type="tel" id="phoneNumber" class="form-control form-control-lg custom-input" />
+                      <input type="tel" id="phoneNumber" class="form-control form-control-lg custom-input" placeholder="Enter your phone number" />
                       
                     </div>
   
@@ -72,7 +82,7 @@
   
                     <div data-mdb-input-init class="form-outline ">
                       <label class="form-label" for="firstName">Username</label>
-                      <input type="text" id="firstName" class="form-control form-control-lg custom-input" />
+                      <input type="text" id="firstName" class="form-control form-control-lg custom-input" placeholder="Enter your username" />
                       
                     </div>
   
@@ -108,13 +118,13 @@
                   <div class="col-md-6 mb-4 d-flex align-items-center">
                     <div data-mdb-input-init class="form-outline form-white w-100">
                       <label class="form-label" for="typePasswordX">Password</label>
-                      <input type="password" id="typePasswordX" class="form-control form-control-lg custom-input" />
+                      <input type="password" id="typePasswordX" class="form-control form-control-lg custom-input" placeholder="Enter your password" />
                     </div>
                   </div>
                   <div class="col-md-6 mb-4 d-flex align-items-center">
                     <div data-mdb-input-init class="form-outline datepicker w-100">
                       <label for="birthdayDate" class="form-label ">Birth date (MM/DD/YY)</label>
-                      <input type="text" class="form-control form-control-lg custom-input" id="birthdayDate" />
+                      <input type="text" class="form-control form-control-lg custom-input" id="birthdayDate" placeholder="Enter your birth date" />
                     </div>
                   </div>
                 </div>
@@ -123,7 +133,7 @@
                   <div class="col-md-6 mb-4 d-flex align-items-center">
                     <div data-mdb-input-init class="form-outline form-white w-100">
                       <label class="form-label" for="typeRepeatPasswordX">Repeat Password</label>
-                      <input type="password" id="typeRepeatPasswordX" class="form-control form-control-lg custom-input" />
+                      <input type="password" id="typeRepeatPasswordX" class="form-control form-control-lg custom-input" placeholder="Repeat your password"/>
                     </div>
                   </div>
                 </div>
