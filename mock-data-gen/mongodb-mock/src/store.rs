@@ -1,4 +1,4 @@
-use crate::common::*;
+use crate::prelude::*;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Payment {

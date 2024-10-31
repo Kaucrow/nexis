@@ -1,4 +1,4 @@
-use crate::common::*;
+use crate::prelude::*;
 use std::collections::{ HashMap, HashSet };
 use once_cell::sync::Lazy;
 use rand::prelude::IteratorRandom;
@@ -92,6 +92,7 @@ impl Dummy<Faker> for Clock {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Cpu {
     _id: ObjectIdWrapper,
+    name: String,
     price: f64,
     brand: String,
     model: String,
@@ -127,6 +128,7 @@ impl Dummy<Faker> for Cpu {
 
         Cpu {
             _id: ObjectIdWrapper::dummy_with_rng(config, rng),
+            name: format!("{} {}", brand, model),
             price: (rng.gen_range(50.0..=200.0) as f64).round_to_2(),
             brand: brand.to_string(),
             model: model.to_string(),
@@ -148,6 +150,7 @@ impl Dummy<Faker> for Cpu {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Gpu {
     _id: ObjectIdWrapper,
+    name: String,
     price: f64,
     brand: String,
     model: String,
@@ -199,6 +202,7 @@ impl Dummy<Faker> for Gpu {
 
         Gpu {
             _id: ObjectIdWrapper::dummy_with_rng(config, rng),
+            name: format!("{} {}", brand, model),
             price: (rng.gen_range(50.0..=300.0) as f64).round_to_2(),
             brand: brand.to_string(),
             model: model.to_string(),
@@ -217,6 +221,7 @@ impl Dummy<Faker> for Gpu {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Tech {
     _id: ObjectIdWrapper,
+    name: String,
     price: f64,
     brand: String,
     model: String,
@@ -244,11 +249,15 @@ impl Tech {
             }).collect()
         };
 
+        let brand: String = Word().fake();
+        let model: String = Word().fake();
+
         Tech {
             _id: ObjectIdWrapper::dummy_with_rng(config, rng),
+            name: format!("{} {}", brand, model),
             price: (rng.gen_range(80.0..=1200.0) as f64).round_to_2(),
-            brand: Word().fake(),
-            model: Word().fake(),
+            brand,
+            model,
             color,
             tech_type: TECH_TYPES.choose(rng).unwrap().to_string(),
             memory: 2u16.pow(rng.gen_range(3..=10)),
@@ -262,6 +271,7 @@ impl Tech {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Keyboard {
     _id: ObjectIdWrapper,
+    name: String,
     price: f64,
     brand: String,
     model: String,
@@ -287,11 +297,15 @@ pub static KEYSW_TYPES: Lazy<Vec<&'static str>> = Lazy::new(|| vec![
 
 impl Dummy<Faker> for Keyboard {
     fn dummy_with_rng<R: Rng + ?Sized>(config: &Faker, rng: &mut R) -> Self {
+        let brand: String = Word().fake();
+        let model: String = Word().fake();
+
         Keyboard {
             _id: ObjectIdWrapper::dummy_with_rng(config, rng),
+            name: format!("{} {}", brand, model),
             price: (rng.gen_range(10.0..300.0) as f64).round_to_2(),
-            brand: Word().fake(),
-            model: Word().fake(),
+            brand,
+            model,
             keyboard_type: KEYB_TYPES.choose(rng).unwrap().to_string(),
             key_switch: KEYSW_TYPES.choose(rng).unwrap().to_string(),
             backlight: rng.gen_bool(0.5),

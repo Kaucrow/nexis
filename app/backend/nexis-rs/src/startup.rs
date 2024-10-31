@@ -67,10 +67,6 @@ async fn run(
         .expect("Cannot create deadpool redis.");
     let redis_pool_data = actix_web::web::Data::new(redis_pool);
 
-    /*let cookie_secure =
-        if settings.application.protocol == "https" { true }
-        else { false };*/
-    
     let server = actix_web::HttpServer::new(move || {
         actix_web::App::new()
             .wrap(
@@ -86,17 +82,9 @@ async fn run(
                 .supports_credentials()
                 .max_age(3600),
             )
-            /*.wrap(
-                actix_session::SessionMiddleware::builder(
-                    actix_session::storage::CookieSessionStore::default(),
-                    secret_key.clone(),
-                )
-                .cookie_http_only(true)
-                .cookie_same_site(actix_web::cookie::SameSite::Lax)
-                .cookie_secure(true)
-                .build()
-            )*/
             .service(crate::routes::health_check)
+            .service(crate::routes::search_suggestions)
+            .service(crate::routes::search)
             .configure(crate::routes::auth_routes_config)
             // Add database pool to application state
             .app_data(db.clone())

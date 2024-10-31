@@ -12,7 +12,8 @@ pub use mongodb::{
     bson::{ self, Bson, doc, Document, oid::ObjectId },
     options::{ ClientOptions, ResolverConfig, ServerApi, ServerApiVersion },
     Client,
-    Collection
+    Collection,
+    IndexModel,
 };
 pub use chrono::{ DateTime, TimeZone, Utc, NaiveDate };
 pub use serde::{ Serialize, Deserialize };

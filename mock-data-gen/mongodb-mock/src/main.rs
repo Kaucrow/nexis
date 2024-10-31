@@ -1,7 +1,14 @@
 use std::iter::zip;
 
 use mongodb_mock::{
-    clothes::Clothes, common::*, food::Food, library::LibraryItem, other::Job, store::Store, tech::{ Cpu, Gpu, Keyboard, Tech, TechOther }, user::{User, UserDetails}
+    prelude::*,
+    clothes::Clothes,
+    food::Food,
+    library::LibraryItem,
+    other::{Job, Item},
+    store::Store,
+    tech::{ Cpu, Gpu, Keyboard, Tech, TechOther },
+    user::{User, UserDetails},
 };
 
 #[tokio::main]
@@ -33,26 +40,46 @@ async fn main() -> mongodb::error::Result<()> {
     let clothes_coll: Collection<Clothes> = db.collection("clothes");
     let clothes: Vec<Clothes> = (0..50).map(|_| Faker.fake::<Clothes>()).collect();
     clothes_coll.insert_many(clothes).await?;
+    clothes_coll.create_indexes(vec![
+        IndexModel::builder().keys(doc! { "name": "text" }).build(),
+        IndexModel::builder().keys(doc! { "price": 1 }).build()
+    ]).await?;
     println!("- Inserted: clothes");
 
     let food_coll: Collection<Food> = db.collection("food");
     let food: Vec<Food> = (0..50).map(|_| Faker.fake::<Food>()).collect();
     food_coll.insert_many(food).await?;
+    food_coll.create_indexes(vec![
+        IndexModel::builder().keys(doc! { "name": "text" }).build(),
+        IndexModel::builder().keys(doc! { "price": 1 }).build()
+    ]).await?;
     println!("- Inserted: food");
     
     let library_item_coll: Collection<LibraryItem> = db.collection("libraryItem");
     let library_items: Vec<LibraryItem> = (0..50).map(|_| Faker.fake::<LibraryItem>()).collect();
     library_item_coll.insert_many(library_items).await?;
+    library_item_coll.create_indexes(vec![
+        IndexModel::builder().keys(doc! { "name": "text" }).build(),
+        IndexModel::builder().keys(doc! { "price": 1 }).build()
+    ]).await?;
     println!("- Inserted: library items");
 
     let cpu_coll: Collection<Cpu> = db.collection("techCpu");
     let cpus: Vec<Cpu> = (0..50).map(|_| Faker.fake::<Cpu>()).collect();
     cpu_coll.insert_many(cpus).await?;
+    cpu_coll.create_indexes(vec![
+        IndexModel::builder().keys(doc! { "name": "text" }).build(),
+        IndexModel::builder().keys(doc! { "price": 1 }).build()
+    ]).await?;
     println!("- Inserted: CPUs");
 
     let gpu_coll: Collection<Gpu> = db.collection("techGpu");
     let gpus: Vec<Gpu> = (0..50).map(|_| Faker.fake::<Gpu>()).collect();
     gpu_coll.insert_many(gpus).await?;
+    gpu_coll.create_indexes(vec![
+        IndexModel::builder().keys(doc! { "name": "text" }).build(),
+        IndexModel::builder().keys(doc! { "price": 1 }).build()
+    ]).await?;
     println!("- Inserted: GPUs");
 
     let cpu_coll: Collection<Document> = db.collection("techCpu");
@@ -89,16 +116,28 @@ async fn main() -> mongodb::error::Result<()> {
             Tech::dummy_with_rng(cpu._id, gpu, &Faker, &mut rng)
         }).collect();
     tech_coll.insert_many(techs).await?;
+    tech_coll.create_indexes(vec![
+        IndexModel::builder().keys(doc! { "name": "text" }).build(),
+        IndexModel::builder().keys(doc! { "price": 1 }).build()
+    ]).await?;
     println!("- Inserted: techs");
 
     let keyb_coll: Collection<Keyboard> = db.collection("techKeyboard");
     let keybs: Vec<Keyboard> = (0..50).map(|_| Keyboard::dummy_with_rng(&Faker, &mut rng)).collect();
     keyb_coll.insert_many(keybs).await?;
+    keyb_coll.create_indexes(vec![
+        IndexModel::builder().keys(doc! { "name": "text" }).build(),
+        IndexModel::builder().keys(doc! { "price": 1 }).build()
+    ]).await?;
     println!("- Inserted: keyboards");
 
     let tech_other_coll: Collection<TechOther> = db.collection("techOther");
     let tech_others: Vec<TechOther> = (0..50).map(|_| TechOther::dummy_with_rng(&Faker, &mut rng)).collect();
     tech_other_coll.insert_many(tech_others).await?;
+    tech_other_coll.create_indexes(vec![
+        IndexModel::builder().keys(doc! { "name": "text" }).build(),
+        IndexModel::builder().keys(doc! { "price": 1 }).build()
+    ]).await?;
     println!("- Inserted: other techs");
 
     let store_ids: HashMap<&str, ObjectIdWrapper> = (0..4).map(|i| {
@@ -163,6 +202,28 @@ async fn main() -> mongodb::error::Result<()> {
     let store: Store = Store::dummy_with_rng("tech", &store_ids, &client, &fake::Faker, &mut rng).await?;
     stores_coll.insert_one(store).await?;
     println!("- Inserted: tech store");
+
+    let items_coll: Collection<Item> = db.collection("items");
+    let mut items: Vec<Item> = Vec::new();
+    for coll_name in ITEM_COLLS.iter() {
+        let coll: Collection<Document> = db.collection(coll_name);
+        let mut cursor = coll.find( doc! {} ).await?;
+
+        while let Some(doc) = cursor.try_next().await? {
+            items.push(Item {
+                _id: doc.get_object_id("_id").unwrap(),
+                name: doc.get_str("name").unwrap().to_string(),
+                price: doc.get_f64("price").unwrap_or_else(|_| doc.get_f64("pricePerKg").unwrap()),
+                coll: coll_name.to_string(),
+            })
+        }
+    }
+    items_coll.insert_many(items).await?;
+    items_coll.create_indexes(vec![
+        IndexModel::builder().keys(doc! { "name": "text" }).build(),
+        IndexModel::builder().keys(doc! { "price": 1 }).build()
+    ]).await?;
+    println!("- Inserted: items");
 
     Ok(())
 }

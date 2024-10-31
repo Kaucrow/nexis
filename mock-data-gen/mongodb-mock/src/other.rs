@@ -1,4 +1,4 @@
-use crate::common::*;
+use crate::prelude::*;
 use once_cell::sync::Lazy;
 
 pub static JOBS: Lazy<Vec<&str>> = Lazy::new(|| vec![
@@ -42,4 +42,12 @@ impl Job {
             stores,
         }
     }
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Item {
+    pub _id: ObjectId,
+    pub name: String,
+    pub price: f64,
+    pub coll: String,
 }

@@ -7,8 +7,8 @@ pub mod types;
 pub mod database;
 pub mod prelude;
 
-use std::{path::Path, fs};
 use once_cell::sync::Lazy;
+use std::{path::Path, fs};
 use minijinja::Environment;
 
 fn load_templates_from_directory(env: &mut Environment<'static>, dir: &Path) -> Result<(), std::io::Error> {
