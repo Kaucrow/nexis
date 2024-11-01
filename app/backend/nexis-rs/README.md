@@ -95,7 +95,8 @@ NOTE: Must contain either client, employee, or admin.
 * **URL**: `/users/register/verify`
 * **Method**: `GET`
 * **Description**: Decrypts the email confirmation token and activates a registered user on the database.
-* **Parameters**: `token: PASETOv4 email confirmation token`
+* **Parameters**:
+    * `token`: PASETOv4 email confirmation token.
 * **Response**:
     * Success: `HTTP 200`
     ```
@@ -159,3 +160,49 @@ NOTE: Must contain either client, employee, or admin.
     * Success: `HTTP 200` `Clear cookie: session_uuid`
     * Session token cookie not present: `HTTP 400`
     * Unknown error: `HTTP 500`
+
+### Item Search
+---
+* **URL**: `/search`
+* **Method**: `GET`
+* **Description**: Returns the results for an item search query.
+* **Parameters**:
+    * `input`: Search query.
+    * `page`: Number of "search" page.
+    * `min-price`: Minimum item price.
+    * `max-price`: Maximum item price.
+* **Response**:
+    * Found search results: `HTTP 200`
+    ```
+    [{
+        id: ObjectId,
+        name: "Intel A770 GPU",
+        price: 499.99,
+        store: "cyberion",
+        coll: "techGpu"
+    }]
+    ```
+    * Didn't find any result: `HTTP 200`
+    ```
+    []
+    ```
+      
+### Item Search Suggestions
+---
+* **URL**: `/search-suggestions`
+* **Method**: `GET`
+* **Description**: Returns the suggestions for an item search input, for text autocompletion purposes. E.g., when the input is "int", this endpoint will lookup the items, and if it finds one called "Intel A770 GPU", it might return it as a suggestion, since its name contains "int".
+* **Parameters**:
+    * `input`: Search input.
+* **Response**:
+    * Found suggestions: `HTTP 200`
+    ```
+    [{
+        name: "Intel A770 GPU",
+        coll: "techGpu"
+    }]
+    ```
+    * Didn't find any result: `HTTP 200`
+    ```
+    []
+    ```
