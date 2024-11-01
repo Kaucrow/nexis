@@ -1,3 +1,8 @@
+<svelte:head>
+  <title>Register</title>
+</svelte:head>
+
+
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
 
@@ -36,7 +41,7 @@
     width: 75%;
   }
   .login-card{
-    border-top: 8px solid #243642;
+    border-top: 10px solid #387478;
   }
   ::placeholder {
     color: #ccc;
@@ -53,15 +58,15 @@
         <div class="col-12 col-lg-9 col-xl-7 form-container">
           <div class="card shadow-2-strong card-registration tw-bg-primary-dark text-white login-card" style="border-radius: 15px;">
             <div class="card-body p-4 p-md-5 ">
-              <h3 class="tw-text-2xl pb-2">Welcome!</h3>
-              <h3 class="mb-2 pb-2 pb-md-0 mb-md-4 tw-text-3xl">Sign up to Nexis</h3>
+              <h3 class="tw-text-xl pb-2 tw-text-primary-light">Welcome !</h3>
+              <h3 class="mb-2 pb-4 pb-md-0 mb-md-4 tw-text-3xl tw-text-primary-secondary">Sign up to Nexis</h3>
               <form>
 
                 <div class="row">
                   <div class="col-md-6 mb-4">
   
                     <div data-mdb-input-init class="form-outline">
-                      <label class="form-label " for="emailAddress">Email</label>
+                      <label class="form-label tw-text-primary-light" for="emailAddress">Email</label>
                       <input type="email" id="emailAddress" class="form-control form-control-lg custom-input" placeholder="Enter your email"/>
                     </div>
   
@@ -69,7 +74,7 @@
                   <div class="col-md-6 mb-4 ">
   
                     <div data-mdb-input-init class="form-outline">
-                      <label class="form-label " for="phoneNumber">Phone Number</label>
+                      <label class="form-label tw-text-primary-light" for="phoneNumber">Phone Number</label>
                       <input type="tel" id="phoneNumber" class="form-control form-control-lg custom-input" placeholder="Enter your phone number" />
                       
                     </div>
@@ -81,7 +86,7 @@
                   <div class="col-md-6 mb-4">
   
                     <div data-mdb-input-init class="form-outline ">
-                      <label class="form-label" for="firstName">Username</label>
+                      <label class="form-label tw-text-primary-light" for="firstName">Username</label>
                       <input type="text" id="firstName" class="form-control form-control-lg custom-input" placeholder="Enter your username" />
                       
                     </div>
@@ -90,24 +95,24 @@
 
                   <div class="col-md-6 mb-3">
   
-                    <h6 class="mb-2 pb-3">Gender: </h6>
+                    <h6 class="mb-2 pb-3 tw-text-primary-light">Gender: </h6>
   
                     <div class="form-check form-check-inline">
                       <input class="form-check-input" type="radio" name="inlineRadioOptions" id="femaleGender"
                         value="option1" checked />
-                      <label class="form-check-label" for="femaleGender">Female</label>
+                      <label class="form-check-label tw-text-primary-light" for="femaleGender">Female</label>
                     </div>
   
                     <div class="form-check form-check-inline">
                       <input class="form-check-input" type="radio" name="inlineRadioOptions" id="maleGender"
                         value="option2" />
-                      <label class="form-check-label" for="maleGender">Male</label>
+                      <label class="form-check-label tw-text-primary-light" for="maleGender">Male</label>
                     </div>
   
                     <div class="form-check form-check-inline">
                       <input class="form-check-input" type="radio" name="inlineRadioOptions" id="otherGender"
                         value="option3" />
-                      <label class="form-check-label" for="otherGender">Other</label>
+                      <label class="form-check-label tw-text-primary-light" for="otherGender">Other</label>
                     </div>
   
                   </div>
@@ -117,13 +122,13 @@
                 <div class="row">
                   <div class="col-md-6 mb-4 d-flex align-items-center">
                     <div data-mdb-input-init class="form-outline form-white w-100">
-                      <label class="form-label" for="typePasswordX">Password</label>
+                      <label class="form-label tw-text-primary-light" for="typePasswordX">Password</label>
                       <input type="password" id="typePasswordX" class="form-control form-control-lg custom-input" placeholder="Enter your password" />
                     </div>
                   </div>
                   <div class="col-md-6 mb-4 d-flex align-items-center">
                     <div data-mdb-input-init class="form-outline datepicker w-100">
-                      <label for="birthdayDate" class="form-label ">Birth date (MM/DD/YY)</label>
+                      <label for="birthdayDate" class="form-label tw-text-primary-light">Birth date (MM/DD/YY)</label>
                       <input type="text" class="form-control form-control-lg custom-input" id="birthdayDate" placeholder="Enter your birth date" />
                     </div>
                   </div>
@@ -132,18 +137,18 @@
                 <div class="row">
                   <div class="col-md-6 mb-4 d-flex align-items-center">
                     <div data-mdb-input-init class="form-outline form-white w-100">
-                      <label class="form-label" for="typeRepeatPasswordX">Repeat Password</label>
+                      <label class="form-label tw-text-primary-light" for="typeRepeatPasswordX">Repeat Password</label>
                       <input type="password" id="typeRepeatPasswordX" class="form-control form-control-lg custom-input" placeholder="Repeat your password"/>
                     </div>
                   </div>
                 </div>
                 
-                <div class="mt-2 d-flex justify-content-center align-items-center">
-                  <button data-mdb-button-init data-mdb-ripple-init class="btn btn-custom" type="submit">Register</button>
+                <div class="mt-3 d-flex justify-content-center align-items-center">
+                  <button data-mdb-button-init data-mdb-ripple-init class="btn btn-custom fw-bold" type="submit">Sign up</button>
                 </div>
 
-                <div class="mt-2 pt-2 d-flex justify-content-center align-items-center">
-                    <p class="mt-2 mb-0">Already have an account? <a href="/user/login" class="text-white-50 fw-bold">Sign In</a></p>
+                <div class=" d-flex justify-content-center align-items-center">
+                    <p style="color:gray;" class="mt-2 mb-0">Already have an account? <a href="/user/login" class="text-white-50 fw-bold tw-text-primary-secondary">Sign In</a></p>
                 </div>
   
               </form>
@@ -158,5 +163,5 @@
 
   <script>
     import logo from '$lib/assets/Nexis.png';
-    import mall2 from '$lib/assets/mall2.jpg'
+    import mall2 from '$lib/assets/mall2-2.jpg'
   </script>

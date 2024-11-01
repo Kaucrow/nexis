@@ -1,3 +1,7 @@
+<svelte:head>
+  <title>Login</title>
+</svelte:head>
+
 <style>
 
   @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
@@ -59,7 +63,7 @@
     width: 75%;
   }
   .login-card{
-    border-top: 8px solid #243642;
+    border-top: 8px solid #387478;
   }
   .custom-input{
     font-size: 1.1em;
@@ -69,6 +73,7 @@
     opacity: 1;
     
   }
+  
   
 </style>
 
@@ -81,18 +86,18 @@
           <div class="card-body p-4 pt-2 custom-height">
 
             <div class="mb-md-2 mt-md-3 pb-4">
-              <h2 class="mb-3 tw-text-xl">Welcome back!</h2>
-              <h2 class=" mb-1 tw-text-2xl ">Sign in</h2>
-              <p class="text-white-50 mb-3">Please enter your details</p>
+              <h3 class="mb-3 tw-text-xl  tw-text-primary-light" >Welcome back!</h3>
+              <h2 class=" mb-1 tw-text-2xl tw-text-primary-secondary">Sign in</h2>
+              <p class="mb-3 tw-text-primary-light">Please enter your details</p>
 
               <div data-mdb-input-init class="form-outline  mb-4">
-                <label class="form-label mt-2" for="typeEmailX">Username or Email</label>
+                <label class="form-label mt-2 tw-text-primary-light" for="typeEmailX">Username or Email</label>
                 <input type="email" id="typeEmailX" class="form-control form-control-lg custom-input" placeholder="Enter your username or email" />
                 
               </div>
 
               <div data-mdb-input-init class="form-outline form-white mb-4">
-                <label class="form-label mt-2" for="typePasswordX">Password</label>
+                <label class="form-label mt-2 tw-text-primary-light" for="typePasswordX">Password</label>
                 <input type="password" id="typePasswordX" class="form-control form-control-lg custom-input" placeholder="Enter your password" />
                 
               </div>
@@ -100,17 +105,17 @@
               <div class="remember-forgot mb-4">
                 <div class="form-check">
                   <input class="form-check-input" type="checkbox" value="" id="rememberMe">
-                  <label class="form-check-label" for="rememberMe">
+                  <label class="form-check-label tw-text-primary-light" for="rememberMe">
                     Remember me
                   </label>
                 </div>
-                <a class="text-white-50" href="#!">Forgot password?</a>
+                <a style="color: #387478" href="#!">Forgot password?</a>
               </div>
 
-              <button data-mdb-button-init data-mdb-ripple-init class="btn btn-custom" type="submit">Login</button>
+              <button data-mdb-button-init data-mdb-ripple-init class="btn btn-custom fw-bold" type="submit">Sign in</button>
 
               <div class="center-text">
-                <p class="mb-0">Don't have an account? <a href="/user/register" class="text-white-50 fw-bold">Sign Up</a></p>
+                <p style="color:gray;" class="mb-0">Don't have an account? <a href="/user/register" class="fw-bold tw-text-primary-secondary">Sign Up</a></p>
               </div>
 
             </div>
