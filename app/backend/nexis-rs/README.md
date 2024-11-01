@@ -36,7 +36,7 @@ This approach ensures proper handling of session expiry and allows for secure an
 ---
 * **URL**: `/health-check`
 * **Method**: `GET`
-* **Description**: Can be used for checking if the server is up
+* **Description**: Can be used for checking if the server is up.
 * **Response**:
     * Success: `HTTP 200`
     ```
