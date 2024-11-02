@@ -1,5 +1,5 @@
 use crate::prelude::*;
-use crate::types::mongodb::users::Schedule;
+use crate::types::{ Role, mongodb::users::Schedule };
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct NewClient {
@@ -48,7 +48,5 @@ pub struct LoginUser {
 pub struct RoleLoginUser {
     #[serde(rename = "token")]
     pub rolesel_pub_token: String,
-    pub role: String,
-    #[serde(rename = "remember-me")]
-    pub remember_me: bool,
+    pub role: Role,
 }

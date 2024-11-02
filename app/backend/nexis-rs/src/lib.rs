@@ -7,6 +7,8 @@ pub mod types;
 pub mod database;
 pub mod prelude;
 
+pub use utils::auth;
+
 use once_cell::sync::Lazy;
 use std::{path::Path, fs};
 use minijinja::Environment;

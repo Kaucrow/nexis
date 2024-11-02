@@ -16,9 +16,7 @@ pub struct SessionPublicToken {
 }
 
 pub struct SessionDataToken {
-    pub user_key: &'static str,
-    pub role_key: &'static str,
-    pub avail_roles_key: &'static str,
+    pub session_key: &'static str,
 }
 
 pub struct EmailToken {
@@ -32,6 +30,7 @@ pub struct RoleSelectPublicToken {
 
 pub struct RoleSelectDataToken {
     pub user_key: &'static str,
+    pub remember_me_key: &'static str,
 }
 
 pub const SSS_PUB_TK: SessionPublicToken = SessionPublicToken {
@@ -41,9 +40,7 @@ pub const SSS_PUB_TK: SessionPublicToken = SessionPublicToken {
 };
 
 pub const SSS_DATA_TK: SessionDataToken = SessionDataToken {
-    user_key: "user",
-    role_key: "role",
-    avail_roles_key: "available_roles",
+    session_key: "session",
 };
 
 pub const EMAIL_TK: EmailToken = EmailToken {
@@ -56,5 +53,6 @@ pub const ROLESEL_PUB_TK: RoleSelectPublicToken = RoleSelectPublicToken {
 };
 
 pub const ROLESEL_DATA_TK: RoleSelectDataToken = RoleSelectDataToken {
-    user_key: "user"
+    user_key: "user",
+    remember_me_key: "remember_me"
 };

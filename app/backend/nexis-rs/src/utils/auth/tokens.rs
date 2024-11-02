@@ -2,8 +2,10 @@ use crate::{
     prelude::*,
     database::get_redis_conn,
     types::{
+        self,
         UserSession,
         User,
+        Role,
         SSS_PUB_TK,
         SSS_DATA_TK,
         EMAIL_TK,
@@ -16,7 +18,6 @@ use argon2::password_hash::rand_core::{ OsRng, RngCore };
 use core::convert::TryFrom;
 use hex;
 use serde_json::json;
-
 
 /// Store the session key prefix as a const so it can't be typo'd anywhere it's used.
 const SESSION_KEY_PREFIX: &str = "session_";
@@ -32,7 +33,7 @@ const ROLESELECT_KEY_PREFIX: &str = "roleselect_";
 #[tracing::instrument(name = "Issue PASETO token for session uuid", skip(redis_pool))]
 pub async fn issue_session_token(
     user: User,
-    role: &'static str,
+    role: Role,
     remember_me: bool,
     redis_pool: &deadpool_redis::Pool,
 ) -> Result<String> {
@@ -43,7 +44,7 @@ pub async fn issue_session_token(
     let mut redis_conn = if let Ok(conn) = get_redis_conn(redis_pool).await {
         conn
     } else {
-        bail!(crate::types::error::Redis::ConnError("Failed to obtain redis connection.".into()));
+        bail!(types::error::Redis::ConnError("Failed to obtain redis connection.".into()));
     };
 
     let redis_key = format!("{}{}", SESSION_KEY_PREFIX, sss_uuid);
@@ -111,30 +112,25 @@ pub async fn verify_session_token(
 
         let claims = get_token_claims(&settings, sss_data_token)?;
 
-        let user_claim = get_claim(&claims, SSS_DATA_TK.user_key);
-        let user: User = serde_json::from_value(user_claim.clone())?;
-        
-        let role_claim = get_claim(&claims, SSS_DATA_TK.role_key);
-        let role: String = serde_json::from_value(role_claim.clone())?;
+        let session_claim = get_claim(&claims, SSS_DATA_TK.session_key);
+        let session: UserSession = serde_json::from_value(session_claim.clone())?;
 
-        let user_session = UserSession::try_from(user, role)?;
-
-        Ok(user_session)
+        Ok(session)
     } else {
         let user_id_claim = claims.get_claim(SSS_PUB_TK.user_id_key);
         let role_claim = claims.get_claim(SSS_PUB_TK.role_key);
 
         if let (Some(user_id_claim), Some(role_claim)) = (user_id_claim, role_claim) {
             let user_id: ObjectId = serde_json::from_value(user_id_claim.clone())?;
-            let role: String = serde_json::from_value(role_claim.clone())?;
+            let role: Role = serde_json::from_value(role_claim.clone())?;
 
             let user =
                 crate::database::get_db_user(db, user_id)
                 .await?
                 .expect("Failed to find user in database.");
-            
+
             let redis_key = format!("{}{}", SESSION_KEY_PREFIX, sss_uuid);
-            let redis_token = build_sss_data_token(&settings, user.clone(), role.as_str()).await?;
+            let redis_token = build_sss_data_token(&settings, user.clone(), role).await?;
 
             redis_conn.set_ex::<_, _, ()>(redis_key, redis_token, settings.secret.session_token_expiration * 60).await?;
 
@@ -153,35 +149,16 @@ pub async fn verify_session_token(
 async fn build_sss_data_token(
     settings: &crate::settings::Settings,
     user: User,
-    role: &str,
+    role: Role,
 ) -> Result<String> {
     let mut claims = Claims::new()?;
 
-    let (client, employee, admin) = match role {
-        "client" => (user.client, None, None),
-        "employee" => (None, user.employee, None),
-        "admin" => (None, None, user.admin),
-        _ => unimplemented!()
+    let session = match UserSession::try_from(user, role) {
+        Ok(session) => session,
+        Err(e) => bail!(types::error::BadRequest::NonexistentRole(format!("{}", e)))
     };
 
-    let user = User {
-        id: user.id,
-        email: user.email,
-        username: user.username,
-        password: user.password,
-        name: user.name,
-        is_active: user.is_active,
-        client,
-        employee,
-        admin,
-    };
-
-    tracing::debug!(target: "backend", "USER: {:#?}", user);
-    tracing::debug!(target: "backend", "AVAILABLE ROLES: {:#?}", user.get_roles());
-
-    claims.add_additional(SSS_DATA_TK.user_key, json!(user))?;
-    claims.add_additional(SSS_DATA_TK.role_key, json!(role))?;
-    claims.add_additional(SSS_DATA_TK.avail_roles_key, json!(user.get_roles()))?;
+    claims.add_additional(SSS_DATA_TK.session_key, json!(session))?;
 
     // Use the 256 bit secret key as the symmetric key 
     let sk = SymmetricKey::<V4>::from(settings.secret.secret_key.as_bytes())?;
@@ -216,7 +193,7 @@ pub async fn revoke_session_token(
     };
     
     redis_conn.del::<_, ()>(format!("{}{}", SESSION_KEY_PREFIX, sss_uuid)).await?;
-    
+
     Ok(())
 }
 
@@ -355,7 +332,7 @@ pub async fn verify_email_token(
     let mut redis_conn = if let Ok(conn) = get_redis_conn(redis_pool).await {
         conn
     } else {
-        bail!(crate::types::error::Redis::ConnError("Failed to obtain redis connection.".into()));
+        bail!(types::error::Redis::ConnError("Failed to obtain redis connection.".into()));
     };
 
     if redis_conn
@@ -380,10 +357,14 @@ pub async fn verify_email_token(
 /// This key is used to destroy the token in redis as soon as it's been verified.
 /// The token in redis is simply the roleselect key prefix plus 128 bytes of random data.
 /// Returns the PASETO token.
-#[tracing::instrument(name = "Issue PASETO token for role selection", skip(redis_pool))]
+#[tracing::instrument(
+    name = "Issue PASETO token for role selection",
+    skip(redis_pool, user, remember_me)
+)]
 pub async fn issue_roleselect_token(
     redis_pool: &deadpool_redis::Pool,
     user: User,
+    remember_me: bool,
 ) -> Result<String> {
     // Just generate 128 bytes of random data for the session key
     // from something that is cryptographically secure (rand::CryptoRng).
@@ -401,7 +382,7 @@ pub async fn issue_roleselect_token(
     let settings = crate::settings::get_settings().expect("Cannot load settings.");
 
     let redis_key = format!("{}{}", ROLESELECT_KEY_PREFIX, roleselect_key);
-    let rolesel_data_token = build_roleselect_data_token(&settings, user).await?;
+    let rolesel_data_token = build_roleselect_data_token(&settings, user, remember_me).await?;
 
     let mut redis_conn = if let Ok(conn) = get_redis_conn(redis_pool).await {
         conn
@@ -460,7 +441,7 @@ pub async fn issue_roleselect_token(
 pub async fn verify_roleselect_token(
     rolesel_pub_token: String,
     redis_pool: &deadpool_redis::Pool,
-) -> Result<User> {
+) -> Result<(User, bool)> {
     let settings = crate::settings::get_settings().expect("Cannot load settings.");
 
     let claims = get_token_claims(&settings, rolesel_pub_token)?;
@@ -473,28 +454,42 @@ pub async fn verify_roleselect_token(
     let mut redis_conn = if let Ok(conn) = get_redis_conn(redis_pool).await {
         conn
     } else {
-        bail!(crate::types::error::Redis::ConnError("Failed to obtain redis connection.".into()));
+        bail!(types::error::Redis::ConnError("Failed to obtain redis connection.".into()));
     };
 
-    let rolesel_data_token = redis_conn.get::<_, String>(redis_key.clone()).await?;
+    let rolesel_data_token: Option<String> = redis_conn.get(redis_key.clone()).await?;
 
-    let claims = get_token_claims(&settings, rolesel_data_token)?;
+    if let Some(rolesel_data_token) = rolesel_data_token {
+        let claims = get_token_claims(&settings, rolesel_data_token)?;
 
-    let user_claim = get_claim(&claims, ROLESEL_DATA_TK.user_key);
-    let user: User = serde_json::from_value(user_claim.clone())?;
+        let user_claim = get_claim(&claims, ROLESEL_DATA_TK.user_key);
+        let user: User = serde_json::from_value(user_claim.clone())?;
+ 
+        let remember_me_claim = get_claim(&claims, ROLESEL_DATA_TK.remember_me_key);
+        let remember_me: bool = serde_json::from_value(remember_me_claim.clone())?;
 
-    Ok(user)
+        redis_conn
+            .del::<_, ()>(redis_key.clone())
+            .await
+            .map_err(|e| anyhow!(format!("{}", e)))?;
+
+        Ok((user, remember_me))
+    } else {
+        bail!("Role selection session expired.")
+    }
 }
 
 // Build the redis token containing the role selection session data.
 async fn build_roleselect_data_token(
     settings: &crate::settings::Settings,
     user: User,
+    remember_me: bool
 ) -> Result<String> {
     // Build the redis token containing the user data.
     let mut claims = Claims::new()?;
 
     claims.add_additional(ROLESEL_DATA_TK.user_key, json!(user))?;
+    claims.add_additional(ROLESEL_DATA_TK.remember_me_key, remember_me)?;
 
     // Use the 256 bit secret key as the symmetric key 
     let sk = SymmetricKey::<V4>::from(settings.secret.secret_key.as_bytes())?;

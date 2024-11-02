@@ -2,7 +2,7 @@ use anyhow::anyhow;
 use serde::{Deserialize, Serialize};
 use chrono::{ DateTime, Utc };
 use mongodb::bson::oid::ObjectId;
-use crate::types::requests::users::NewUser;
+use crate::types::{ requests::users::NewUser, auth::Role };
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct CartItem {
@@ -75,12 +75,12 @@ pub struct User {
 }
 
 impl User {
-    pub fn get_roles(&self) -> Vec<&'static str> {
-        let mut roles: Vec<&'static str> = Vec::new();
+    pub fn get_roles(&self) -> Vec<Role> {
+        let mut roles: Vec<Role> = Vec::new();
 
-        if self.client.is_some() { roles.push("client"); }
-        if self.employee.is_some() { roles.push("employee"); }
-        if self.admin.is_some() { roles.push("admin"); }
+        if self.client.is_some() { roles.push(Role::Client); }
+        if self.employee.is_some() { roles.push(Role::Employee); }
+        if self.admin.is_some() { roles.push(Role::Admin); }
 
         roles
     }

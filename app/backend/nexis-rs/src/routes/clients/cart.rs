@@ -1,5 +1,5 @@
 use crate::prelude::*;
-use types::ErrorResponse;
+use types::{ responses, SSS_COOKIE_NAME };
 
 #[tracing::instrument(
     name = "Activating a new user",
@@ -14,21 +14,23 @@ pub async fn get_cart_items(
     tracing::info!(target: "backend", "Accessing client cart endpoint.");
 
     let sss_uuid_token =
-        if let Some(sss_uuid_cookie) = req.cookie("session_uuid") {
+        if let Some(sss_uuid_cookie) = req.cookie(SSS_COOKIE_NAME) {
             sss_uuid_cookie.value().to_string()
         } else {
             return HttpResponse::BadRequest().json(
-                ErrorResponse { error: "Session cookie missing.".to_string() }
+                responses::ErrorResponse { error: "Session cookie missing.".to_string() }
             );
         };
 
     match utils::verify_session_token(sss_uuid_token, &db, &redis_pool).await {
-        Ok(user) => {
-            HttpResponse::Ok().finish()
+        Ok(session) => {
+            HttpResponse::Ok().json({
+                responses::SuccessResponse { message: format!("ID: {:#?}, ROLE: {:#?}, SESSION DATA: {:#?}", session.id, session.role, session.data) }
+            })
         } 
         Err(e) =>
             HttpResponse::Unauthorized().json(
-                ErrorResponse { error: format!("Failed to verify session: {}", e) }
+                responses::ErrorResponse { error: format!("Failed to verify session: {}", e) }
             )
     }
 }

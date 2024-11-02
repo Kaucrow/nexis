@@ -16,4 +16,4 @@ pub use constants::{
 pub use database::mongodb::{ self, users::User};
 pub use responses::{ SuccessResponse, ErrorResponse, UserResponse };
 pub use requests::users::{ NewUser, LoginUser } ;
-pub use auth::UserSession;
+pub use auth::{ UserSession, Role };

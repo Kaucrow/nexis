@@ -11,5 +11,11 @@ pub enum Redis {
 #[derive(Debug, Error)]
 pub enum Mongodb {
     #[error("User repetition: {0} ")]
-    UserAlreadyExists(String)
+    UserAlreadyExists(String),
+}
+
+#[derive(Debug, Error)]
+pub enum BadRequest {
+    #[error("Role does not exist on user: {0}")]
+    NonexistentRole(String),
 }

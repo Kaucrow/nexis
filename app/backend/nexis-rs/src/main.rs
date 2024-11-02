@@ -13,7 +13,7 @@ async fn main() -> std::io::Result<()> {
 
     let application = nexis_rs::startup::Application::build(settings, None).await?;
 
-    tracing::event!(target: "backend", tracing::Level::INFO, "Listening on {}:{}/", base_url, application.port());
+    tracing::info!(target: "backend", "Listening on {}:{}/", base_url, application.port());
 
     application.run_until_stopped().await?;
 

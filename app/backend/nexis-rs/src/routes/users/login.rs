@@ -1,22 +1,22 @@
 use crate::prelude::*;
 use anyhow::Result;
 use types::{ User, LoginUser, responses, requests, SSS_COOKIE_NAME };
-use utils::{auth::tokens::verify_roleselect_token, issue_session_token};
+use utils::tokens::{ verify_roleselect_token, issue_session_token };
 
 const USER_NOT_FOUND_MSG: &'static str = "A user with these details does not exist. If you registered with these details, ensure you activated your account by clicking on the link sent to your e-mail address.";
 
 #[tracing::instrument(
     name = "Logging a user in",
-    skip(req, db, user, redis_pool),
+    skip(req, db, login, redis_pool),
     fields(
-        user_email = %user.email,
-        remember_me = %user.remember_me
+        user_email = %login.email,
+        remember_me = %login.remember_me
     )
 )]
 #[actix_web::post("/login")]
 async fn login_user(
     req: HttpRequest,
-    user: web::Json<LoginUser>,
+    login: web::Json<LoginUser>,
     db: web::Data<mongodb::Database>,
     redis_pool: web::Data<deadpool_redis::Pool>
 ) -> HttpResponse {
@@ -29,10 +29,10 @@ async fn login_user(
         }
     }
 
-    match get_user_who_is_active(db.get_ref(), &user.email).await {
-        Ok(db_user) => {
-            let password_hash = db_user.password.clone();
-            let password = user.password.clone();
+    match get_user_who_is_active(db.get_ref(), &login.email).await {
+        Ok(user) => {
+            let password_hash = user.password.clone();
+            let password = login.password.clone();
 
             let verify_result = tokio::task::spawn_blocking(move || {
                 utils::verify_password(password_hash, password)
@@ -42,13 +42,11 @@ async fn login_user(
 
             match verify_result.await {
                 Ok(()) => {
-                    let roles = db_user.get_roles();
+                    let roles = user.get_roles();
 
                     if roles.len() > 1 {
-                        match utils::issue_roleselect_token(&redis_pool, db_user).await {
+                        match utils::issue_roleselect_token(&redis_pool, user, login.remember_me).await {
                             Ok(token) => {
-                                let roles: Vec<String> = roles.into_iter().map(|role| role.to_string()).collect();
-
                                 HttpResponse::Ok().json( responses::RoleSelect {
                                     roles,
                                     token,
@@ -61,13 +59,12 @@ async fn login_user(
                         }
                     }
                     else {
-                        let (email, name) = (db_user.email.clone(), db_user.name.clone());
+                        let (email, name) = (user.email.clone(), user.name.clone());
+                        let role = roles[0];
 
-                        let sss_pub_token = match utils::issue_session_token(db_user, roles[0], user.remember_me, &redis_pool).await {
+                        let sss_pub_token = match utils::issue_session_token(user, role, login.remember_me, &redis_pool).await {
                             Ok(token) =>
                                 token,
-                            Err(e) if e.is::<types::error::Redis>() =>
-                                return HttpResponse::InternalServerError().finish(),
                             Err(e) => {
                                 tracing::error!(target: "backend", "An unexpected error occurred: {}", e);
                                 return HttpResponse::InternalServerError().finish();
@@ -79,7 +76,7 @@ async fn login_user(
                                 .path("/")
                                 .http_only(true)
                                 .finish();
-                            if user.remember_me {
+                            if login.remember_me {
                                 cookie.make_permanent();
                             }
                             cookie
@@ -90,6 +87,7 @@ async fn login_user(
                             .json(types::UserResponse {
                                 email,
                                 name,
+                                role,
                                 client: None,
                                 employee: None,
                                 admin: None,
@@ -98,7 +96,7 @@ async fn login_user(
                     }
                 }
                 Err(e) => {
-                    tracing::event!(target: "backend", tracing::Level::ERROR, "Wrong password: {:#?}", e);
+                    tracing::error!(target: "backend", "Wrong password: {:#?}", e);
                     HttpResponse::NotFound().json(responses::ErrorResponse {
                         error: USER_NOT_FOUND_MSG.to_string()
                     })
@@ -106,7 +104,7 @@ async fn login_user(
             }
         }
         Err(e) => {
-            tracing::event!(target: "backend", tracing::Level::ERROR, "User not found: {:#?}", e);
+            tracing::error!(target: "backend", "User not found: {:#?}", e);
             HttpResponse::NotFound().json(responses::ErrorResponse {
                 error: USER_NOT_FOUND_MSG.to_string()
             })
@@ -129,11 +127,11 @@ pub async fn get_user_who_is_active(
             if let Some(user) = res {
                 Ok(user)
             } else {
-                tracing::event!(target: "mongodb", tracing::Level::ERROR, "User not found in DB. Email: {}", email);
+                tracing::error!(target: "mongodb", "User not found in DB. Email: {}", email);
                 Err(anyhow!("User not found in DB."))
             },
         Err(e) => {
-            tracing::event!(target: "mongodb", tracing::Level::ERROR, "Failed to query the mongodb database: {:#?}", e);
+            tracing::error!(target: "mongodb", "Failed to query the mongodb database: {:#?}", e);
             Err(anyhow!(e))
         }
     }
@@ -144,7 +142,6 @@ pub async fn get_user_who_is_active(
     skip(login, redis_pool),
     fields(
         role = %login.role,
-        remember_me = %login.remember_me,
     )
 )]
 #[actix_web::post("/role-login")]
@@ -154,29 +151,28 @@ async fn role_login(
 ) -> HttpResponse {
     tracing::info!(target: "backend", "Accessing LOGIN role selection.");
 
-    let role = &login.role;
+    let role = login.role;
     let rolesel_pub_token = &login.rolesel_pub_token;
 
-    if !vec!["client", "employee", "admin"].contains(&role.as_str()) {
-        return HttpResponse::BadRequest().json(responses::ErrorResponse {
-            error: format!("Unknown role: {}", role)
-        })
-    }
+    let res = verify_roleselect_token(rolesel_pub_token.to_string(), &redis_pool).await;
 
-    let user = verify_roleselect_token(rolesel_pub_token.to_string(), &redis_pool).await;
-
-    let role = match role.as_str() {
-        "client" => "client",
-        "employee" => "employee",
-        "admin" => "admin",
-        _ => unimplemented!()
-    };
-
-    match user {
-        Ok(user) => {
+    match res {
+        Ok((user, remember_me)) => {
             let session_cookie = {
-                let sss_pub_token = match issue_session_token(user.clone(), role, login.remember_me, &redis_pool).await {
+                use types::error::BadRequest;
+
+                let sss_pub_token = match issue_session_token(user.clone(), role, remember_me, &redis_pool).await {
                     Ok(token) => token,
+                    Err(e) if e.is::<types::error::BadRequest>() => {
+                        if let Some(BadRequest::NonexistentRole(e)) = e.downcast_ref::<BadRequest>() {
+                            return HttpResponse::BadRequest().json(responses::ErrorResponse {
+                                error: e.to_string()
+                            });
+                        } else {
+                            tracing::error!(target: "backend", "{}", e);
+                            return HttpResponse::InternalServerError().finish();
+                        }
+                    }
                     Err(e) => {
                         tracing::error!(target: "backend", "{}", e);
                         return HttpResponse::InternalServerError().finish();
@@ -187,7 +183,7 @@ async fn role_login(
                     .path("/")
                     .http_only(true)
                     .finish();
-                if login.remember_me {
+                if remember_me {
                     cookie.make_permanent();
                 }
 
@@ -199,6 +195,7 @@ async fn role_login(
                 .json(responses::UserResponse {
                     email: user.email,
                     name: user.name,
+                    role,
                     client: None,
                     employee: None,
                     admin: None,

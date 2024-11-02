@@ -1,7 +1,7 @@
 use types::constants::STORE_COLLS;
 
 use crate::prelude::*;
-use crate::types::mongodb::Item;
+use crate::types::{ Role, mongodb::Item };
 
 #[derive(Serialize)]
 pub struct SuccessResponse {
@@ -15,7 +15,7 @@ pub struct ErrorResponse {
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct RoleSelect {
-    pub roles: Vec<String>,
+    pub roles: Vec<Role>,
     pub token: String,
 }
 
@@ -23,6 +23,7 @@ pub struct RoleSelect {
 pub struct UserResponse {
     pub email: String,
     pub name: String,
+    pub role: Role,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub client: Option<()>,
     #[serde(skip_serializing_if = "Option::is_none")]

@@ -9,3 +9,6 @@ cargo.lock
 
 # HTTPS Cert
 *.pem
+
+# Debug endpoints
+!src/routes/debug
