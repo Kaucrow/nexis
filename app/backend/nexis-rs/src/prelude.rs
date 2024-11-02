@@ -4,7 +4,7 @@ pub use mongodb::{
     options::{ ClientOptions, ResolverConfig },
     bson::{ self, doc, Document, oid::ObjectId }
 };
-pub use deadpool_redis::{ self, redis };
+pub use deadpool_redis::{ self, redis::{ self, AsyncCommands }};
 pub use serde::{ Serialize, Deserialize };
 pub use pasetors::{
     claims::{ Claims, ClaimsValidationRules },

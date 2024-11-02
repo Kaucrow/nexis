@@ -85,7 +85,7 @@ pub async fn send_multipart_email(
     let settings = crate::settings::get_settings().expect("Unable to load settings.");
     let title = subject.clone();
 
-    let issued_token = match crate::utils::issue_confirmation_token(
+    let issued_token = match crate::utils::issue_email_token(
         user_id,
         &redis_pool,
         None,

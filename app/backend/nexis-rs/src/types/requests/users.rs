@@ -7,12 +7,12 @@ pub struct NewClient {
     pub gender: String,
     #[serde(rename = "phoneNum")]
     pub phone_num: String,
-    pub interests: Vec<String>,
+    pub interests: Vec<ObjectId>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct NewEmployee {
-    pub age: u8,
+    pub age: i32,
     pub gender: String,
     #[serde(rename = "phoneNum")]
     pub phone_num: String,
@@ -41,5 +41,14 @@ pub struct LoginUser {
     pub email: String,
     pub password: String,
     #[serde(rename = "rememberMe")]
+    pub remember_me: bool,
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+pub struct RoleLoginUser {
+    #[serde(rename = "token")]
+    pub rolesel_pub_token: String,
+    pub role: String,
+    #[serde(rename = "remember-me")]
     pub remember_me: bool,
 }

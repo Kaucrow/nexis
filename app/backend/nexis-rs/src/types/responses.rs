@@ -14,6 +14,12 @@ pub struct ErrorResponse {
 }
 
 #[derive(Debug, Deserialize, Serialize)]
+pub struct RoleSelect {
+    pub roles: Vec<String>,
+    pub token: String,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
 pub struct UserResponse {
     pub email: String,
     pub name: String,

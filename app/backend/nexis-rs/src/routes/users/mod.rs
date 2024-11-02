@@ -12,6 +12,7 @@ pub fn auth_routes_config(cfg: &mut web::ServiceConfig) {
             .service(register::register_user)
             .service(confirm_registration::confirm)
             .service(login::login_user)
+            .service(login::role_login)
             .service(logout::log_out)
             .service(verify_session::verify_session)
     );

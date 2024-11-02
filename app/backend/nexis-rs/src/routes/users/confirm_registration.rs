@@ -20,7 +20,7 @@ pub async fn confirm(
     let settings = crate::settings::get_settings().expect("Failed to read settings.");
     tracing::event!(target: "backend", tracing::Level::INFO, "Token {:#?}", parameters.token);
  
-    let user_id = match crate::utils::verify_confirmation_token(
+    let user_id = match crate::utils::verify_email_token(
         parameters.token.clone(),
         &redis_pool,
         None

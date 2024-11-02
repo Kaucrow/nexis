@@ -4,16 +4,16 @@ use chrono::{ DateTime, Utc };
 use mongodb::bson::oid::ObjectId;
 use crate::types::requests::users::NewUser;
 
-#[derive(Debug, Serialize, Deserialize)]
-struct CartItem {
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct CartItem {
     #[serde(rename = "dateAdded")]
     date_added: DateTime<Utc>,
     coll: String,
     item: ObjectId,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-struct Review {
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct Review {
     stars: u8,
     title: String,
     comment: String,
@@ -21,13 +21,13 @@ struct Review {
     item: ObjectId,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-struct Client {
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct Client {
     pub age: u8,
     pub gender: String,
     #[serde(rename = "phoneNum")]
     pub phone_num: String,
-    pub interests: Vec<String>,
+    pub interests: Vec<ObjectId>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub cart: Option<Box<Vec<CartItem>>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -36,27 +36,27 @@ struct Client {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Schedule {
-    #[serde(rename = "phoneNum")]
+    /*#[serde(rename = "enter")]
     pub enter_date: DateTime<Utc>,
-    pub exit_date: DateTime<Utc>,
+    #[serde(rename = "exit")]
+    pub exit_date: DateTime<Utc>,*/
     pub store: ObjectId,
-    #[serde(rename = "storeJob")]
-    pub store_job: ObjectId,
+    pub job: ObjectId,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-struct Employee {
-    pub age: u8,
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct Employee {
+    pub age: i32,
     pub gender: String,
     #[serde(rename = "phoneNum")]
     pub phone_num: String,
     pub schedule: Vec<Schedule>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-struct Admin {}
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct Admin {}
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct User {
     #[serde(rename = "_id")]
     pub id: ObjectId,
@@ -67,11 +67,23 @@ pub struct User {
     #[serde(rename = "isActive")]
     pub is_active: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
-    client: Option<Box<Client>>,
+    pub client: Option<Box<Client>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    employee: Option<Box<Employee>>,
+    pub employee: Option<Box<Employee>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    admin: Option<Box<Admin>>,
+    pub admin: Option<Box<Admin>>,
+}
+
+impl User {
+    pub fn get_roles(&self) -> Vec<&'static str> {
+        let mut roles: Vec<&'static str> = Vec::new();
+
+        if self.client.is_some() { roles.push("client"); }
+        if self.employee.is_some() { roles.push("employee"); }
+        if self.admin.is_some() { roles.push("admin"); }
+
+        roles
+    }
 }
 
 impl TryFrom<NewUser> for User {

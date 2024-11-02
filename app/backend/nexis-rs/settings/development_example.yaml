@@ -13,6 +13,7 @@ secret:
   secret_key: ""
   email_token_expiration: 30
   session_token_expiration: 30
+  roleselect_token_expiration: 10
   # HMAC secret https://www.freeformatter.com/hmac-generator.html
   hmac_secret: ""
 

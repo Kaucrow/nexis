@@ -16,6 +16,7 @@ pub struct Secret {
     pub secret_key: String,
     pub email_token_expiration: u64,
     pub session_token_expiration: u64,
+    pub roleselect_token_expiration: u64,
     pub hmac_secret: String,
 }
 

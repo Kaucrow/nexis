@@ -1,3 +1,4 @@
 pub mod mongodb;
 
-pub use mongodb::items::Item;
+pub use mongodb::CartItem;
+pub use mongodb::Item;

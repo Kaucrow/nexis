@@ -9,7 +9,7 @@ pub async fn verify_session(
     db: web::Data<mongodb::Database>,
     redis_pool: web::Data<deadpool_redis::Pool>
 ) -> HttpResponse {
-    tracing::info!(target: "backend", "Verifying session");
+    tracing::info!(target: "backend", "Verifying session.");
 
     let sss_uuid_token =
         if let Some(sss_uuid_cookie) = req.cookie("session_uuid") {

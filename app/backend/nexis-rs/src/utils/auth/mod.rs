@@ -6,6 +6,7 @@ pub use tokens::{
     issue_session_token,
     verify_session_token,
     revoke_session_token,
-    issue_confirmation_token,
-    verify_confirmation_token,
+    issue_email_token,
+    verify_email_token,
+    issue_roleselect_token,
 };
