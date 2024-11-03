@@ -15,9 +15,7 @@ pub async fn verify_session(
         if let Some(sss_uuid_cookie) = req.cookie("session_uuid") {
             sss_uuid_cookie.value().to_string()
         } else {
-            return HttpResponse::BadRequest().json(
-                responses::Error { error: "Session cookie missing.".to_string() }
-            );
+            return HttpResponse::BadRequest().json(responses::Error::simple("Session cookie missing."));
         };
 
     match utils::verify_session_token(sss_uuid_token, &db, &redis_pool).await {
@@ -26,7 +24,7 @@ pub async fn verify_session(
         Err(e) => {
             if let Some(e) = e.downcast_ref::<error::Redis>() {
                 match e {
-                    error::Redis::SessionExpired(msg) => {
+                    error::Redis::SessionExpired(e) => {
                         let clear_cookie = {
                             let mut cookie = Cookie::build("session_uuid", "")
                                 .path("/")
@@ -38,16 +36,12 @@ pub async fn verify_session(
 
                         HttpResponse::Unauthorized()
                         .cookie(clear_cookie)
-                        .json(
-                            responses::Error { error: msg.clone() }
-                        )
+                        .json(responses::Error::from_str(e.to_string()))
                     }
-                    _ => unimplemented!("Unimplemented redis error")
+                    _ => unimplemented!("Unimplemented redis error.")
                 }
             } else {
-                HttpResponse::Unauthorized().json(
-                    responses::Error { error: format!("Failed to verify session: {}", e) }
-                )
+                HttpResponse::Unauthorized().json(responses::Error::detailed("Failed to verify session", e))
             }
         }
     }

@@ -98,17 +98,13 @@ async fn login_user(
                 }
                 Err(e) => {
                     tracing::error!(target: "backend", "Wrong password: {:#?}", e);
-                    HttpResponse::NotFound().json(responses::Error {
-                        error: USER_NOT_FOUND_MSG.to_string()
-                    })
+                    HttpResponse::NotFound().json(responses::Error::simple(USER_NOT_FOUND_MSG))
                 }
             }
         }
         Err(e) => {
             tracing::error!(target: "backend", "User not found: {:#?}", e);
-            HttpResponse::NotFound().json(responses::Error {
-                error: USER_NOT_FOUND_MSG.to_string()
-            })
+            HttpResponse::NotFound().json(responses::Error::simple(USER_NOT_FOUND_MSG))
         }
     }
 }
@@ -166,9 +162,7 @@ async fn role_login(
                     Ok(token) => token,
                     Err(e) if e.is::<types::error::BadRequest>() => {
                         if let Some(BadRequest::NonexistentRole(e)) = e.downcast_ref::<BadRequest>() {
-                            return HttpResponse::BadRequest().json(responses::Error {
-                                error: e.to_string()
-                            });
+                            return HttpResponse::BadRequest().json(responses::Error::from_str(e.to_string()))
                         } else {
                             tracing::error!(target: "backend", "{}", e);
                             return HttpResponse::InternalServerError().finish();

@@ -1,6 +1,8 @@
+pub mod cookies;
 pub mod password;
 pub mod tokens;
 
+pub use cookies::get_sss_pub_token;
 pub use password::verify_password;
 pub use tokens::{
     issue_session_token,

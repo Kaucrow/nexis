@@ -3,7 +3,8 @@ pub mod users;
 pub use users::{
     insert_created_user_into_db,
     get_client_cart_details,
-    get_user
+    delete_client_cart_item,
+    get_user,
 };
 
 use crate::prelude::*;

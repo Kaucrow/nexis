@@ -70,7 +70,7 @@ pub async fn register_user(
     .unwrap();
 
     tracing::event!(target: "backend", tracing::Level::INFO, "User created successfully.");
-    actix_web::HttpResponse::Ok().json(responses::Success {
-        message: "Your account was created successfully. Check your email address to activate your account as we just sent you an activation link. Ensure you activate your account before the link expires".to_string(),
-    })
+    actix_web::HttpResponse::Ok().json(responses::Success::new(
+        "Your account was created successfully. Check your email address to activate your account as we just sent you an activation link. Ensure you activate your account before the link expires.",
+    ))
 }

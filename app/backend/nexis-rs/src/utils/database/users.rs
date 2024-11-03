@@ -133,3 +133,30 @@ pub async fn get_client_cart_details(
 
     Ok(results.into_iter().collect::<Result<Vec<_>>>()?)
 }
+
+#[tracing::instrument(
+    name = "Deleting a client's cart item from DB",
+    skip(db, item_id),
+)]
+pub async fn delete_client_cart_item(
+    db: &mongodb::Database,
+    user_id: ObjectId,
+    item_id: ObjectId,
+) -> Result<()> {
+    let users_coll: Collection<User> = db.collection("user");
+
+    let update_result = users_coll.update_one(
+        doc! { "_id": user_id },
+        doc! { "$pull": { "client.cart": { "item": item_id }}},
+    ).await?;
+
+    if update_result.matched_count == 0 {
+        bail!("User not found.");
+    }
+
+    if update_result.modified_count == 0 {
+        bail!("Item not found in client's cart.");
+    }
+
+    Ok(())
+}

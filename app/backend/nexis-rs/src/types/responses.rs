@@ -3,12 +3,46 @@ use crate::types::{ Role, mongodb::Item, constants::STORE_COLLS };
 
 #[derive(Serialize)]
 pub struct Success {
-    pub message: String,
+    message: String,
+}
+
+impl Success {
+    pub fn new(message: &'static str) -> Self {
+        Success {
+            message: message.to_string(),
+        }
+    }
 }
 
 #[derive(Serialize)]
 pub struct Error {
-    pub error: String,
+    error: String,
+}
+
+impl Error {
+    pub fn new(err_obj: anyhow::Error) -> Self {
+        Error {
+            error: err_obj.to_string(),
+        }
+    }
+
+    pub fn simple(error: &'static str) -> Self {
+        Error {
+            error: error.to_string(),
+        }
+    }
+
+    pub fn detailed(error: &'static str, err_obj: anyhow::Error) -> Self {
+        Error {
+            error: format!("{}: {}", error, err_obj),
+        }
+    }
+
+    pub fn from_str(error: String) -> Self {
+        Error {
+            error,
+        }
+    }
 }
 
 #[derive(Serialize)]

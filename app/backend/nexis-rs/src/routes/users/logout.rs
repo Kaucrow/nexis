@@ -14,9 +14,7 @@ pub async fn log_out(
         if let Some(sss_pub_cookie) = req.cookie(SSS_COOKIE_NAME) {
             sss_pub_cookie.value().to_string()
         } else {
-            return HttpResponse::BadRequest().json(
-                responses::Error { error: "Session cookie missing.".to_string() }
-            );
+            return HttpResponse::BadRequest().json(responses::Error::simple("Session cookie missing."))
         };
 
     match crate::utils::revoke_session_token(sss_pub_token, &redis_pool).await {

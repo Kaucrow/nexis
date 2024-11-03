@@ -27,18 +27,14 @@ pub async fn get_redis_session(
         .expect("Failed to parse APP_ENVIRONMENT");
 
     if let Environment::Production = environment {
-        return HttpResponse::Forbidden().json(responses::Error {
-            error: "Can't access debugging endpoints on production.".to_string()
-        })
+        return HttpResponse::Forbidden().json(responses::Error::simple("Can't access debugging endpoints on production."))
     }
 
     let sss_pub_token =
         if let Some(sss_pub_cookie) = req.cookie(SSS_COOKIE_NAME) {
             sss_pub_cookie.value().to_string()
         } else {
-            return HttpResponse::BadRequest().json(
-                responses::Error { error: "Session cookie missing.".to_string() }
-            );
+            return HttpResponse::BadRequest().json(responses::Error::simple("Session cookie missing."))
         };
 
     let sss_data_claims =
@@ -71,9 +67,7 @@ pub async fn get_redis_roleselect(
         .expect("Failed to parse APP_ENVIRONMENT");
 
     if let Environment::Production = environment {
-        return HttpResponse::Forbidden().json(responses::Error {
-            error: "Can't access debugging endpoints on production.".to_string()
-        })
+        return HttpResponse::Forbidden().json(responses::Error::simple("Can't access debugging endpoints on production."))
     }
 
     let rolesel_pub_token = parameters.token.clone();

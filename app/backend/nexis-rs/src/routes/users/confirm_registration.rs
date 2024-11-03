@@ -46,9 +46,7 @@ pub async fn confirm(
             tracing::event!(target: "backend", tracing::Level::INFO, "New user was activated successfully.");
 
             // If the user is activated successfully
-            HttpResponse::Ok().json(
-                responses::Success{ message: "User activated successfully.".to_string() }
-            )
+            HttpResponse::Ok().json(responses::Success::new("User activated successfully."))
         }
         Err(e) => {
             tracing::event!(target: "backend", tracing::Level::ERROR, "Cannot activate account: {}", e);

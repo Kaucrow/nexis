@@ -1,13 +1,20 @@
 use crate::prelude::*;
 use crate::responses;
-use crate::utils::database::get_client_cart_details;
-use types::{ SSS_COOKIE_NAME, Role };
+use crate::utils::{
+    get_sss_pub_token,
+    verify_session_token,
+    database::{
+        get_client_cart_details,
+        delete_client_cart_item,
+    },
+};
+use types::Role;
 
 #[tracing::instrument(
-    name = "Activating a new user",
+    name = "Getting client's cart items",
     skip(db, redis_pool, req)
 )]
-#[actix_web::get("/cart-items")]
+#[actix_web::get("/cart")]
 pub async fn get_cart_items(
     req: HttpRequest,
     db: web::Data<mongodb::Database>,
@@ -15,16 +22,12 @@ pub async fn get_cart_items(
 ) -> HttpResponse {
     tracing::info!(target: "backend", "Accessing client cart endpoint.");
 
-    let sss_uuid_token =
-        if let Some(sss_uuid_cookie) = req.cookie(SSS_COOKIE_NAME) {
-            sss_uuid_cookie.value().to_string()
-        } else {
-            return HttpResponse::BadRequest().json(
-                responses::Error { error: "Session cookie missing.".to_string() }
-            );
-        };
-
-    match utils::verify_session_token(sss_uuid_token, &db, &redis_pool).await {
+    let sss_pub_token = match get_sss_pub_token(req) {
+        Ok(token) => token,
+        Err(e) => return HttpResponse::BadRequest().json(responses::Error::new(e))
+    };
+     
+    match verify_session_token(sss_pub_token, &db, &redis_pool).await {
         Ok(session) => {
             if session.role != Role::Client {
                 return HttpResponse::Unauthorized().json(responses::RoleRequired::new(Role::Client));
@@ -32,7 +35,7 @@ pub async fn get_cart_items(
 
             let uid= session.id;
 
-            let cart = match get_client_cart_details(&db, uid).await {
+            let cart: Vec<responses::CartItem> = match get_client_cart_details(&db, uid).await {
                 Ok(cart) => cart,
                 Err(e) => {
                     tracing::error!("{}", e);
@@ -41,10 +44,60 @@ pub async fn get_cart_items(
             };
 
             HttpResponse::Ok().json(cart)
-        } 
-        Err(e) =>
-            HttpResponse::Unauthorized().json(
-                responses::Error { error: format!("Failed to verify session: {}", e) }
-            )
+        }
+        Err(e) => {
+            HttpResponse::Unauthorized().json(responses::Error::detailed("Failed to verify session", e))
+        }
+    }
+}
+
+#[derive(Debug, Deserialize)]
+struct DeleteCartItemParams {
+    #[serde(rename = "item")]
+    pub item_id: String,
+}
+
+#[tracing::instrument(
+    name = "Deleting a client's cart item",
+    skip(db, redis_pool, req, params),
+    fields(item_id = %params.item_id)
+)]
+#[actix_web::delete("/cart")]
+pub async fn delete_cart_item(
+    params: web::Query<DeleteCartItemParams>,
+    req: HttpRequest,
+    db: web::Data<mongodb::Database>,
+    redis_pool: web::Data<deadpool_redis::Pool>,
+) -> HttpResponse {
+    tracing::info!(target: "backend", "Accessing client cart item delete endpoint.");
+
+    let sss_pub_token = match get_sss_pub_token(req) {
+        Ok(token) => token,
+        Err(e) => return HttpResponse::BadRequest().json(responses::Error::new(e))
+    };
+
+    match verify_session_token(sss_pub_token, &db, &redis_pool).await {
+        Ok(session) => {
+            if session.role != Role::Client {
+                return HttpResponse::Unauthorized().json(responses::RoleRequired::new(Role::Client));
+            }
+
+            let uid= session.id;
+            let item_id = match ObjectId::parse_str(&params.item_id) {
+                Ok(oid) => oid,
+                Err(_) => return HttpResponse::InternalServerError().finish(),
+            };
+
+            match delete_client_cart_item(&db, uid, item_id).await {
+                Ok(()) => HttpResponse::Ok().finish(),
+                Err(e) => {
+                    tracing::error!("{}", e);
+                    HttpResponse::InternalServerError().finish()
+                }
+            }
+        }
+        Err(e) => {
+            HttpResponse::Unauthorized().json(responses::Error::detailed("Failed to verify session", e))
+        }
     }
 }
