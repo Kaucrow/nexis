@@ -168,7 +168,7 @@ NOTE: Must contain either client, employee, or admin.
     * User not found or invalid password: `HTTP 404`
     ```
     {
-        message: String
+        error: String
     }
     ```
     * Unknown error: `HTTP 500`
