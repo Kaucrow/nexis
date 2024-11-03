@@ -5,8 +5,8 @@ pub const SSS_COOKIE_NAME: &'static str = "session";
 pub const STORE_COLLS: Lazy<HashMap<&str, Vec<&str>>> = Lazy::new(|| HashMap::from([
     ("cyberion", vec![ "tech", "techCpu", "techGpu", "techKeyboard", "techOther" ]),
     ("savoro", vec![ "food" ]),
-    ("savoro", vec![ "clothes" ]),
-    ("vesti", vec![ "libraryItem" ]),
+    ("vesti", vec![ "clothes" ]),
+    ("readon", vec![ "libraryItem" ]),
 ]));
 
 pub struct SessionPublicToken {

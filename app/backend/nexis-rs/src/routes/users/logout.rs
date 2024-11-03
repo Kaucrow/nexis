@@ -2,6 +2,7 @@
 use crate::prelude::*;
 use crate::responses;
 use types::SSS_COOKIE_NAME;
+use utils::get_sss_pub_token;
 
 #[tracing::instrument(name = "Log out user", skip(req, redis_pool))]
 #[actix_web::post("/logout")]
@@ -10,12 +11,11 @@ pub async fn log_out(
     redis_pool: web::Data<deadpool_redis::Pool>,
 ) -> HttpResponse {
     tracing::info!(target: "backend", "Accessing LOGOUT.");
-    let sss_pub_token =
-        if let Some(sss_pub_cookie) = req.cookie(SSS_COOKIE_NAME) {
-            sss_pub_cookie.value().to_string()
-        } else {
-            return HttpResponse::BadRequest().json(responses::Error::simple("Session cookie missing."))
-        };
+
+    let sss_pub_token = match get_sss_pub_token(req) {
+        Ok(token) => token,
+        Err(e) => return HttpResponse::BadRequest().json(responses::Error::new(e))
+    };
 
     match crate::utils::revoke_session_token(sss_pub_token, &redis_pool).await {
         Ok(_) => {},

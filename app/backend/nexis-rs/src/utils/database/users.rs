@@ -1,6 +1,7 @@
 use crate::prelude::*;
 use anyhow::Result;
-use types::{ User, NewUser, responses };
+use types::{ User, NewUser, Item, responses };
+use chrono::{ DateTime, Utc };
 
 #[tracing::instrument(
     name = "Inserting new user into DB",
@@ -116,7 +117,7 @@ pub async fn get_client_cart_details(
                             .map_or(false, |codes| !codes.is_empty())
                     })
                 });
-            
+
             let store = utils::get_store_from_coll(&collection_name)?;
 
             Ok(responses::CartItem {
@@ -136,7 +137,7 @@ pub async fn get_client_cart_details(
 
 #[tracing::instrument(
     name = "Deleting a client's cart item from DB",
-    skip(db, item_id),
+    skip(db, user_id, item_id),
 )]
 pub async fn delete_client_cart_item(
     db: &mongodb::Database,
@@ -156,6 +157,48 @@ pub async fn delete_client_cart_item(
 
     if update_result.modified_count == 0 {
         bail!("Item not found in client's cart.");
+    }
+
+    Ok(())
+}
+
+#[tracing::instrument(
+    name = "Inserting a client's cart item into DB",
+    skip(db, user_id, item_id),
+)]
+pub async fn insert_client_cart_item(
+    db: &mongodb::Database,
+    user_id: ObjectId,
+    item_id: ObjectId,
+) -> Result<()> {
+    let items_coll: Collection<Item> = db.collection("items");
+
+    let item = items_coll.find_one(
+        doc! { "_id": item_id }
+    )
+    .await?
+    .ok_or_else(|| anyhow!("Item not found."))?;
+
+    let users_coll: Collection<User> = db.collection("user");
+
+    let now: DateTime<Utc> = Utc::now();
+    let date_added = bson::DateTime::from_millis(now.timestamp_millis());
+
+    let update_result = users_coll.update_one(
+        doc! { "_id": user_id, "client.cart.item": { "$ne": item.id }},
+        doc! {
+            "$push": {
+                "client.cart": {
+                    "item": item.id,
+                    "coll": item.coll,
+                    "dateAdded": date_added,
+                }
+            }
+        },
+    ).await?;
+
+    if update_result.matched_count == 0 {
+        bail!("User not found or item already in cart.");
     }
 
     Ok(())

@@ -6,6 +6,7 @@ use crate::utils::{
     database::{
         get_client_cart_details,
         delete_client_cart_item,
+        insert_client_cart_item,
     },
 };
 use types::Role;
@@ -52,7 +53,7 @@ pub async fn get_cart_items(
 }
 
 #[derive(Debug, Deserialize)]
-struct DeleteCartItemParams {
+struct CartItemUpdateParams {
     #[serde(rename = "item")]
     pub item_id: String,
 }
@@ -64,7 +65,7 @@ struct DeleteCartItemParams {
 )]
 #[actix_web::delete("/cart")]
 pub async fn delete_cart_item(
-    params: web::Query<DeleteCartItemParams>,
+    params: web::Query<CartItemUpdateParams>,
     req: HttpRequest,
     db: web::Data<mongodb::Database>,
     redis_pool: web::Data<deadpool_redis::Pool>,
@@ -82,13 +83,58 @@ pub async fn delete_cart_item(
                 return HttpResponse::Unauthorized().json(responses::RoleRequired::new(Role::Client));
             }
 
-            let uid= session.id;
+            let uid = session.id;
             let item_id = match ObjectId::parse_str(&params.item_id) {
                 Ok(oid) => oid,
                 Err(_) => return HttpResponse::InternalServerError().finish(),
             };
 
             match delete_client_cart_item(&db, uid, item_id).await {
+                Ok(()) => HttpResponse::Ok().finish(),
+                Err(e) => {
+                    tracing::error!("{}", e);
+                    HttpResponse::InternalServerError().finish()
+                }
+            }
+        }
+        Err(e) => {
+            HttpResponse::Unauthorized().json(responses::Error::detailed("Failed to verify session", e))
+        }
+    }
+}
+
+#[tracing::instrument(
+    name = "Inserting an item into the client's cart",
+    skip(db, redis_pool, req, params),
+    fields(item_id = %params.item_id)
+)]
+#[actix_web::post("/cart")]
+pub async fn insert_cart_item(
+    params: web::Query<CartItemUpdateParams>,
+    req: HttpRequest,
+    db: web::Data<mongodb::Database>,
+    redis_pool: web::Data<deadpool_redis::Pool>,
+) -> HttpResponse {
+    tracing::info!(target: "backend", "Accessing client cart item insert endpoint.");
+
+    let sss_pub_token = match get_sss_pub_token(req) {
+        Ok(token) => token,
+        Err(e) => return HttpResponse::BadRequest().json(responses::Error::new(e))
+    };
+
+    match verify_session_token(sss_pub_token, &db, &redis_pool).await {
+        Ok(session) => {
+            if session.role != Role::Client {
+                return HttpResponse::Unauthorized().json(responses::RoleRequired::new(Role::Client));
+            }
+
+            let uid = session.id;
+            let item_id = match ObjectId::parse_str(&params.item_id) {
+                Ok(oid) => oid,
+                Err(_) => return HttpResponse::InternalServerError().finish(),
+            };
+
+            match insert_client_cart_item(&db, uid, item_id).await {
                 Ok(()) => HttpResponse::Ok().finish(),
                 Err(e) => {
                     tracing::error!("{}", e);

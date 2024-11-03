@@ -14,6 +14,6 @@ pub use constants::{
     ROLESEL_PUB_TK,
     ROLESEL_DATA_TK,
 };
-pub use database::mongodb::{ self, users::User};
+pub use database::mongodb::{ self, users::User, Item };
 pub use requests::users::{ NewUser, LoginUser } ;
 pub use auth::{ UserSession, Role };
