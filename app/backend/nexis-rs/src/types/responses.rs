@@ -63,7 +63,8 @@ impl RoleRequired {
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct RoleSelect {
-    pub roles: Vec<Role>,
+    #[serde(rename = "availableRoles")]
+    pub available_roles: Vec<Role>,
     pub token: String,
 }
 

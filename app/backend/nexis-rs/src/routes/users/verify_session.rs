@@ -3,7 +3,7 @@ use crate::prelude::*;
 use crate::{ responses, types::error };
 
 #[tracing::instrument(name = "Verify user session", skip(redis_pool, db, req))]
-#[actix_web::get("/verify-session")]
+#[actix_web::put("/verify-session")]
 pub async fn verify_session(
     req: HttpRequest,
     db: web::Data<mongodb::Database>,

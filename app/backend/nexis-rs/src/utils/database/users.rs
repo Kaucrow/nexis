@@ -89,7 +89,12 @@ pub async fn get_client_cart_details(
 ) -> Result<Vec<responses::CartItem>> {
     let user_cart = get_client_cart(db, user_id).await?;
 
-    let cart_items = user_cart.get_document("client")?.get_array("cart")?;
+    let client_doc = user_cart.get_document("client")?;
+    let cart_items = if let Some(cart) = client_doc.get_array("cart").ok() {
+        cart
+    } else {
+        bail!(types::error::Mongodb::CartIsEmpty);
+    };
 
     let tasks: Vec<_> = cart_items.iter().map(|item| {
         let item_doc = item.as_document().unwrap().clone();
@@ -156,7 +161,7 @@ pub async fn delete_client_cart_item(
     }
 
     if update_result.modified_count == 0 {
-        bail!("Item not found in client's cart.");
+        bail!(types::error::Mongodb::ItemNotInCart);
     }
 
     Ok(())
@@ -198,7 +203,7 @@ pub async fn insert_client_cart_item(
     ).await?;
 
     if update_result.matched_count == 0 {
-        bail!("User not found or item already in cart.");
+        bail!(types::error::Mongodb::CartAlreadyHasItem)
     }
 
     Ok(())

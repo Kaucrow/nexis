@@ -50,6 +50,7 @@ pub async fn register_user(
                         tracing::error!(target: "mongodb", msg);
                         return HttpResponse::Conflict().json(msg);
                     }
+                    _ => unimplemented!()
                 }
             } else {
                 tracing::error!(target: "mongodb", "Failed to insert user into DB: {:#?}", e);

@@ -7,7 +7,7 @@ pub fn get_sss_pub_token(req: HttpRequest) -> Result<String> {
         if let Some(sss_pub_cookie) = req.cookie(SSS_COOKIE_NAME) {
             sss_pub_cookie.value().to_string()
         } else {
-            bail!("Session cookie missing.")
+            bail!("Session cookie is missing.")
         };
 
     Ok(sss_pub_token)

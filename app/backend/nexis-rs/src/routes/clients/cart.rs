@@ -39,8 +39,16 @@ pub async fn get_cart_items(
             let cart: Vec<responses::CartItem> = match get_client_cart_details(&db, uid).await {
                 Ok(cart) => cart,
                 Err(e) => {
-                    tracing::error!("{}", e);
-                    return HttpResponse::InternalServerError().finish();
+                    if let Some(e) = e.downcast_ref::<types::error::Mongodb>() {
+                        if let types::error::Mongodb::CartIsEmpty = e {
+                            return HttpResponse::Ok().json(Vec::<()>::new());
+                        } else {
+                            unimplemented!()
+                        }
+                    } else {
+                        tracing::error!("{}", e);
+                        return HttpResponse::InternalServerError().finish();
+                    }
                 }
             };
 
@@ -92,8 +100,16 @@ pub async fn delete_cart_item(
             match delete_client_cart_item(&db, uid, item_id).await {
                 Ok(()) => HttpResponse::Ok().finish(),
                 Err(e) => {
-                    tracing::error!("{}", e);
-                    HttpResponse::InternalServerError().finish()
+                    if let Some(e) = e.downcast_ref::<types::error::Mongodb>() {
+                        if let types::error::Mongodb::ItemNotInCart = e {
+                            return HttpResponse::BadRequest().json(responses::Error::simple("The item was not not found in the cart."))
+                        } else {
+                            unimplemented!()
+                        }
+                    } else {
+                        tracing::error!("{}", e);
+                        HttpResponse::InternalServerError().finish()
+                    }
                 }
             }
         }
@@ -137,8 +153,16 @@ pub async fn insert_cart_item(
             match insert_client_cart_item(&db, uid, item_id).await {
                 Ok(()) => HttpResponse::Ok().finish(),
                 Err(e) => {
-                    tracing::error!("{}", e);
-                    HttpResponse::InternalServerError().finish()
+                    if let Some(e) = e.downcast_ref::<types::error::Mongodb>() {
+                        if let types::error::Mongodb::CartAlreadyHasItem = e {
+                            HttpResponse::BadRequest().json(responses::Error::simple("The cart already has this item."))
+                        } else {
+                            unimplemented!()
+                        }
+                    } else {
+                        tracing::error!("{}", e);
+                        HttpResponse::InternalServerError().finish()
+                    }
                 }
             }
         }

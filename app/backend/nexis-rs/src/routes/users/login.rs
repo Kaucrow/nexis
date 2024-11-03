@@ -43,13 +43,13 @@ async fn login_user(
 
             match verify_result.await {
                 Ok(()) => {
-                    let roles = user.get_roles();
+                    let available_roles = user.get_roles();
 
-                    if roles.len() > 1 {
+                    if available_roles.len() > 1 {
                         match utils::issue_roleselect_token(&redis_pool, user, login.remember_me).await {
                             Ok(token) => {
                                 HttpResponse::Ok().json(responses::RoleSelect {
-                                    roles,
+                                    available_roles,
                                     token,
                                 })
                             }
@@ -61,7 +61,7 @@ async fn login_user(
                     }
                     else {
                         let (email, name) = (user.email.clone(), user.name.clone());
-                        let role = roles[0];
+                        let role = available_roles[0];
 
                         let sss_pub_token = match utils::issue_session_token(user, role, login.remember_me, &redis_pool).await {
                             Ok(token) =>

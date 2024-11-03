@@ -5,7 +5,7 @@ use types::SSS_COOKIE_NAME;
 use utils::get_sss_pub_token;
 
 #[tracing::instrument(name = "Log out user", skip(req, redis_pool))]
-#[actix_web::post("/logout")]
+#[actix_web::delete("/logout")]
 pub async fn log_out(
     req: HttpRequest,
     redis_pool: web::Data<deadpool_redis::Pool>,
