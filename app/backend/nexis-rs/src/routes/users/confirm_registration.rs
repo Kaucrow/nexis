@@ -12,7 +12,7 @@ pub struct Parameters {
     name = "Activating a new user",
     skip(parameters, db, redis_pool)
 )]
-#[actix_web::get("/register/verify")]
+#[actix_web::put("/register/verify")]
 pub async fn confirm(
     parameters: web::Query<Parameters>,
     db: web::Data<mongodb::Database>,
