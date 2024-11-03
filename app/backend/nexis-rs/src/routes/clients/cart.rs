@@ -1,7 +1,7 @@
 use crate::prelude::*;
 use crate::responses;
-use crate::database::get_client_cart_details;
-use types::{ SSS_COOKIE_NAME, Role, User };
+use crate::utils::database::get_client_cart_details;
+use types::{ SSS_COOKIE_NAME, Role };
 
 #[tracing::instrument(
     name = "Activating a new user",

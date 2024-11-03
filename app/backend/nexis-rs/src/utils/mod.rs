@@ -1,7 +1,9 @@
 pub mod auth;
+pub mod database;
 pub mod emails;
 pub mod common;
 
+pub use database::get_redis_conn;
 pub use common::get_store_from_coll;
 pub use emails::send_multipart_email;
 pub use auth::{

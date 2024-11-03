@@ -25,7 +25,7 @@ pub use actix_web::{
 pub use anyhow::{ anyhow, bail };
 pub use uuid::Uuid;
 pub use once_cell::sync::Lazy;
-pub use futures_util::TryStreamExt;
+pub use futures_util::{ stream, StreamExt, TryStreamExt };
 pub use std::collections::{ HashMap, HashSet };
 pub use crate::{ types, utils };
 

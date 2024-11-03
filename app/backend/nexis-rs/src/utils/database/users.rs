@@ -1,6 +1,6 @@
 use crate::prelude::*;
 use anyhow::Result;
-use types::{ User, NewUser, mongodb::CartItem, responses };
+use types::{ User, NewUser, responses };
 
 #[tracing::instrument(
     name = "Inserting new user into DB",
@@ -90,43 +90,46 @@ pub async fn get_client_cart_details(
 
     let cart_items = user_cart.get_document("client")?.get_array("cart")?;
 
-    let mut items: Vec<responses::CartItem> = Vec::new();
+    let tasks: Vec<_> = cart_items.iter().map(|item| {
+        let item_doc = item.as_document().unwrap().clone();
+        let db = db.clone();
 
-    for item in cart_items {
-        let item_doc = item.as_document().ok_or_else(|| anyhow!("Expected document."))?;
+        tokio::task::spawn(async move {
+            let item_id = item_doc.get_object_id("item")?;
+            let collection_name = item_doc.get_str("coll")?.to_string();
+            // TODO: Fix date_added not working
+            //let date_added = item_doc.get_datetime("dateAdded")?.clone();
 
-        let item_id = item_doc.get_object_id("item")?;
-        let collection_name = item_doc.get_str("coll")?.to_string();
-        // TODO: Fix date_added not working
-        //let date_added = item_doc.get_datetime("dateAdded")?.clone();
+            let collection: Collection<Document> = db.collection(&collection_name);
 
-        let collection: Collection<Document> = db.collection(&collection_name);
+            let item_details = collection
+                .find_one(doc! { "_id": item_id })
+                .await?
+                .ok_or_else(|| anyhow!("Item not found in collection {}", collection_name))?;
 
-        let item_details = collection
-            .find_one(doc! { "_id": item_id })
-            .await?
-            .ok_or_else(|| anyhow!("Item not found in collection {}", collection_name))?;
+            let in_stock = item_details
+                .get_array("lot")
+                .map_or(false, |lots| {
+                    lots.iter().any(|lot| {
+                        lot.as_document()
+                            .and_then(|doc| doc.get_array("code").ok())
+                            .map_or(false, |codes| !codes.is_empty())
+                    })
+                });
+            
+            let store = utils::get_store_from_coll(&collection_name)?;
 
-        let in_stock = item_details
-            .get_array("lot")
-            .map_or(false, |lots| {
-                lots.iter().any(|lot| {
-                    lot.as_document()
-                        .and_then(|doc| doc.get_array("code").ok())
-                        .map_or(false, |codes| !codes.is_empty())
-                })
-            });
-        
-        let store = utils::get_store_from_coll(&collection_name)?;
-
-        items.push(responses::CartItem {
-            id: item_id.to_hex(),
-            name: item_details.get_str("name")?.to_string(),
-            price: item_details.get_f64("price").or_else(|_| item_details.get_f64("pricePerKg"))?,
-            store,
-            in_stock,
+            Ok(responses::CartItem {
+                id: item_id.to_hex(),
+                name: item_details.get_str("name")?.to_string(),
+                price: item_details.get_f64("price").or_else(|_| item_details.get_f64("pricePerKg"))?,
+                store,
+                in_stock,
+            })
         })
-    }
+    }).collect();
 
-    Ok(items)
+    let results = futures_util::future::try_join_all(tasks).await?; 
+
+    Ok(results.into_iter().collect::<Result<Vec<_>>>()?)
 }

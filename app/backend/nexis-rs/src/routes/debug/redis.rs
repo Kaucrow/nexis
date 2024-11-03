@@ -1,8 +1,10 @@
 use crate::prelude::*;
 use crate::settings::{ Environment, get_settings };
-use crate::database::get_redis_conn;
 use types::{ responses, ROLESEL_PUB_TK, SSS_COOKIE_NAME, SSS_PUB_TK };
-use utils::auth::tokens::get_token_claims;
+use utils::{
+    get_redis_conn,
+    auth::tokens::get_token_claims,
+};
 use anyhow::Result;
 
 /// Store the session key prefix as a const so it can't be typo'd anywhere it's used.

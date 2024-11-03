@@ -4,10 +4,8 @@ pub mod startup;
 pub mod telemetry;
 pub mod utils;
 pub mod types;
-pub mod database;
 pub mod prelude;
 
-pub use database::users;
 pub use types::responses;
 pub use utils::auth;
 

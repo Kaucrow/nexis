@@ -1,12 +1,12 @@
-use crate::database::get_redis_conn;
 use crate::prelude::*;
 use crate::{
     responses,
     utils::{
         auth::password::hash,
+        database::insert_created_user_into_db,
         send_multipart_email,
+        get_redis_conn,
     },
-    database::insert_created_user_into_db,
     types::NewUser,
 };
 
