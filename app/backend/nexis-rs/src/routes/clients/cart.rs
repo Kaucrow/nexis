@@ -1,5 +1,7 @@
 use crate::prelude::*;
-use types::{ responses, SSS_COOKIE_NAME };
+use crate::responses;
+use crate::database::get_client_cart_details;
+use types::{ SSS_COOKIE_NAME, Role, User };
 
 #[tracing::instrument(
     name = "Activating a new user",
@@ -18,19 +20,31 @@ pub async fn get_cart_items(
             sss_uuid_cookie.value().to_string()
         } else {
             return HttpResponse::BadRequest().json(
-                responses::ErrorResponse { error: "Session cookie missing.".to_string() }
+                responses::Error { error: "Session cookie missing.".to_string() }
             );
         };
 
     match utils::verify_session_token(sss_uuid_token, &db, &redis_pool).await {
         Ok(session) => {
-            HttpResponse::Ok().json({
-                responses::SuccessResponse { message: format!("ID: {:#?}, ROLE: {:#?}, SESSION DATA: {:#?}", session.id, session.role, session.data) }
-            })
+            if session.role != Role::Client {
+                return HttpResponse::Unauthorized().json(responses::RoleRequired::new(Role::Client));
+            }
+
+            let uid= session.id;
+
+            let cart = match get_client_cart_details(&db, uid).await {
+                Ok(cart) => cart,
+                Err(e) => {
+                    tracing::error!("{}", e);
+                    return HttpResponse::InternalServerError().finish();
+                }
+            };
+
+            HttpResponse::Ok().json(cart)
         } 
         Err(e) =>
             HttpResponse::Unauthorized().json(
-                responses::ErrorResponse { error: format!("Failed to verify session: {}", e) }
+                responses::Error { error: format!("Failed to verify session: {}", e) }
             )
     }
 }

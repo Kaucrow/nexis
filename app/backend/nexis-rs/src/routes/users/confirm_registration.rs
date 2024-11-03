@@ -1,6 +1,7 @@
 use crate::prelude::*;
+use crate::responses;
 use anyhow::Result;
-use crate::types::{ SuccessResponse, User };
+use crate::types::User;
 
 #[derive(Deserialize)]
 pub struct Parameters {
@@ -46,7 +47,7 @@ pub async fn confirm(
 
             // If the user is activated successfully
             HttpResponse::Ok().json(
-                SuccessResponse{ message: "User activated successfully.".to_string() }
+                responses::Success{ message: "User activated successfully.".to_string() }
             )
         }
         Err(e) => {

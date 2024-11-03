@@ -125,7 +125,7 @@ pub async fn verify_session_token(
             let role: Role = serde_json::from_value(role_claim.clone())?;
 
             let user =
-                crate::database::get_db_user(db, user_id)
+                crate::database::get_user(db, user_id)
                 .await?
                 .expect("Failed to find user in database.");
 
@@ -344,10 +344,7 @@ pub async fn verify_email_token(
         bail!("Token has been used or expired.".to_string())
     }
 
-    redis_conn
-        .del::<_, ()>(redis_key.clone())
-        .await
-        .map_err(|e| anyhow!(format!("{}", e)))?;
+    redis_conn.del::<_, ()>(redis_key).await?;
 
     Ok(uid)
 }
@@ -468,10 +465,7 @@ pub async fn verify_roleselect_token(
         let remember_me_claim = get_claim(&claims, ROLESEL_DATA_TK.remember_me_key);
         let remember_me: bool = serde_json::from_value(remember_me_claim.clone())?;
 
-        redis_conn
-            .del::<_, ()>(redis_key.clone())
-            .await
-            .map_err(|e| anyhow!(format!("{}", e)))?;
+        redis_conn.del::<_, ()>(redis_key).await?;
 
         Ok((user, remember_me))
     } else {

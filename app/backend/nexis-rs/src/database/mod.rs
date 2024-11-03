@@ -2,7 +2,8 @@ pub mod users;
 
 pub use users::{
     insert_created_user_into_db,
-    get_db_user
+    get_client_cart_details,
+    get_user
 };
 
 use crate::prelude::*;

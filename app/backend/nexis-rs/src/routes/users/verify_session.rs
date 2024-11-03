@@ -1,6 +1,6 @@
 // src/routes/users/logout.rs
 use crate::prelude::*;
-use crate::types::{ ErrorResponse, error };
+use crate::{ responses, types::error };
 
 #[tracing::instrument(name = "Verify user session", skip(redis_pool, db, req))]
 #[actix_web::get("/verify-session")]
@@ -16,7 +16,7 @@ pub async fn verify_session(
             sss_uuid_cookie.value().to_string()
         } else {
             return HttpResponse::BadRequest().json(
-                ErrorResponse { error: "Session cookie missing.".to_string() }
+                responses::Error { error: "Session cookie missing.".to_string() }
             );
         };
 
@@ -39,14 +39,14 @@ pub async fn verify_session(
                         HttpResponse::Unauthorized()
                         .cookie(clear_cookie)
                         .json(
-                            ErrorResponse { error: msg.clone() }
+                            responses::Error { error: msg.clone() }
                         )
                     }
                     _ => unimplemented!("Unimplemented redis error")
                 }
             } else {
                 HttpResponse::Unauthorized().json(
-                    ErrorResponse { error: format!("Failed to verify session: {}", e) }
+                    responses::Error { error: format!("Failed to verify session: {}", e) }
                 )
             }
         }

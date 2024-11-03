@@ -1,16 +1,30 @@
-use types::constants::STORE_COLLS;
-
 use crate::prelude::*;
-use crate::types::{ Role, mongodb::Item };
+use crate::types::{ Role, mongodb::Item, constants::STORE_COLLS };
 
 #[derive(Serialize)]
-pub struct SuccessResponse {
+pub struct Success {
     pub message: String,
 }
 
 #[derive(Serialize)]
-pub struct ErrorResponse {
+pub struct Error {
     pub error: String,
+}
+
+#[derive(Serialize)]
+pub struct RoleRequired {
+    pub error: &'static str,
+    #[serde(rename = "roleRequired")]
+    pub role_required: Role,
+}
+
+impl RoleRequired {
+    pub fn new(role: Role) -> Self {
+        Self {
+            error: "You do not have the role required to access this endpoint.",
+            role_required: role,
+        }
+    }
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -20,7 +34,7 @@ pub struct RoleSelect {
 }
 
 #[derive(Debug, Deserialize, Serialize)]
-pub struct UserResponse {
+pub struct User {
     pub email: String,
     pub name: String,
     pub role: Role,
@@ -75,4 +89,20 @@ impl From<Item> for ItemResult {
             coll: item.coll,
         } 
     }
+}
+
+#[derive(Serialize)]
+pub struct CartItem {
+    pub id: String,
+    pub name: String,
+    pub price: f64,
+    pub store: String,
+    #[serde(rename = "inStock")]
+    pub in_stock: bool,
+}
+
+#[derive(Serialize)]
+pub struct Cart {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub cart: Option<Box<Vec<CartItem>>>,
 }

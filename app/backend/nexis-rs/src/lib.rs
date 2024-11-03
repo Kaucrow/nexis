@@ -7,6 +7,8 @@ pub mod types;
 pub mod database;
 pub mod prelude;
 
+pub use database::users;
+pub use types::responses;
 pub use utils::auth;
 
 use once_cell::sync::Lazy;

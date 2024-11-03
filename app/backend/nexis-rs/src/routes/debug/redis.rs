@@ -25,7 +25,7 @@ pub async fn get_redis_session(
         .expect("Failed to parse APP_ENVIRONMENT");
 
     if let Environment::Production = environment {
-        return HttpResponse::Forbidden().json(responses::ErrorResponse {
+        return HttpResponse::Forbidden().json(responses::Error {
             error: "Can't access debugging endpoints on production.".to_string()
         })
     }
@@ -35,7 +35,7 @@ pub async fn get_redis_session(
             sss_pub_cookie.value().to_string()
         } else {
             return HttpResponse::BadRequest().json(
-                crate::types::ErrorResponse { error: "Session cookie missing.".to_string() }
+                responses::Error { error: "Session cookie missing.".to_string() }
             );
         };
 
@@ -69,7 +69,7 @@ pub async fn get_redis_roleselect(
         .expect("Failed to parse APP_ENVIRONMENT");
 
     if let Environment::Production = environment {
-        return HttpResponse::Forbidden().json(responses::ErrorResponse {
+        return HttpResponse::Forbidden().json(responses::Error {
             error: "Can't access debugging endpoints on production.".to_string()
         })
     }

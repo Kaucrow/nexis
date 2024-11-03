@@ -1,6 +1,7 @@
 use crate::prelude::*;
+use crate::responses;
 use anyhow::Result;
-use types::{ User, LoginUser, responses, requests, SSS_COOKIE_NAME };
+use types::{ User, LoginUser, requests, SSS_COOKIE_NAME };
 use utils::tokens::{ verify_roleselect_token, issue_session_token };
 
 const USER_NOT_FOUND_MSG: &'static str = "A user with these details does not exist. If you registered with these details, ensure you activated your account by clicking on the link sent to your e-mail address.";
@@ -47,7 +48,7 @@ async fn login_user(
                     if roles.len() > 1 {
                         match utils::issue_roleselect_token(&redis_pool, user, login.remember_me).await {
                             Ok(token) => {
-                                HttpResponse::Ok().json( responses::RoleSelect {
+                                HttpResponse::Ok().json(responses::RoleSelect {
                                     roles,
                                     token,
                                 })
@@ -84,7 +85,7 @@ async fn login_user(
 
                         HttpResponse::Ok()
                             .cookie(session_cookie)
-                            .json(types::UserResponse {
+                            .json(responses::User {
                                 email,
                                 name,
                                 role,
@@ -97,7 +98,7 @@ async fn login_user(
                 }
                 Err(e) => {
                     tracing::error!(target: "backend", "Wrong password: {:#?}", e);
-                    HttpResponse::NotFound().json(responses::ErrorResponse {
+                    HttpResponse::NotFound().json(responses::Error {
                         error: USER_NOT_FOUND_MSG.to_string()
                     })
                 }
@@ -105,7 +106,7 @@ async fn login_user(
         }
         Err(e) => {
             tracing::error!(target: "backend", "User not found: {:#?}", e);
-            HttpResponse::NotFound().json(responses::ErrorResponse {
+            HttpResponse::NotFound().json(responses::Error {
                 error: USER_NOT_FOUND_MSG.to_string()
             })
         }
@@ -165,7 +166,7 @@ async fn role_login(
                     Ok(token) => token,
                     Err(e) if e.is::<types::error::BadRequest>() => {
                         if let Some(BadRequest::NonexistentRole(e)) = e.downcast_ref::<BadRequest>() {
-                            return HttpResponse::BadRequest().json(responses::ErrorResponse {
+                            return HttpResponse::BadRequest().json(responses::Error {
                                 error: e.to_string()
                             });
                         } else {
@@ -192,7 +193,7 @@ async fn role_login(
 
             HttpResponse::Ok()
                 .cookie(session_cookie)
-                .json(responses::UserResponse {
+                .json(responses::User {
                     email: user.email,
                     name: user.name,
                     role,

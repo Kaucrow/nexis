@@ -4,7 +4,7 @@ use crate::prelude::*;
 use types::User;
 use anyhow::Result;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Role {
     Client,
     Admin,

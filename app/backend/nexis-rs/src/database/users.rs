@@ -1,6 +1,6 @@
 use crate::prelude::*;
 use anyhow::Result;
-use types::{ User, NewUser };
+use types::{ User, NewUser, mongodb::CartItem, responses };
 
 #[tracing::instrument(
     name = "Inserting new user into DB",
@@ -46,7 +46,7 @@ pub async fn insert_created_user_into_db(
 }
 
 #[tracing::instrument(name = "Getting user from DB")]
-pub async fn get_db_user(
+pub async fn get_user(
     db: &mongodb::Database,
     user_id: ObjectId,
 ) -> Result<Option<User>> {
@@ -57,4 +57,76 @@ pub async fn get_db_user(
     ).await?;
 
     Ok(user)
+}
+
+#[tracing::instrument(name = "Getting client cart from DB")]
+async fn get_client_cart(
+    db: &mongodb::Database,
+    user_id: ObjectId,
+) -> Result<Document> {
+    let users_coll: Collection<Document> = db.collection("user");
+
+    let mut cursor = users_coll.aggregate(vec![
+        doc!{ "$match": { "_id": user_id }},
+        doc!{ "$project": { "_id": 0, "client": { "cart": 1 }}},
+    ]).await?;
+
+    if let Ok(Some(doc)) = cursor.try_next().await {
+        Ok(doc)
+    } else {
+        bail!("The user has no client data.")
+    }
+}
+
+#[tracing::instrument(
+    name = "Getting client cart from DB with item details"
+    skip(db, user_id),
+)]
+pub async fn get_client_cart_details(
+    db: &mongodb::Database,
+    user_id: ObjectId,
+) -> Result<Vec<responses::CartItem>> {
+    let user_cart = get_client_cart(db, user_id).await?;
+
+    let cart_items = user_cart.get_document("client")?.get_array("cart")?;
+
+    let mut items: Vec<responses::CartItem> = Vec::new();
+
+    for item in cart_items {
+        let item_doc = item.as_document().ok_or_else(|| anyhow!("Expected document."))?;
+
+        let item_id = item_doc.get_object_id("item")?;
+        let collection_name = item_doc.get_str("coll")?.to_string();
+        // TODO: Fix date_added not working
+        //let date_added = item_doc.get_datetime("dateAdded")?.clone();
+
+        let collection: Collection<Document> = db.collection(&collection_name);
+
+        let item_details = collection
+            .find_one(doc! { "_id": item_id })
+            .await?
+            .ok_or_else(|| anyhow!("Item not found in collection {}", collection_name))?;
+
+        let in_stock = item_details
+            .get_array("lot")
+            .map_or(false, |lots| {
+                lots.iter().any(|lot| {
+                    lot.as_document()
+                        .and_then(|doc| doc.get_array("code").ok())
+                        .map_or(false, |codes| !codes.is_empty())
+                })
+            });
+        
+        let store = utils::get_store_from_coll(&collection_name)?;
+
+        items.push(responses::CartItem {
+            id: item_id.to_hex(),
+            name: item_details.get_str("name")?.to_string(),
+            price: item_details.get_f64("price").or_else(|_| item_details.get_f64("pricePerKg"))?,
+            store,
+            in_stock,
+        })
+    }
+
+    Ok(items)
 }

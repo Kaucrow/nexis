@@ -1,6 +1,8 @@
 pub mod auth;
 pub mod emails;
+pub mod common;
 
+pub use common::get_store_from_coll;
 pub use emails::send_multipart_email;
 pub use auth::{
     tokens,

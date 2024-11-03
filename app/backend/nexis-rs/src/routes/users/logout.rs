@@ -1,5 +1,6 @@
 // src/routes/users/logout.rs
 use crate::prelude::*;
+use crate::responses;
 use types::SSS_COOKIE_NAME;
 
 #[tracing::instrument(name = "Log out user", skip(req, redis_pool))]
@@ -14,7 +15,7 @@ pub async fn log_out(
             sss_pub_cookie.value().to_string()
         } else {
             return HttpResponse::BadRequest().json(
-                crate::types::ErrorResponse { error: "Session cookie missing.".to_string() }
+                responses::Error { error: "Session cookie missing.".to_string() }
             );
         };
 
