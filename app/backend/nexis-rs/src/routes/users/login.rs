@@ -10,7 +10,7 @@ const USER_NOT_FOUND_MSG: &'static str = "A user with these details does not exi
     name = "Logging a user in",
     skip(req, db, login, redis_pool),
     fields(
-        user_email = %login.email,
+        user_identifier = %login.identifier,
         remember_me = %login.remember_me
     )
 )]
@@ -30,7 +30,7 @@ async fn login_user(
         }
     }
 
-    match get_user_who_is_active(db.get_ref(), &login.email).await {
+    match get_user_who_is_active(db.get_ref(), &login.identifier).await {
         Ok(user) => {
             let password_hash = user.password.clone();
             let password = login.password.clone();
@@ -82,7 +82,8 @@ async fn login_user(
                             }
                             cookie
                         };
-
+                        
+                        tracing::debug!(target: "backend", "Finished.");
                         HttpResponse::Ok()
                             .cookie(session_cookie)
                             .json(responses::User {
@@ -109,22 +110,29 @@ async fn login_user(
     }
 }
 
-#[tracing::instrument(name = "Getting a user from DB.", skip(db, email),fields(user_email = %email))]
+#[tracing::instrument(name = "Getting a user from DB.", skip(db, identifier),fields(user_identifier = %identifier))]
 pub async fn get_user_who_is_active(
     db: &mongodb::Database,
-    email: &String,
+    identifier: &String,
 ) -> Result<types::User> {
     let users_coll: Collection<User> = db.collection("user");
     let res = users_coll.find_one(
-        doc! { "email": email, "isActive": true }
+        doc! {
+            "$or": [
+                { "email": identifier },
+                { "username": identifier }
+            ],
+            "isActive": true
+        }
     ).await;
 
     match res {
         Ok(res) =>
             if let Some(user) = res {
+                tracing::debug!(target: "backend", "Finished.");
                 Ok(user)
             } else {
-                tracing::error!(target: "mongodb", "User not found in DB. Email: {}", email);
+                tracing::error!(target: "mongodb", "User not found in DB. Identifier: {}", identifier);
                 Err(anyhow!("User not found in DB."))
             },
         Err(e) => {

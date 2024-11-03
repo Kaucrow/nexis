@@ -10,7 +10,7 @@ pub use fake::{
 };
 pub use mongodb::{
     bson::{ self, Bson, doc, Document, oid::ObjectId },
-    options::{ ClientOptions, ResolverConfig, ServerApi, ServerApiVersion },
+    options::{ ClientOptions, ResolverConfig, ServerApi, ServerApiVersion, IndexOptions },
     Client,
     Collection,
     IndexModel,

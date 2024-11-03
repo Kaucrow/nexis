@@ -30,7 +30,7 @@ const ROLESELECT_KEY_PREFIX: &str = "roleselect_";
 /// Returns the session UUID token which should be set as a cookie,
 /// and sets a key-value pair in Redis where this UUID is the key
 /// and the session token is the value. This token has the user's id encoded.
-#[tracing::instrument(name = "Issue PASETO token for session uuid", skip(redis_pool))]
+#[tracing::instrument(name = "Issue PASETO token for session uuid", skip(redis_pool, user))]
 pub async fn issue_session_token(
     user: User,
     role: Role,
@@ -78,6 +78,7 @@ pub async fn issue_session_token(
         )?
     };
 
+    tracing::debug!(target: "backend", "Finished.");
     Ok(sss_token)
 }
 

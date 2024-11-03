@@ -20,5 +20,7 @@ pub async fn verify_password(
     password: String,
 ) -> Result<(), argon2::password_hash::Error> {
     let parsed_hash = PasswordHash::new(hash.as_str())?;
-    Argon2::default().verify_password(password.as_bytes(), &parsed_hash)
+    let result = Argon2::default().verify_password(password.as_bytes(), &parsed_hash);
+    tracing::debug!(target: "backend", "Finished.");
+    result
 }

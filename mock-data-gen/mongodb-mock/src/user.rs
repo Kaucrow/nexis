@@ -8,16 +8,16 @@ static GENDERS: Lazy<Vec<&str>> = Lazy::new(|| vec![
 ]);
 
 #[derive(Debug, Serialize, Deserialize)]
-struct Cart {
+struct CartItem {
     #[serde(rename = "dateAdded")]
     date_added: DateTimeWrapper,
     coll: String,
     item: ObjectIdWrapper,
 }
 
-impl Cart {
+impl CartItem {
     fn dummy_with_rng<R: Rng + ?Sized>(coll: String, item: ObjectIdWrapper, config: &Faker, rng: &mut R) -> Self {
-        Cart {
+        CartItem {
             date_added: DateTimeWrapper::dummy_with_rng(config, rng),
             coll,
             item,
@@ -55,8 +55,8 @@ struct Client {
     gender: String,
     #[serde(rename = "phoneNum")]
     phone_num: String,
-    interest: Vec<ObjectIdWrapper>,
-    cart: Option<Box<Vec<Cart>>>,
+    interests: Vec<ObjectIdWrapper>,
+    cart: Option<Box<Vec<CartItem>>>,
     reviews: Option<Box<Vec<Review>>>,
 }
 
@@ -89,7 +89,7 @@ impl Client {
             };
 
             Some(Box::new(
-                item_coll.into_iter().map(|(item, coll)| Cart::dummy_with_rng(coll, item, config, rng)).collect()
+                item_coll.into_iter().map(|(item, coll)| CartItem::dummy_with_rng(coll, item, config, rng)).collect()
             ))
         } else {
             None
@@ -121,7 +121,7 @@ impl Client {
             age: rng.gen_range(16..=70),
             gender: GENDERS.choose(rng).unwrap().to_string(),
             phone_num: CellNumber().fake(),
-            interest: rnd_stores,
+            interests: rnd_stores,
             cart,
             reviews,
         }
@@ -289,6 +289,8 @@ pub struct User {
     username: String,
     password: String,
     name: String,
+    #[serde(rename = "isActive")]
+    is_active: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     client: Option<Box<Client>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -343,6 +345,7 @@ impl User {
             username: Username().fake(),
             password: Password(8..9).fake(),
             name: Name().fake(),
+            is_active: rng.gen_bool(0.8),
             client,
             employee,
             admin, 
@@ -379,6 +382,7 @@ impl User {
             username: details.username.clone(),
             password: hash(details.password.as_bytes()).await,
             name: details.name.clone(),
+            is_active: true,
             client,
             employee,
             admin,

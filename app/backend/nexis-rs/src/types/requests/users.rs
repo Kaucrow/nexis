@@ -38,7 +38,7 @@ pub struct NewUser {
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct LoginUser {
-    pub email: String,
+    pub identifier: String,
     pub password: String,
     #[serde(rename = "rememberMe")]
     pub remember_me: bool,

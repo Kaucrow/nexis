@@ -185,6 +185,26 @@ async fn main() -> mongodb::error::Result<()> {
     users_coll.insert_one(custom_user).await?;
     println!("- Inserted: custom user with details: {:?}", custom_user_details);
 
+    let compound_index = IndexModel::builder()
+        .keys(doc! { "username": 1, "email": 1 })
+        .options(IndexOptions::builder().unique(true).build())
+        .build();
+    users_coll.create_index(compound_index).await?;
+
+    let email_index = IndexModel::builder()
+        .keys(doc! { "email": 1 })
+        .options(IndexOptions::builder().unique(true).build())
+        .build();
+    users_coll.create_index(email_index).await?;
+    
+    let username_index = IndexModel::builder()
+        .keys(doc! { "username": 1 })
+        .options(IndexOptions::builder().unique(true).build())
+        .build();
+    users_coll.create_index(username_index).await?;
+
+    println!("- Indexed: users: `username, email: compound`, `username`, `email`");
+
     let stores_coll: Collection<Store> = db.collection("store");
 
     let store: Store = Store::dummy_with_rng("clothes", &store_ids, &client, &fake::Faker, &mut rng).await?;
@@ -219,11 +239,13 @@ async fn main() -> mongodb::error::Result<()> {
         }
     }
     items_coll.insert_many(items).await?;
+    println!("- Inserted: items");
+
     items_coll.create_indexes(vec![
         IndexModel::builder().keys(doc! { "name": "text" }).build(),
         IndexModel::builder().keys(doc! { "price": 1 }).build()
     ]).await?;
-    println!("- Inserted: items");
+    println!("- Indexed: users: `name: text`, `price`");
 
     Ok(())
 }
