@@ -2,6 +2,14 @@
   <title>Register</title>
 </svelte:head>
 
+<script lang="ts">
+  import { writable } from 'svelte/store';
+  import logo from '$lib/assets/Nexis.png';
+  import mall2 from '$lib/assets/mall2-2.jpg'
+  import Radio from '$lib/components/Radio.svelte';
+
+  let selectedLocal = writable('');
+</script>
 
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
@@ -51,12 +59,12 @@
 
 </style>
 
-<section class="vh-100 gradient-custom " style="background-color: #090d10">
+<section class="vh-100 gradient-custom " style="background-color: #131A20">
   <img src={mall2} alt="Mall Image" class="full-height-image">
     <div class="container py-1 h-100">
       <div class="row justify-content-center align-items-center h-100">
         <div class="col-12 col-lg-9 col-xl-7 form-container">
-          <div class="card shadow-2-strong card-registration tw-bg-primary-dark text-white login-card" style="border-radius: 15px;">
+          <div class="card shadow-2-strong card-registration tw-bg-dark-shade-light text-white login-card" style="border-radius: 30px;">
             <div class="card-body p-4 p-md-5 ">
               <h3 class="tw-text-xl pb-2 tw-text-primary-light">Welcome !</h3>
               <h3 class="mb-2 pb-4 pb-md-0 mb-md-4 tw-text-3xl tw-text-primary-secondary">Sign up to Nexis</h3>
@@ -114,7 +122,12 @@
                         value="option3" />
                       <label class="form-check-label tw-text-primary-light" for="otherGender">Other</label>
                     </div>
-  
+
+                    <Radio name="example" value="option1" selectedComponent={selectedLocal}/>
+                    <Radio name="example" value="option2" selectedComponent={selectedLocal}/>
+                    <Radio name="example" value="option3" selectedComponent={selectedLocal}/>
+
+                    <p class="tw-bg-slate-900 tw-text-slate-100">Selected: {$selectedLocal}</p>
                   </div>
                   
                 </div>
@@ -160,8 +173,3 @@
     </div>
     <img src={logo} alt="Nexis Logo" width="100px" height="100px" style="position: absolute; top: 10px; left: 10px;">
   </section>
-
-  <script>
-    import logo from '$lib/assets/Nexis.png';
-    import mall2 from '$lib/assets/mall2-2.jpg'
-  </script>

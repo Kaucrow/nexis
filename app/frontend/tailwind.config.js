@@ -7,15 +7,22 @@ export default {
   theme: {
     extend: {
       colors: {
-        primary: {
-          background: '#121b21',
-          dark: '#121b21',
-          secondary: '#629584',
-          light: '#E2F1E7'
-          
-        },
-        accent: '#629584'
-
+        dark: {
+          background: '#131a20',  // Background
+          primary: '#e2f1e7',     // White
+          shade: {                // Dark colors
+            light: '#21313b',
+            dark: '#0d1418',
+          },
+          accent: {               // Greenish colors
+            light: '#387478',
+            dark: '#629584',
+          },
+          gray: {                 // Gray colors
+            light: '#ababab',
+            dark: '#7d7d7d',
+          },
+        }
       }
     }
   },
