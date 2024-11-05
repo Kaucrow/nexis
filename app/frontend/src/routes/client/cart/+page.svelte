@@ -213,7 +213,7 @@
       <div class="tw-rounded-2xl tw-bg-[#1A252E] tw-p-6 tw-border-t-[6px] tw-border-[#387478] lg:tw-sticky lg:tw-top-6">
         <h2 class="tw-text-2xl tw-font-medium tw-text-[#E2F1E7] tw-mb-5">Order Summary</h2>
         
-        <div class="tw-space-y-4">
+        <div class="tw-space-y-3">
           <div class="tw-flex tw-justify-between tw-text-sm tw-items-center">
             <span class="tw-text-[#629584]">Net amount:</span>
             <span class="tw-text-[#629584]">${netAmount.toFixed(1)}</span>
