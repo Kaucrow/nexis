@@ -24,6 +24,7 @@
 	},
 	"type": "module",
 	"dependencies": {
-		"bootstrap": "^5.3.3"
+		"bootstrap": "^5.3.3",
+		"lucide-svelte": "^0.454.0"
 	}
 }
