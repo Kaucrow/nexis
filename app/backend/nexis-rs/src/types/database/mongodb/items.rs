@@ -63,7 +63,7 @@ pub struct LibraryItem {
     pub name: String,
     pub price: f64,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub book: Option<Book>,
+    pub book: Option<Box<Book>>,
     pub lots: Vec<Lot>,
 }
 

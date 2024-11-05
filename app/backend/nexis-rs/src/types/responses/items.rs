@@ -7,6 +7,7 @@ use async_trait::async_trait;
 use std::pin::Pin;
 use serde_json::Value;
 use futures_util::Future;
+use anyhow::Result;
 
 const ITEM_DE_ERR: &'static str = "An error was produced while retrieving the item: ";
 
@@ -56,23 +57,64 @@ impl ItemRegistry {
 
 #[async_trait]
 pub trait ItemDetails: Send + Sync {
-    async fn details(&self) -> Value;
+    async fn details(&self) -> Result<Value>;
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct BookDetails {
+    pub isbn: String,
+    #[serde(rename = "numPages")]
+    pub num_pages: i32,
+    pub authors: Vec<String>,
+    pub publisher: String,
+    pub edition: i32,
+    pub audience: Vec<String>,
+    pub genre: Vec<String>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+struct LibraryItemDetails {
+    #[serde(rename = "_id")]
+    pub id: String,
+    pub name: String,
+    pub price: f64,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub book: Option<Box<BookDetails>>,
+}
+
+impl From<&LibraryItem> for LibraryItemDetails {
+    fn from(item: &LibraryItem) -> Self {
+        let book =
+            if let Some(book) = &item.book {
+                Some(Box::new(BookDetails {
+                    isbn: book.isbn.clone(),
+                    num_pages: book.num_pages,
+                    authors: book.authors.clone(),
+                    publisher: book.publisher.clone(),
+                    edition: book.edition,
+                    audience: book.audience.clone(),
+                    genre: book.genre.clone(),
+                }))
+            } else {
+                None
+            };
+
+        LibraryItemDetails {
+            id: item.id.to_hex(),
+            name: item.name.clone(),
+            price: item.price,
+            book,
+        } 
+    }
 }
 
 #[async_trait]
 impl ItemDetails for LibraryItem {
-    async fn details(&self) -> Value {
-        let mut item_json = serde_json::json!({
-            "id": self.id.to_string(),
-            "name": self.name,
-            "price": self.price,
-        });
-
-        if let Some(book) = &self.book {
-            item_json["book"] = serde_json::json!(book);
+    async fn details(&self) -> Result<Value> {
+        match serde_json::to_value(LibraryItemDetails::from(self)) {
+            Ok(value) => Ok(value),
+            Err(e) => bail!(e),
         }
-
-        item_json
     }
 }
 
@@ -95,24 +137,38 @@ fn get_library_item_fetcher() -> ItemFetcher {
     })
 }
 
+#[derive(Serialize, Deserialize, Debug)]
+pub struct FoodDetails {
+    #[serde(rename = "_id")]
+    pub id: ObjectId,
+    pub name: String,
+    #[serde(rename = "pricePerKg", skip_serializing_if = "Option::is_none")]
+    pub price_per_kg: Option<f64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub price: Option<f64>,
+    #[serde(rename = "type")]
+    pub food_type: String,
+}
+
+impl From<&Food> for FoodDetails {
+    fn from(item: &Food) -> Self {
+        FoodDetails {
+            id: item.id,
+            name: item.name.clone(),
+            price_per_kg: item.price_per_kg,
+            price: item.price,
+            food_type: item.food_type.clone(),
+        } 
+    }
+}
+
 #[async_trait]
 impl ItemDetails for Food {
-    async fn details(&self) -> Value {
-        let mut item_json = serde_json::json!({
-            "id": self.id.to_string(),
-            "name": self.name,
-            "type": self.food_type,
-        });
-
-        if let Some(price) = &self.price {
-            item_json["price"] = serde_json::json!(price);
+    async fn details(&self) -> Result<Value> {
+        match serde_json::to_value(FoodDetails::from(self)) {
+            Ok(value) => Ok(value),
+            Err(e) => bail!(e),
         }
-
-        if let Some(price_per_kg) = &self.price_per_kg {
-            item_json["pricePerKg"] = serde_json::json!(price_per_kg);
-        }
-
-        item_json
     }
 }
 

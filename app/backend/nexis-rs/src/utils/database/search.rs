@@ -13,7 +13,7 @@ pub async fn get_item_details(
     let coll_name = item.coll;
 
     match ITEM_REGISTRY.get_item_details(db, coll_name, item_id).await {
-        Some(item) => Ok(item.details().await),
+        Some(item) => Ok(item.details().await?),
         None => bail!("An error was produced. Check the logs for more details.")
     }
 }
