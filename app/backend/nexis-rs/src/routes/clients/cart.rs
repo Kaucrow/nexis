@@ -94,7 +94,7 @@ pub async fn delete_cart_item(
             let uid = session.id;
             let item_id = match ObjectId::parse_str(&params.item_id) {
                 Ok(oid) => oid,
-                Err(_) => return HttpResponse::InternalServerError().finish(),
+                Err(_) => return HttpResponse::BadRequest().json(responses::Error::simple("Malformed item id."))
             };
 
             match delete_client_cart_item(&db, uid, item_id).await {

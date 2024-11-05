@@ -1,7 +1,7 @@
 use crate::prelude::*;
 use crate::responses;
 use anyhow::Result;
-use types::{ User, LoginUser, requests, SSS_COOKIE_NAME };
+use types::{ requests::{ self, LoginUser }, SSS_COOKIE_NAME };
 use utils::tokens::{ verify_roleselect_token, issue_session_token };
 
 const USER_NOT_FOUND_MSG: &'static str = "A user with these details does not exist. If you registered with these details, ensure you activated your account by clicking on the link sent to your e-mail address.";
@@ -114,8 +114,8 @@ async fn login_user(
 pub async fn get_user_who_is_active(
     db: &mongodb::Database,
     identifier: &String,
-) -> Result<types::User> {
-    let users_coll: Collection<User> = db.collection("user");
+) -> Result<types::mongodb::User> {
+    let users_coll: Collection<types::mongodb::User> = db.collection("user");
     let res = users_coll.find_one(
         doc! {
             "$or": [

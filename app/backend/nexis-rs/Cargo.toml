@@ -11,6 +11,7 @@ actix-cors = "0.7.0"
 actix-web = { version = "4.5.1", features = ["rustls-0_23"] }
 anyhow = "1.0.91"
 argon2 = "0.5.3"
+async-trait = "0.1.83"
 chrono = { version = "0.4.38", features = ["serde"] }
 config = { version = "0.14.0", features = ["yaml"] }
 deadpool-redis = "0.15.1"

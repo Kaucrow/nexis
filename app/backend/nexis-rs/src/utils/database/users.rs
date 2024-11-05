@@ -1,6 +1,6 @@
 use crate::prelude::*;
 use anyhow::Result;
-use types::{ User, NewUser, Item, responses };
+use types::{ requests::NewUser, mongodb::{ SimpleItem, User }, responses };
 use chrono::{ DateTime, Utc };
 
 #[tracing::instrument(
@@ -176,7 +176,7 @@ pub async fn insert_client_cart_item(
     user_id: ObjectId,
     item_id: ObjectId,
 ) -> Result<()> {
-    let items_coll: Collection<Item> = db.collection("items");
+    let items_coll: Collection<SimpleItem> = db.collection("items");
 
     let item = items_coll.find_one(
         doc! { "_id": item_id }

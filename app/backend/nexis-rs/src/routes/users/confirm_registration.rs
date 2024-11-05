@@ -1,7 +1,7 @@
 use crate::prelude::*;
 use crate::responses;
 use anyhow::Result;
-use crate::types::User;
+use crate::types::mongodb::User;
 
 #[derive(Deserialize)]
 pub struct Parameters {

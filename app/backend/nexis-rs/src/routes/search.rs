@@ -1,10 +1,9 @@
-use types::responses::{ ItemSuggestion, ItemResult };
-
 use crate::prelude::*;
-use crate::types::{ mongodb::Item, responses };
+use types::{ responses, mongodb::SimpleItem};
+use crate::utils::database::search::get_item_details;
 
 #[derive(Deserialize, Debug)]
-pub struct SearchSuggestionParams {
+pub struct SuggestionsParams {
     input: String,
 }
 
@@ -12,18 +11,18 @@ pub struct SearchSuggestionParams {
     name = "Getting search suggestions",
     skip(db)
 )]
-#[actix_web::get("/search-suggestions")]
+#[actix_web::get("/search/suggestions")]
 pub async fn search_suggestions(
-    parameters: web::Query<SearchSuggestionParams>,
+    params: web::Query<SuggestionsParams>,
     db: web::Data<mongodb::Database>,
 ) -> HttpResponse {
     tracing::info!(target: "backend", "Accessing search suggestions.");
 
     const MAX_SUGGEST: i32 = 8;
 
-    let items_coll: Collection<Item> = db.collection("items");
+    let items_coll: Collection<SimpleItem> = db.collection("items");
 
-    let input = &parameters.input;
+    let input = &params.input;
 
     let mut cursor = items_coll.aggregate(vec![
         doc! { "$match": { "$text": { "$search": input, "$caseSensitive": false }}},
@@ -35,9 +34,9 @@ pub async fn search_suggestions(
     let mut added_ids: HashSet<ObjectId> = HashSet::new();
 
     while let Ok(Some(doc)) = cursor.try_next().await {
-        let item: Item = bson::from_document(doc).unwrap();
+        let item: SimpleItem = bson::from_document(doc).unwrap();
         if added_ids.insert(item.id) {
-            suggestions.push(ItemSuggestion::from(item))
+            suggestions.push(responses::ItemSuggestion::from(item))
         }
     }
 
@@ -51,9 +50,9 @@ pub async fn search_suggestions(
         .await.unwrap();
 
         while let Ok(Some(doc)) = cursor.try_next().await {
-            let item: Item = bson::from_document(doc).unwrap();
+            let item: SimpleItem = bson::from_document(doc).unwrap();
             if added_ids.insert(item.id) {
-                suggestions.push(ItemSuggestion::from(item))
+                suggestions.push(responses::ItemSuggestion::from(item))
             }
         }
     }
@@ -62,7 +61,7 @@ pub async fn search_suggestions(
 }
 
 #[derive(Deserialize, Debug)]
-pub struct SearchParams {
+pub struct ItemsParams {
     input: String,
     page: i32,
     #[serde(rename = "min-price", skip_serializing_if = "Option::is_none")]
@@ -73,35 +72,35 @@ pub struct SearchParams {
 
 #[tracing::instrument(
     name = "Getting search results",
-    skip(db)
+    skip(db, params)
 )]
-#[actix_web::get("/search")]
-pub async fn search(
-    parameters: web::Query<SearchParams>,
+#[actix_web::get("/search/items")]
+pub async fn search_items(
+    params: web::Query<ItemsParams>,
     db: web::Data<mongodb::Database>,
 ) -> HttpResponse {
     tracing::info!(target: "backend", "Accessing search.");
 
     const MAX_RESULTS: i32 = 15;
 
-    let input = &parameters.input;
-    let page = &parameters.page;
-    let min_price: Option<i32> = parameters.min_price;
-    let max_price: Option<i32> = parameters.max_price;
+    let input = &params.input;
+    let page = &params.page;
+    let min_price: Option<i32> = params.min_price;
+    let max_price: Option<i32> = params.max_price;
     let skip = page * MAX_RESULTS;
 
     let search_aggregate = build_search_pipeline(input, min_price, max_price, skip, MAX_RESULTS, true).await;
         
-    let items_coll: Collection<Item> = db.collection("items");
+    let items_coll: Collection<SimpleItem> = db.collection("items");
 
-    let mut results: Vec<ItemResult> = Vec::new();
+    let mut results: Vec<responses::ItemResult> = Vec::new();
     let mut added_ids: HashSet<ObjectId> = HashSet::new();
 
     let mut cursor = items_coll.aggregate(search_aggregate).await.expect("Item aggregate failed");
     while let Ok(Some(doc)) = cursor.try_next().await {
-        let item: Item = bson::from_document(doc).unwrap();
+        let item: SimpleItem = bson::from_document(doc).unwrap();
         if added_ids.insert(item.id) {
-            results.push(ItemResult::from(item));
+            results.push(responses::ItemResult::from(item));
         }
     }
 
@@ -110,9 +109,9 @@ pub async fn search(
 
         let mut cursor = items_coll.aggregate(search_aggregate).await.expect("Item aggregate failed");
         while let Ok(Some(doc)) = cursor.try_next().await {
-            let item: Item = bson::from_document(doc).unwrap();
+            let item: SimpleItem = bson::from_document(doc).unwrap();
             if added_ids.insert(item.id) {
-                results.push(ItemResult::from(item));
+                results.push(responses::ItemResult::from(item));
             }
         }
 
@@ -153,4 +152,32 @@ async fn build_search_pipeline(
     tracing::debug!(target: "backend", "Search pipeline: {:#?}", pipeline);
 
     pipeline
+}
+
+#[derive(Deserialize)]
+struct ItemDetailsParams {
+    #[serde(rename = "item")]
+    pub item_id: String,
+}
+
+#[tracing::instrument(
+    name = "Getting search results",
+    skip(db, params)
+)]
+#[actix_web::get("/search/item-details")]
+pub async fn search_item_details(
+    params: web::Query<ItemDetailsParams>,
+    db: web::Data<mongodb::Database>,
+) -> HttpResponse {
+    tracing::info!(target: "backend", "Accessing search item details.");
+
+    let item_id = match ObjectId::parse_str(&params.item_id) {
+        Ok(oid) => oid,
+        Err(_) => return HttpResponse::BadRequest().json(responses::Error::simple("Malformed item id."))
+    };
+
+    match get_item_details(&db, item_id).await {
+        Ok(item) => HttpResponse::Ok().json(item),
+        Err(e) => HttpResponse::InternalServerError().json("Error")
+    }
 }

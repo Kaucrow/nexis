@@ -3,8 +3,8 @@ use crate::{
     utils::get_redis_conn,
     types::{
         self,
+        mongodb::User,
         UserSession,
-        User,
         Role,
         SSS_PUB_TK,
         SSS_DATA_TK,

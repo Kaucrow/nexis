@@ -1,7 +1,7 @@
 use std::{ str::FromStr, fmt };
 
 use crate::prelude::*;
-use types::User;
+use types::mongodb::User;
 use anyhow::Result;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
