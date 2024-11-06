@@ -61,39 +61,39 @@ pub trait ItemDetails: Send + Sync {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct BookDetails {
-    pub isbn: String,
+pub struct BookDetails<'a> {
+    pub isbn: &'a str,
     #[serde(rename = "numPages")]
     pub num_pages: i32,
-    pub authors: Vec<String>,
-    pub publisher: String,
+    pub authors: Vec<&'a str>,
+    pub publisher: &'a str,
     pub edition: i32,
-    pub audience: Vec<String>,
-    pub genre: Vec<String>,
+    pub audience: Vec<&'a str>,
+    pub genre: Vec<&'a str>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-struct LibraryItemDetails {
+struct LibraryItemDetails<'a> {
     #[serde(rename = "_id")]
     pub id: String,
-    pub name: String,
+    pub name: &'a str,
     pub price: f64,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub book: Option<Box<BookDetails>>,
+    pub book: Option<Box<BookDetails<'a>>>,
 }
 
-impl From<&LibraryItem> for LibraryItemDetails {
-    fn from(item: &LibraryItem) -> Self {
+impl<'a> From<&'a LibraryItem> for LibraryItemDetails<'a> {
+    fn from(item: &'a LibraryItem) -> Self {
         let book =
             if let Some(book) = &item.book {
                 Some(Box::new(BookDetails {
-                    isbn: book.isbn.clone(),
+                    isbn: &book.isbn,
                     num_pages: book.num_pages,
-                    authors: book.authors.clone(),
-                    publisher: book.publisher.clone(),
+                    authors: book.authors.iter().map(|s| s.as_str()).collect(),
+                    publisher: &book.publisher,
                     edition: book.edition,
-                    audience: book.audience.clone(),
-                    genre: book.genre.clone(),
+                    audience: book.audience.iter().map(|s| s.as_str()).collect(),
+                    genre: book.genre.iter().map(|s| s.as_str()).collect(),
                 }))
             } else {
                 None
@@ -101,7 +101,7 @@ impl From<&LibraryItem> for LibraryItemDetails {
 
         LibraryItemDetails {
             id: item.id.to_hex(),
-            name: item.name.clone(),
+            name: &item.name,
             price: item.price,
             book,
         } 
@@ -138,26 +138,26 @@ fn get_library_item_fetcher() -> ItemFetcher {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct FoodDetails {
+pub struct FoodDetails<'a> {
     #[serde(rename = "_id")]
-    pub id: ObjectId,
-    pub name: String,
+    pub id: String,
+    pub name: &'a str,
     #[serde(rename = "pricePerKg", skip_serializing_if = "Option::is_none")]
     pub price_per_kg: Option<f64>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub price: Option<f64>,
     #[serde(rename = "type")]
-    pub food_type: String,
+    pub food_type: &'a str,
 }
 
-impl From<&Food> for FoodDetails {
-    fn from(item: &Food) -> Self {
+impl<'a> From<&'a Food> for FoodDetails<'a> {
+    fn from(item: &'a Food) -> Self {
         FoodDetails {
-            id: item.id,
-            name: item.name.clone(),
+            id: item.id.to_hex(),
+            name: &item.name,
             price_per_kg: item.price_per_kg,
             price: item.price,
-            food_type: item.food_type.clone(),
+            food_type: &item.food_type,
         } 
     }
 }
