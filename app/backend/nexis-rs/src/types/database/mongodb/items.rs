@@ -1,8 +1,13 @@
 use crate::prelude::*;
 use async_trait::async_trait;
+use rustls::crypto::hmac::Key;
 use serde_json::Value;
 use std::{ sync::Arc, pin::Pin };
 use futures_util::Future;
+
+pub trait Item {
+    fn coll_name() -> &'static str;
+}
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct SimpleItem {
@@ -24,8 +29,8 @@ pub struct Lot {
 
 #[derive(Serialize, Debug)]
 pub struct Material {
-    percentage: f64,
-    name: String,    
+    pub percentage: f64,
+    pub name: String,    
 }
 
 #[derive(Serialize, Debug)]
@@ -137,7 +142,6 @@ pub struct Cpu {
     pub lots: Vec<Lot>,
 }
 
-
 #[derive(Serialize, Debug)]
 pub struct Memory {
     #[serde(rename = "type")]
@@ -196,4 +200,36 @@ pub struct TechOther {
     pub name: String,
     pub price: f64,
     pub lots: Vec<Lot>,
+}
+
+impl Item for Clothes {
+    fn coll_name() -> &'static str { "clothes" }
+}
+
+impl Item for Food {
+    fn coll_name() -> &'static str { "food" }
+}
+
+impl Item for LibraryItem {
+    fn coll_name() -> &'static str { "libraryItem" }
+}
+
+impl Item for Tech {
+    fn coll_name() -> &'static str { "tech" }
+}
+
+impl Item for Gpu {
+    fn coll_name() -> &'static str { "techGpu" }
+}
+
+impl Item for Cpu {
+    fn coll_name() -> &'static str { "techCpu" }
+}
+
+impl Item for Keyboard {
+    fn coll_name() -> &'static str { "techKeyboard" }
+}
+
+impl Item for TechOther {
+    fn coll_name() -> &'static str { "techOther" }
 }

@@ -1,34 +1,43 @@
 use crate::prelude::*;
+use super::*;
 use types::mongodb::{
+    Item,
+    Clothes,
     LibraryItem,
     Food,
+    Tech,
+    Gpu,
+    Cpu,
+    Keyboard,
+    TechOther,
 };
 use async_trait::async_trait;
 use std::pin::Pin;
 use serde_json::Value;
+use serde::de::DeserializeOwned;
 use futures_util::Future;
 use anyhow::Result;
 
 const ITEM_DE_ERR: &'static str = "An error was produced while retrieving the item: ";
 
-pub static ITEM_REGISTRY: Lazy<ItemRegistry> = Lazy::new(|| {
-    let mut registry = ItemRegistry::new();
+pub static ITEM_DETAILS_REG: Lazy<ItemDetailsRegistry> = Lazy::new(|| {
+    let mut registry = ItemDetailsRegistry::new();
 
-    registry.add_fetcher("libraryItem", get_library_item_fetcher());
-    registry.add_fetcher("food", get_food_item_fetcher());
+    registry.add_fetcher("libraryItem", get_item_fetcher::<LibraryItem>());
+    registry.add_fetcher("food", get_item_fetcher::<Food>());
 
     registry
 });
 
 type ItemFetcher = Arc<dyn Fn(Arc<mongodb::Database>, ObjectId) -> Pin<Box<dyn Future<Output = Option<Box<dyn ItemDetails + Send>>> + Send>> + Send + Sync>;
 
-pub struct ItemRegistry {
+pub struct ItemDetailsRegistry {
     fetchers: HashMap<String, ItemFetcher>,
 }
 
-impl ItemRegistry {
+impl ItemDetailsRegistry {
     fn new() -> Self {
-        ItemRegistry {
+        ItemDetailsRegistry {
             fetchers: HashMap::new(),
         }
     }
@@ -55,31 +64,62 @@ impl ItemRegistry {
     }
 }
 
+fn get_item_fetcher<T>() -> ItemFetcher
+where
+    T: ItemDetails + Item + DeserializeOwned + Send + Sync + Unpin + 'static,
+{
+    Arc::new(|db: Arc<mongodb::Database>, item_id: ObjectId| {
+        Box::pin(async move {
+            let coll_name = T::coll_name();
+            let coll: Collection<T> = db.collection(coll_name);
+
+            let library_item =
+                match coll.find_one(doc! { "_id": item_id }).await {
+                    Ok(item) => item?,
+                    Err(e) => {
+                        tracing::error!(target: "backend", "{}{}", ITEM_DE_ERR, e);
+                        return None;
+                    }
+                };
+
+            Some(Box::new(library_item) as Box<dyn ItemDetails + Send>)
+        })
+    })
+}
+
 #[async_trait]
-pub trait ItemDetails: Send + Sync {
+pub trait ItemDetails: Send + Sync
+{
     async fn details(&self) -> Result<Value>;
 }
 
-#[derive(Serialize, Deserialize, Debug)]
-pub struct BookDetails<'a> {
-    pub isbn: &'a str,
-    #[serde(rename = "numPages")]
-    pub num_pages: i32,
-    pub authors: Vec<&'a str>,
-    pub publisher: &'a str,
-    pub edition: i32,
-    pub audience: Vec<&'a str>,
-    pub genre: Vec<&'a str>,
+impl<'a> From<&'a Clothes> for ClothesDetails<'a> {
+    fn from(item: &'a Clothes) -> Self {
+        ClothesDetails {
+            id: item.id.to_hex(),
+            name: &item.name,
+            price: item.price,
+            age: &item.age,
+            size: &item.size,
+            color: item.color.iter().map(|s| s.as_str()).collect(),
+            clothes_type: &item.clothes_type,
+            brand: &item.brand,
+            materials: item.materials.iter().map(|material| MaterialDetails {
+                name: &material.name,
+                percentage: material.percentage,
+            }).collect(),
+        }
+    }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
-struct LibraryItemDetails<'a> {
-    #[serde(rename = "_id")]
-    pub id: String,
-    pub name: &'a str,
-    pub price: f64,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub book: Option<Box<BookDetails<'a>>>,
+#[async_trait]
+impl ItemDetails for Clothes {
+    async fn details(&self) -> Result<Value> {
+        match serde_json::to_value(ClothesDetails::from(self)) {
+            Ok(value) => Ok(value),
+            Err(e) => bail!(e),
+        }
+    }
 }
 
 impl<'a> From<&'a LibraryItem> for LibraryItemDetails<'a> {
@@ -118,37 +158,6 @@ impl ItemDetails for LibraryItem {
     }
 }
 
-fn get_library_item_fetcher() -> ItemFetcher {
-    Arc::new(|db: Arc<mongodb::Database>, item_id: ObjectId| {
-        Box::pin(async move {
-            let coll: Collection<LibraryItem> = db.collection("libraryItem");
-
-            let library_item =
-                match coll.find_one(doc! { "_id": item_id }).await {
-                    Ok(item) => item?,
-                    Err(e) => {
-                        tracing::error!(target: "backend", "{}{}", ITEM_DE_ERR, e);
-                        return None;
-                    }
-                };
-
-            Some(Box::new(library_item) as Box<dyn ItemDetails + Send>)
-        })
-    })
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-pub struct FoodDetails<'a> {
-    #[serde(rename = "_id")]
-    pub id: String,
-    pub name: &'a str,
-    #[serde(rename = "pricePerKg", skip_serializing_if = "Option::is_none")]
-    pub price_per_kg: Option<f64>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub price: Option<f64>,
-    #[serde(rename = "type")]
-    pub food_type: &'a str,
-}
 
 impl<'a> From<&'a Food> for FoodDetails<'a> {
     fn from(item: &'a Food) -> Self {
@@ -170,23 +179,4 @@ impl ItemDetails for Food {
             Err(e) => bail!(e),
         }
     }
-}
-
-fn get_food_item_fetcher() -> ItemFetcher {
-    Arc::new(|db: Arc<mongodb::Database>, item_id: ObjectId| {
-        Box::pin(async move {
-            let coll: Collection<Food> = db.collection("food");
-
-            let food_item =
-                match coll.find_one(doc! { "_id": item_id }).await {
-                    Ok(item) => item?,
-                    Err(e) => {
-                        tracing::error!(target: "backend", "{}{}", ITEM_DE_ERR, e);
-                        return None;
-                    }
-                };
-
-            Some(Box::new(food_item) as Box<dyn ItemDetails + Send>)
-        })
-    })
 }
