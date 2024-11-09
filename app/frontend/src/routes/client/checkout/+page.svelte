@@ -227,7 +227,9 @@
               class="tw-w-full tw-bg-[#387478] tw-text-[#162027] tw-rounded-3xl tw-py-3.5 tw-text-base tw-font-medium hover:tw-bg-[#629584] tw-transition-colors {!selectedPaymentMethod ? 'tw-opacity-50 tw-cursor-not-allowed' : ''}"
               disabled={!selectedPaymentMethod}
             >
-              Pay
+            <a href="/client/paid">
+              Pay 
+            </a>
             </button>
           </div>
         
