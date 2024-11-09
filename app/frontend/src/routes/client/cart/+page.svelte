@@ -2,7 +2,7 @@
   <title>Shopping Cart</title>
 </svelte:head>
 
-<script>
+<script lang="ts">
   import logo from '$lib/assets/Nexis.png';
   import graphicShirt from '$lib/assets/graphic-shirt.jpg';
   import checkeredShirt from '$lib/assets/checkered-shirt.jpg';
@@ -172,7 +172,7 @@
   }
 </style>
 
-<div class="tw-min-h-screen tw-p-14 ">
+<div class="tw-min-h-screen tw-p-14 scrollable-content">
   <div class="tw-mx-auto tw-max-w-[1400px]">
     <div class="tw-mb-14">
       <h1 class="tw-text-[#387478] tw-text-3xl tw-font-medium">My Cart</h1>
@@ -262,5 +262,5 @@
   </div>
   
   
-  <img src={logo} alt="Nexis Logo" class="tw-absolute tw-top-14 tw-right-14 tw-w-12 tw-h-12">
+  <img src={logo} alt="Nexis Logo" class="tw-fixed tw-top-14 tw-right-14 tw-w-12 tw-h-12 z-50">
 </div>

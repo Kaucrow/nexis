@@ -2,7 +2,7 @@
     <title>Checkout</title>
 </svelte:head>
 
-<script>
+<script lang="ts">
     import logo from '$lib/assets/Nexis.png';
     import graphicShirt from '$lib/assets/graphic-shirt.jpg';
     import checkeredShirt from '$lib/assets/checkered-shirt.jpg';
@@ -62,6 +62,7 @@
     $: total = netAmount - discount;
 
     let selectedPaymentMethod = '';
+    let transferReference = ''
 
     const paymendMethods = [
         {
@@ -80,6 +81,11 @@
             icon: Landmark
         }
     ]
+    const bankInfo = {
+      accountID: "J-1234567890",
+      accountNumber: "1234567890",
+      bankName: "Bank of America",
+    }
 </script>
 
 <style>
@@ -128,7 +134,7 @@
 
 </style>
 
-<div class="tw-min-h-screen tw-p-14 ">
+<div class="tw-min-h-screen tw-p-14 scrollable-content">
     <div class="tw-mx-auto tw-max-w-[1400px]">
       <div class="tw-mb-14">
         <h1 class="tw-text-[#387478] tw-text-3xl tw-font-medium">Checkout</h1>
@@ -197,6 +203,26 @@
               {/each}
             </div>
             
+            {#if selectedPaymentMethod === 'bank-transfer'}
+              <div class="tw-mt-4 tw-p-4 tw-bg-[#21313B] tw-rounded-lg">
+                <h4 class="tw-text-sm tw-font-medium tw-text-[#E2F1E7] tw-mb-2">Bank Account Information</h4>
+                <p class="tw-text-xs tw-text-[#8B8B8B]">Account ID: {bankInfo.accountID}</p>
+                <p class="tw-text-xs tw-text-[#8B8B8B]">Account Number: {bankInfo.accountNumber}</p>
+                <p class="tw-text-xs tw-text-[#8B8B8B]">Bank Name: {bankInfo.bankName}</p>
+            
+                <div class="tw-mt-4">
+                  <label for="transfer-reference" class="tw-text-sm tw-text-[#E2F1E7] tw-block tw-mb-1">Transfer Reference</label>
+                  <input
+                    type="text"
+                    id="transferReference"
+                    bind:value={transferReference}
+                    placeholder="Enter transfer reference"
+                    class="tw-w-full tw-bg-[#0D1317] tw-text-[#E2F1E7] tw-border tw-border-[#387478] tw-rounded-md tw-px-3 tw-py-2 tw-text-sm focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-[#387478]"
+                  />
+                </div>
+              </div>
+            {/if}
+
             <button 
               class="tw-w-full tw-bg-[#387478] tw-text-[#162027] tw-rounded-3xl tw-py-3.5 tw-text-base tw-font-medium hover:tw-bg-[#629584] tw-transition-colors {!selectedPaymentMethod ? 'tw-opacity-50 tw-cursor-not-allowed' : ''}"
               disabled={!selectedPaymentMethod}
@@ -211,6 +237,6 @@
     </div>
     </div>  
     
-    <img src={logo} alt="Nexis Logo" class="tw-absolute tw-top-14 tw-right-14 tw-w-12 tw-h-12">
+    <img src={logo} alt="Nexis Logo" class="tw-fixed tw-top-14 tw-right-14 tw-w-12 tw-h-12">
   </div>
 
