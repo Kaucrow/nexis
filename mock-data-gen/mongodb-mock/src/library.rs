@@ -15,11 +15,11 @@ struct Book {
     isbn: String,
     #[serde(rename = "numPages")]
     num_pages: u32,
-    author: Vec<String>,
+    authors: Vec<String>,
     publisher: String,
     edition: u8,
-    audience: Vec<String>,
-    genre: Vec<String>,
+    audiences: Vec<String>,
+    genres: Vec<String>,
 }
 
 impl Dummy<Faker> for Book {
@@ -30,10 +30,10 @@ impl Dummy<Faker> for Book {
         Book {
             isbn: Isbn().fake(),
             num_pages: rng.gen_range(3..1500),
-            author: (0..rng.gen_range(1..3)).map(|_| Name().fake()).collect(),
+            authors: (0..rng.gen_range(1..3)).map(|_| Name().fake()).collect(),
             publisher: Word().fake(),
             edition: rng.gen_range(1..4),
-            audience: (0..rng.gen_range(1..4)).filter_map(|_| {
+            audiences: (0..rng.gen_range(1..4)).filter_map(|_| {
                 let audience = AUDIENCES.choose(rng).unwrap();
                 if used_audiences.insert(audience) {
                     Some(audience.to_string())
@@ -41,7 +41,7 @@ impl Dummy<Faker> for Book {
                     None
                 }
             }).collect(),
-            genre: (0..rng.gen_range(1..2)).filter_map(|_| {
+            genres: (0..rng.gen_range(1..2)).filter_map(|_| {
                 let genre = GENRES.choose(rng).unwrap();
                 if used_genres.insert(genre) {
                     Some(genre.to_string())
@@ -60,7 +60,7 @@ pub struct LibraryItem {
     price: f64,
     #[serde(skip_serializing_if = "Option::is_none")]
     book: Option<Box<Book>>,
-    lot: Vec<Lot>,
+    lots: Vec<Lot>,
 }
 
 impl Dummy<Faker> for LibraryItem {
@@ -75,7 +75,7 @@ impl Dummy<Faker> for LibraryItem {
                 } else {
                     None
                 },
-            lot: (0..rng.gen_range(1..5)).map(|_| Lot::dummy_with_rng(config, rng)).collect(),
+            lots: (0..rng.gen_range(1..5)).map(|_| Lot::dummy_with_rng(config, rng)).collect(),
         } 
     }
 }

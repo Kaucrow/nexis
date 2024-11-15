@@ -1,0 +1,6 @@
+{
+    "_id": "ObjectId",
+    "name": "String",
+    "price": "Number",
+    "coll": "String"
+}

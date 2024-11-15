@@ -14,12 +14,12 @@ pub struct Clothes {
     gender: String,
     age: String,
     size: String,
-    color: Vec<String>,
+    colors: Vec<String>,
     #[serde(rename = "type")]
     clothes_type: String,
     brand: String,
-    material: Vec<Material>,
-    lot: Vec<Lot>,
+    materials: Vec<Material>,
+    lots: Vec<Lot>,
 }
 
 impl Dummy<Faker> for Clothes {
@@ -55,11 +55,11 @@ impl Dummy<Faker> for Clothes {
             gender: genders.choose(rng).unwrap().to_string(),
             age: ages.choose(rng).unwrap().to_string(),
             size: sizes.choose(rng).unwrap().to_string(),
-            color: (0..color_count).map(|_| crate::COLORS.choose(rng).unwrap().to_string()).collect(),
+            colors: (0..color_count).map(|_| crate::COLORS.choose(rng).unwrap().to_string()).collect(),
             clothes_type: types.choose(rng).unwrap().to_string(),
             brand: brands.choose(rng).unwrap().to_string(),
-            material: (0..material_count).map(|_| Material { percentage: (1.0..100.0).fake(), name: Word().fake() }).collect(),
-            lot: (0..lot_count).map(|_| Faker::fake::<Lot>(&Faker)).collect(),
+            materials: (0..material_count).map(|_| Material { percentage: (1.0..100.0).fake(), name: Word().fake() }).collect(),
+            lots: (0..lot_count).map(|_| Faker::fake::<Lot>(&Faker)).collect(),
         }
     }
 }

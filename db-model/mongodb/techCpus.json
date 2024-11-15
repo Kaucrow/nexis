@@ -9,7 +9,7 @@
     "socketType": "String",
     "overclockSupp": "Boolean",
     "soldSep": "Boolean",
-    "warranty": null | "String",
+    "warranty_?_": "String",
     "memorySupp": {
         "type": "String",
         "maxSizeGb": "Number"
@@ -18,10 +18,10 @@
         "coreSpeedGhz": "Number",
         "boostSpeedGhz": "Number"
     },
-    "TechGpu": null | "ObjectId",
-    "lot": [{
+    "graphics": "String",
+    "lots": [{
         "_id": "ObjectId",
         "enterDate": "Date",
-        "code": ["Number"]
+        "codes": ["Number"]
     }]
 }

@@ -4,34 +4,36 @@
     "username": "String",
     "password": "hashedString",
     "name": "String",
-    "client": null | {
+    "client_?_": {
         "age": "Number",
         "gender": "String",
         "phoneNum": "String",
-        "interest": ["ObjectId"],
-        "cart": null | [{
+        "interests": ["ObjectId"],
+        "cartItems_?_": [{
             "dateAdded": "Date",
             "coll": "String",
-            "item": "ObjectId"
+            "itemId": "ObjectId"
         }],
-        "reviews": null | [{
+        "reviews_?_": [{
             "stars": "Number",
             "title": "String",
             "comment": "String",
             "coll": "String",
-            "item": "ObjectId"
+            "itemId": "ObjectId"
         }]
     },
-    "employee": null | {
+    "employee_?_": {
         "age": "Number",
         "gender": "String",
         "phoneNum": "String",
-        "schedule": [{
+        "scheduleShifts": [{
             "enterDate": "Date",
             "exitDate": "Date",
+            "checkedIn": "Date",
+            "checkedOut": "Date",
             "Store": "ObjectId",
             "StoreJob": "ObjectId"
         }]
     },
-    "admin": null | {}
+    "admin_?_": {}
 }

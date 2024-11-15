@@ -30,7 +30,7 @@ use argon2::{
 use once_cell::sync::Lazy;
 
 pub static ITEM_COLLS: Lazy<Vec<&'static str>> = Lazy::new(|| vec![
-    "clothes", "food", "libraryItem", "techCpu", "techGpu", "tech", "techOther", "techKeyboard"
+    "clothes", "food", "libraryItems", "techCpus", "techGpus", "techs", "techOthers", "techKeyboards"
 ]);
 
 pub static COLORS: Lazy<Vec<&'static str>> = Lazy::new(|| vec![
@@ -40,8 +40,8 @@ pub static COLORS: Lazy<Vec<&'static str>> = Lazy::new(|| vec![
 pub fn get_rnd_item_pipeline(item_amt: i64) -> Vec<Document> {
     vec![
         doc! { "$sample": { "size": item_amt }},
-        doc! { "$match": { "lot": { "$elemMatch": { "code": { "$ne": [] }}}}},
-        doc! { "$project": { "_id": 1, "lot": 1 }},
+        doc! { "$match": { "lots": { "$elemMatch": { "codes": { "$ne": [] }}}}},
+        doc! { "$project": { "_id": 1, "lots": 1 }},
     ]
 }
 
@@ -66,7 +66,7 @@ pub struct FoodLot {
     #[serde(rename = "enterDate")]
     enter_date: DateTimeWrapper,
     expiry: DateTimeWrapper,
-    code: Vec<ObjectIdWrapper>
+    codes: Vec<ObjectIdWrapper>
 }
 
 impl LotTrait for FoodLot {
@@ -75,8 +75,8 @@ impl LotTrait for FoodLot {
     }
 
     fn get_code(&self) -> Option<&Vec<ObjectIdWrapper>> {
-        if let Some(_) = self.code.first() {
-            Some(&self.code)
+        if let Some(_) = self.codes.first() {
+            Some(&self.codes)
         } else {
             None
         }
@@ -92,7 +92,7 @@ impl Dummy<Faker> for FoodLot {
             _id: ObjectIdWrapper::dummy_with_rng(config, rng),
             enter_date,
             expiry,
-            code: (0..10).map(|_| ObjectIdWrapper::dummy_with_rng(config, rng)).collect(),
+            codes: (0..10).map(|_| ObjectIdWrapper::dummy_with_rng(config, rng)).collect(),
         }
     }
 }
@@ -100,7 +100,7 @@ impl Dummy<Faker> for FoodLot {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct FoodItemSimple {
     _id: ObjectIdWrapper,
-    lot: Vec<FoodLot>,
+    lots: Vec<FoodLot>,
 }
 
 pub trait SimpleItemTrait {
@@ -118,7 +118,7 @@ impl SimpleItemTrait for ItemSimple {
     }
 
     fn get_lot(&self) -> Option<&Self::LotType> {
-        self.lot.first()
+        self.lots.first()
     }
 }
 
@@ -130,7 +130,7 @@ impl SimpleItemTrait for FoodItemSimple {
     }
 
     fn get_lot(&self) -> Option<&Self::LotType> {
-        self.lot.first()
+        self.lots.first()
     }
 }
 
@@ -170,7 +170,7 @@ impl RoundTo2 for f64 {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ItemSimple {
     pub _id: ObjectIdWrapper,
-    pub lot: Vec<Lot>,
+    pub lots: Vec<Lot>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -228,8 +228,8 @@ impl LotTrait for Lot {
     }
 
     fn get_code(&self) -> Option<&Vec<ObjectIdWrapper>> {
-        if let Some(_) = self.code.first() {
-            Some(&self.code)
+        if let Some(_) = self.codes.first() {
+            Some(&self.codes)
         } else {
             None
         }
@@ -239,8 +239,9 @@ impl LotTrait for Lot {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Lot {
     pub _id: ObjectIdWrapper,
+    #[serde(rename = "enterDate")]
     enter_date: DateTimeWrapper,
-    pub code: Vec<ObjectIdWrapper>,
+    pub codes: Vec<ObjectIdWrapper>,
 }
 
 impl Dummy<Faker> for Lot {
@@ -250,7 +251,7 @@ impl Dummy<Faker> for Lot {
         Lot {
             _id: ObjectIdWrapper::dummy_with_rng(config, rng),
             enter_date: DateTimeWrapper::dummy_with_rng(config, rng),
-            code: (0..code_amt).map(|_| ObjectIdWrapper::dummy_with_rng(config, rng)).collect(),
+            codes: (0..code_amt).map(|_| ObjectIdWrapper::dummy_with_rng(config, rng)).collect(),
         }
     }
 }

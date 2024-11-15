@@ -2,9 +2,9 @@
     "_id": "ObjectId",
     "name": "String",
     "price": "String",
-    "lot": [{
+    "lots": [{
         "_id": "ObjectId",
         "enterDate": "Date",
-        "code": ["Number"]
+        "codes": ["Number"]
     }] 
 }

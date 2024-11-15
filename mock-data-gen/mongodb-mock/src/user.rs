@@ -222,7 +222,7 @@ impl Schedule {
         *min_datetime = Some(exit);
 
         let db = client.database("nexis");
-        let jobs_coll: Collection<Document> = db.collection("storeJob");
+        let jobs_coll: Collection<Document> = db.collection("storeJobs");
 
         let mut cursor = jobs_coll.aggregate(get_rnd_storejob_pipeline()).await.expect("");
         

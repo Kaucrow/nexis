@@ -3,11 +3,11 @@
     "price": "Number",
     "brand": "String",
     "model": "String",
-    "cudaCores": null | "Number",
+    "cudaCores_?_": "Number",
     "tdp": "Number",
     "ports": ["String"],
     "dedicated": "Boolean",
-    "warranty": null | "String",
+    "warranty_?_": "String",
     "memory": {
         "sizeGb": "Number",
         "type": "String"
@@ -16,9 +16,9 @@
         "coreSpeedGhz": "Number",
         "boostSpeedGhz": "Number"
     },
-    "lot": [{
+    "lots": [{
         "_id": "ObjectId",
         "enterDate": "Date",
-        "code": ["Number"]
+        "codes": ["Number"]
     }]
 }

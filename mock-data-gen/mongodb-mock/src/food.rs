@@ -10,7 +10,7 @@ pub struct Food {
     price_per_kg: Option<f64>,
     #[serde(rename = "type")]
     food_type: String,
-    lot: Vec<FoodLot>,
+    lots: Vec<FoodLot>,
 }
 
 impl Dummy<Faker> for Food {
@@ -35,7 +35,7 @@ impl Dummy<Faker> for Food {
             price,
             price_per_kg,
             food_type,
-            lot: (0..10).map(|_| FoodLot::dummy_with_rng(config, rng)).collect(),
+            lots: (0..10).map(|_| FoodLot::dummy_with_rng(config, rng)).collect(),
         } 
     }
 }

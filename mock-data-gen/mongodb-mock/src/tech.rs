@@ -110,9 +110,8 @@ pub struct Cpu {
     #[serde(rename = "memorySupp")]
     memory_supp: MemSupp,
     clock: Clock,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    gpu: Option<Gpu>,
-    lot: Vec<Lot>,
+    graphics: String,
+    lots: Vec<Lot>,
 }
 
 impl Dummy<Faker> for Cpu {
@@ -141,8 +140,8 @@ impl Dummy<Faker> for Cpu {
             warranty,
             memory_supp: MemSupp::dummy_with_rng(config, rng),
             clock: Clock::dummy_with_rng(config, rng),
-            gpu: None,
-            lot: (0..rng.gen_range(1..=5)).map(|_| Lot::dummy_with_rng(config, rng)).collect(),
+            graphics: Word().fake(),
+            lots: (0..rng.gen_range(1..=5)).map(|_| Lot::dummy_with_rng(config, rng)).collect(),
         } 
     }
 }
@@ -163,7 +162,7 @@ pub struct Gpu {
     warranty: Option<String>,
     memory: MemDetails,
     clock: Clock,
-    lot: Vec<Lot>,
+    lots: Vec<Lot>,
 }
 
 impl Dummy<Faker> for Gpu {
@@ -213,7 +212,7 @@ impl Dummy<Faker> for Gpu {
             warranty,
             memory: MemDetails::dummy_with_rng(config, rng),
             clock: Clock::dummy_with_rng(config, rng),
-            lot: (0..rng.gen_range(1..=5)).map(|_| Lot::dummy_with_rng(config, rng)).collect(),
+            lots: (0..rng.gen_range(1..=5)).map(|_| Lot::dummy_with_rng(config, rng)).collect(),
         }
     }
 }
@@ -228,11 +227,12 @@ pub struct Tech {
     color: Vec<String>,
     #[serde(rename = "type")]
     tech_type: String,
-    memory: u16,
+    ram: u16,
+    storage: u16,
     cpu: ObjectIdWrapper,
     #[serde(skip_serializing_if = "Option::is_none")]
     gpu: Option<ObjectIdWrapper>,
-    lot: Vec<Lot>,
+    lots: Vec<Lot>,
 }
 
 impl Tech {
@@ -260,10 +260,11 @@ impl Tech {
             model,
             color,
             tech_type: TECH_TYPES.choose(rng).unwrap().to_string(),
-            memory: 2u16.pow(rng.gen_range(3..=10)),
+            ram: 2u16.pow(rng.gen_range(0..=6)),
+            storage: 2u16.pow(rng.gen_range(3..=10)),
             cpu,
             gpu,
-            lot: (0..rng.gen_range(1..=5)).map(|_| Lot::dummy_with_rng(config, rng)).collect(),
+            lots: (0..rng.gen_range(1..=5)).map(|_| Lot::dummy_with_rng(config, rng)).collect(),
         }
     }
 }
@@ -284,7 +285,7 @@ pub struct Keyboard {
     dimensions: Size,
     #[serde(rename = "weightKg")]
     weight_kg: f64,
-    lot: Vec<Lot>
+    lots: Vec<Lot>
 }
 
 pub static KEYB_TYPES: Lazy<Vec<&'static str>> = Lazy::new(|| vec![
@@ -312,7 +313,7 @@ impl Dummy<Faker> for Keyboard {
             wireless: rng.gen_bool(0.5),
             dimensions: Size::dummy_with_rng(config, rng),
             weight_kg: (rng.gen_range(0.5..=1.5) as f64).round_to_2(),
-            lot: (1..=rng.gen_range(1..5)).map(|_| Lot::dummy_with_rng(config, rng)).collect(),
+            lots: (1..=rng.gen_range(1..5)).map(|_| Lot::dummy_with_rng(config, rng)).collect(),
         } 
     }
 }
@@ -322,7 +323,7 @@ pub struct TechOther {
     _id: ObjectIdWrapper,
     name: String,
     price: f64,
-    lot: Vec<Lot>,
+    lots: Vec<Lot>,
 }
 
 impl Dummy<Faker> for TechOther {
@@ -331,7 +332,7 @@ impl Dummy<Faker> for TechOther {
             _id: ObjectIdWrapper::dummy_with_rng(config, rng),
             name: Word().fake(),
             price: (rng.gen_range(0.5..100.0) as f64),
-            lot: (0..rng.gen_range(1..5)).map(|_| Lot::dummy_with_rng(config, rng)).collect(),
+            lots: (0..rng.gen_range(1..5)).map(|_| Lot::dummy_with_rng(config, rng)).collect(),
         }
     }
 }

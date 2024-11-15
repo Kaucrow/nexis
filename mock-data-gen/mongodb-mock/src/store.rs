@@ -4,7 +4,7 @@ use crate::prelude::*;
 pub struct Payment {
     amount: f64,
     #[serde(rename = "type")]
-    payment_type: Document,   
+    payment_type: Document,
 }
 
 impl Payment {
@@ -32,7 +32,7 @@ impl Payment {
                     }
                 }
             },
-            _ => doc! {}, // Default to an empty document
+            _ => unimplemented!()
         };
 
         Payment {
@@ -66,19 +66,20 @@ impl ClientSaleInfo {
     }
 }
 
-
 #[derive(Debug, Serialize, Deserialize)]
 pub struct DaySales {
     payment: Payment,
     client: ClientSaleInfo,
-    item: Vec<ItemCode>,
+    items: Vec<ItemCode>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 struct ItemCode {
     coll: String,
-    _id: ObjectIdWrapper,
-    lot: ObjectIdWrapper,
+    #[serde(rename = "itemId")]
+    item_id: ObjectIdWrapper,
+    #[serde(rename = "lotId")]
+    lot_id: ObjectIdWrapper,
     code: ObjectIdWrapper,
 }
 
@@ -88,8 +89,8 @@ fn process_item<T: SimpleItemTrait>(item: T, collection: String, items: &mut Vec
             items.push(
                 ItemCode {
                     coll: collection,
-                    _id: item.get_id().clone(),
-                    lot: lot.get_id().clone(),
+                    item_id: item.get_id().clone(),
+                    lot_id: lot.get_id().clone(),
                     code: code.first().expect("").clone(),
                 }
             )
@@ -102,8 +103,8 @@ impl DaySales {
         let item_colls = match store {
             "clothes" => vec!["clothes"],
             "food" => vec!["food"],
-            "library" => vec!["libraryItem"],
-            "tech" => vec!["tech", "techCpu", "techGpu", "techKeyboard", "techOther"],
+            "library" => vec!["libraryItems"],
+            "tech" => vec!["techs", "techCpus", "techGpus", "techKeyboards", "techOthers"],
             _ => unimplemented!()
         };
 
@@ -134,8 +135,8 @@ impl DaySales {
             let coll: Collection<Document> = db.collection(&item.coll);
 
             let filter = doc! {
-                "_id": item._id.0,
-                "lot._id": item.lot.0,
+                "_id": item.item_id.0,
+                "lot._id": item.lot_id.0,
             };
 
             let update = doc! {
@@ -151,7 +152,7 @@ impl DaySales {
             DaySales {
                 payment,
                 client: client_info,
-                item: items,
+                items,
             }
         )
     }
@@ -159,22 +160,24 @@ impl DaySales {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Owner {
-    owner: ObjectIdWrapper,
+    #[serde(rename = "userId")]
+    user_id: ObjectIdWrapper,
     #[serde(rename = "incomePercentage")]
     income_percentage: f64,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Store {
-    _id: ObjectIdWrapper,
+    #[serde(rename = "_id")]
+    id: ObjectIdWrapper,
     name: String,
     num: u16,
     floor: u8,
     size: Size,
     #[serde(rename = "daySales")]
     day_sales: Vec<DaySales>,
-    owner: Vec<Owner>,
-    employee: Vec<ObjectIdWrapper>,
+    owners: Vec<Owner>,
+    employees: Vec<ObjectIdWrapper>,
 }
 
 impl Store {
@@ -185,7 +188,7 @@ impl Store {
         config: &Faker,
         rng: &mut R
     ) -> Result<Self, mongodb::error::Error> {
-        let id = store_ids.get(store_type).expect(format!("Could not find store of type {store_type} in `store_ids`").as_str());
+        let id = store_ids.get(store_type).expect(format!("Could not find store of type {store_type} in `store_ids`").as_str()).clone();
 
         let mut day_sales: Vec<DaySales> = Vec::new();
 
@@ -202,7 +205,7 @@ impl Store {
         }
 
         let db = client.database("nexis");
-        let users_coll: Collection<Document> = db.collection("user");
+        let users_coll: Collection<Document> = db.collection("users");
 
         let owners: HashMap<ObjectIdWrapper, f64> = {
             let mut owners: HashMap<ObjectIdWrapper, f64> = HashMap::new();
@@ -266,19 +269,19 @@ impl Store {
 
         Ok(
             Store {
-                _id: id.clone(),
+                id,
                 name,
                 num: rng.gen_range(100..200),
                 floor: rng.gen_range(0..1),
                 size: Size::dummy_with_rng(config, rng),
                 day_sales,
-                owner: owners.into_iter().map(|(owner, percentage)|
+                owners: owners.into_iter().map(|(user_id, percentage)|
                     Owner {
-                        owner,
+                        user_id,
                         income_percentage: percentage
                     }
                 ).collect(),
-                employee: employees,
+                employees,
             }
         )
     }

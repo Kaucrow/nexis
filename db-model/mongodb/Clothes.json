@@ -2,19 +2,19 @@
     "_id": "ObjectId",
     "name": "String",
     "price": "Number",
-    "gender": "Boolean",
+    "gender": "String",
     "age": "String",
     "size": "String",
-    "color": ["String"],
+    "colors": ["String"],
     "type": "String",
     "brand": "String",
-    "material": [{
+    "materials": [{
         "percentage": "Number",
         "name": "String"
     }],
-    "lot": [{
+    "lots": [{
         "_id": "ObjectId",
         "enterDate": "Date",
-        "code": ["ObjectId"]
+        "codes": ["String"]
     }]
 }

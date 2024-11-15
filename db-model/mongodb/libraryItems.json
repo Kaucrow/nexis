@@ -2,18 +2,18 @@
     "_id": "ObjectId",
     "name": "String",
     "price": "Number",
-    "book": null | {
+    "book_?_": {
         "isbn": "String",
         "numPages": "Number",
-        "author": ["String"],
+        "authors": ["String"],
         "publisher": "String",
         "edition": "Number",
-        "audience": ["String"],
-        "genre": ["String"]
+        "audiences": ["String"],
+        "genres": ["String"]
     },
-    "lot": [{
+    "lots": [{
         "_id": "ObjectId",
         "enterDate": "Date",
-        "code": ["ObjectId"]
+        "codes": ["String"]
     }]
 }

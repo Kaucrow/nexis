@@ -12,29 +12,29 @@
         "payment": {
             "amount": "Number",
             "type": {
-                "cash": {},
-                "card": "String",
-                "transfer": {
+                "cash_?_": {},
+                "card_?_": "String",
+                "transfer_?_": {
                     "bank": "String",
                     "refNum": "Number"
                 }
             }
         },
-        "Employee": null | "ObjectId",
-        "Client": {
-            "name": null | "String",
-            "User": null | "ObjectId",
+        "employee_?_": "ObjectId",
+        "client": {
+            "name_?_": "String",
+            "user_?_": "ObjectId"
         },
-        "Item": [{
+        "items": [{
             "coll": "String",
-            "item": "ObjectId",
-            "lot": "ObjectId",
+            "itemId": "ObjectId",
+            "lotId": "ObjectId",
             "code": "String"
         }]
     }],
-    "Owner": [{
-        "owner": "ObjectId",
+    "owners": [{
+        "userId": "ObjectId",
         "incomePercentage": "Number"
     }],
-    "Employee": ["ObjectId"]
+    "employees": ["ObjectId"]
 }

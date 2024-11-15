@@ -3,12 +3,13 @@
     "price": "String",
     "brand": "String",
     "model": "String",
-    "color": ["String"],
+    "color": "String",
     "type": "String",
-    "memory": "Number",
+    "ram": "Number",
+    "storage": "Number",
     "cpu": "ObjectId",
     "gpu_?_": "ObjectId",
-    "lot": [{
+    "lots": [{
         "_id": "ObjectId",
         "enterDate": "Date",
         "code": ["Number"]

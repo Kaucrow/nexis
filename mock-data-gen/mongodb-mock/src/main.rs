@@ -55,7 +55,7 @@ async fn main() -> mongodb::error::Result<()> {
     ]).await?;
     println!("- Inserted: food");
     
-    let library_item_coll: Collection<LibraryItem> = db.collection("libraryItem");
+    let library_item_coll: Collection<LibraryItem> = db.collection("libraryItems");
     let library_items: Vec<LibraryItem> = (0..50).map(|_| Faker.fake::<LibraryItem>()).collect();
     library_item_coll.insert_many(library_items).await?;
     library_item_coll.create_indexes(vec![
@@ -64,7 +64,7 @@ async fn main() -> mongodb::error::Result<()> {
     ]).await?;
     println!("- Inserted: library items");
 
-    let cpu_coll: Collection<Cpu> = db.collection("techCpu");
+    let cpu_coll: Collection<Cpu> = db.collection("techCpus");
     let cpus: Vec<Cpu> = (0..50).map(|_| Faker.fake::<Cpu>()).collect();
     cpu_coll.insert_many(cpus).await?;
     cpu_coll.create_indexes(vec![
@@ -73,7 +73,7 @@ async fn main() -> mongodb::error::Result<()> {
     ]).await?;
     println!("- Inserted: CPUs");
 
-    let gpu_coll: Collection<Gpu> = db.collection("techGpu");
+    let gpu_coll: Collection<Gpu> = db.collection("techGpus");
     let gpus: Vec<Gpu> = (0..50).map(|_| Faker.fake::<Gpu>()).collect();
     gpu_coll.insert_many(gpus).await?;
     gpu_coll.create_indexes(vec![
@@ -82,7 +82,7 @@ async fn main() -> mongodb::error::Result<()> {
     ]).await?;
     println!("- Inserted: GPUs");
 
-    let cpu_coll: Collection<Document> = db.collection("techCpu");
+    let cpu_coll: Collection<Document> = db.collection("techCpus");
     let mut cursor = cpu_coll.aggregate(get_rnd_item_pipeline(50)).await?;
     let mut rnd_cpus: Vec<ItemSimple> = Vec::new();
     loop {
@@ -93,7 +93,7 @@ async fn main() -> mongodb::error::Result<()> {
         }
     }
 
-    let gpu_coll: Collection<Document> = db.collection("techGpu");
+    let gpu_coll: Collection<Document> = db.collection("techGpus");
     let mut cursor = gpu_coll.aggregate(get_rnd_item_pipeline(50)).await?;
     let mut rnd_gpus: Vec<ItemSimple> = Vec::new();
     loop {
@@ -106,7 +106,7 @@ async fn main() -> mongodb::error::Result<()> {
     
     let rnd_cpus_gpus = zip(rnd_cpus, rnd_gpus);
     
-    let tech_coll: Collection<Tech> = db.collection("tech");
+    let tech_coll: Collection<Tech> = db.collection("techs");
     let techs: Vec<Tech> =
         rnd_cpus_gpus.map(|(cpu, gpu)| {
             let gpu =
@@ -122,7 +122,7 @@ async fn main() -> mongodb::error::Result<()> {
     ]).await?;
     println!("- Inserted: techs");
 
-    let keyb_coll: Collection<Keyboard> = db.collection("techKeyboard");
+    let keyb_coll: Collection<Keyboard> = db.collection("techKeyboards");
     let keybs: Vec<Keyboard> = (0..50).map(|_| Keyboard::dummy_with_rng(&Faker, &mut rng)).collect();
     keyb_coll.insert_many(keybs).await?;
     keyb_coll.create_indexes(vec![
@@ -131,7 +131,7 @@ async fn main() -> mongodb::error::Result<()> {
     ]).await?;
     println!("- Inserted: keyboards");
 
-    let tech_other_coll: Collection<TechOther> = db.collection("techOther");
+    let tech_other_coll: Collection<TechOther> = db.collection("techOthers");
     let tech_others: Vec<TechOther> = (0..50).map(|_| TechOther::dummy_with_rng(&Faker, &mut rng)).collect();
     tech_other_coll.insert_many(tech_others).await?;
     tech_other_coll.create_indexes(vec![
@@ -152,14 +152,14 @@ async fn main() -> mongodb::error::Result<()> {
 
     let store_ids_values: Vec<ObjectIdWrapper> = store_ids.values().map(|val| val.clone()).collect();
 
-    let jobs_coll: Collection<Job> = db.collection("storeJob");
+    let jobs_coll: Collection<Job> = db.collection("storeJobs");
     let jobs: Vec<Job> = mongodb_mock::JOBS.iter().map(|name|
         Job::dummy_with_rng(name, &store_ids_values, &client, &Faker, &mut rng)
     ).collect();
     jobs_coll.insert_many(jobs).await?;
     println!("- Inserted: jobs");
 
-    let users_coll: Collection<User> = db.collection("user");
+    let users_coll: Collection<User> = db.collection("users");
     let mut users: Vec<User> = Vec::new();
     for _ in 0..50 {
         users.push(User::dummy_with_rng(&store_ids_values, &client, &Faker, &mut rng).await);

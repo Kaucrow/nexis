@@ -13,9 +13,9 @@
         "height": "Number"
     },
     "weightKg": "Number",
-    "lot": [{
+    "lots": [{
         "_id": "ObjectId",
         "enterDate": "Date",
-        "code": ["Number"]
+        "codes": ["Number"]
     }]
 }

@@ -1,13 +1,13 @@
 {
     "_id": "ObjectId",
     "name": "String",
-    "price": null | "Number",
-    "pricePerKg": null | "Number",
+    "price_?_": "Number",
+    "pricePerKg_?_": "Number",
     "type": "String",
-    "lot": [{
+    "lots": [{
         "_id": "ObjectId",
         "enterDate": "Date",
         "expiry": "Date",
-        "code": ["ObjectId"]
+        "codes": ["String"]
     }]
 }
