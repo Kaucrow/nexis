@@ -77,8 +77,9 @@ pub struct TechDetails<'a> {
     #[serde(rename = "type")]
     pub tech_type: &'a str,
     pub memory: i32,
-    pub cpu: Value,
-    pub gpu: Value,
+    pub cpu: CpuDetailsOwned,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub gpu: Option<GpuDetailsOwned>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -90,14 +91,23 @@ pub struct MemorySupportedDetails<'a> {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct ClockDetails<'a> {
+pub struct MemorySupportedDetailsOwned {
     #[serde(rename = "type")]
-    pub memory_type: &'a str,
+    pub memory_type: String,
     #[serde(rename = "maxSizeGb")]
     pub max_size_gb: i32,
 }
 
+
 #[derive(Serialize, Deserialize, Debug)]
+pub struct ClockDetails {
+    #[serde(rename = "coreSpeedGhz")]
+    pub core_speed_ghz: f64,
+    #[serde(rename = "boostSpeedGhz")]
+    pub boost_speed_ghz: f64,
+}
+
+#[derive(Serialize, Debug)]
 pub struct CpuDetails<'a> {
     #[serde(rename = "_id")]
     pub id: String,
@@ -113,13 +123,41 @@ pub struct CpuDetails<'a> {
     #[serde(rename = "overclockSupp")]
     pub overclock_supp: bool,
     pub memory_supp: MemorySupportedDetails<'a>,
-    pub clock: ClockDetails<'a>,
+    pub clock: ClockDetails,
 }
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct CpuDetailsOwned {
+    #[serde(rename = "_id")]
+    pub id: String,
+    pub name: String,
+    pub price: f64,
+    pub brand: String,
+    pub model: String,
+    pub arch: String,
+    pub cores: i32,
+    pub threads: i32,
+    #[serde(rename = "socketType")]
+    pub socket_type: String,
+    #[serde(rename = "overclockSupp")]
+    pub overclock_supp: bool,
+    pub memory_supp: MemorySupportedDetailsOwned,
+    pub clock: ClockDetails,
+}
+
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct MemoryDetails<'a> {
     #[serde(rename = "type")]
     pub memory_type: &'a str,
+    #[serde(rename = "sizeGb")]
+    pub size_gb: i32,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct MemoryDetailsOwned {
+    #[serde(rename = "type")]
+    pub memory_type: String,
     #[serde(rename = "sizeGb")]
     pub size_gb: i32,
 }
@@ -136,8 +174,24 @@ pub struct GpuDetails<'a> {
     pub ports: Vec<&'a str>,
     pub dedicated: bool,
     pub memory: MemoryDetails<'a>,
-    pub clock: ClockDetails<'a>,
+    pub clock: ClockDetails,
 }
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GpuDetailsOwned {
+    #[serde(rename = "_id")]
+    pub id: String, 
+    pub name: String,
+    pub price: f64,
+    pub brand: String,
+    pub model: String,
+    pub tdp: i32,
+    pub ports: Vec<String>,
+    pub dedicated: bool,
+    pub memory: MemoryDetailsOwned,
+    pub clock: ClockDetails,
+}
+
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct DimensionsDetails {

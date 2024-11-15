@@ -12,8 +12,11 @@ pub async fn get_item_details(
 
     let coll_name = item.coll;
 
-    match ITEM_DETAILS_REG.get_item_details(db, coll_name, item_id).await {
-        Some(item) => Ok(item.details().await?),
+    match ITEM_DETAILS_REG.get_item_details(db, &coll_name, item_id).await {
+        Some(item) => match coll_name.as_str() {
+            "tech" => Ok(item.details(Some(db)).await?),
+            _ => Ok(item.details(None).await?),
+        }
         None => bail!("An error was produced. Check the logs for more details.")
     }
 }

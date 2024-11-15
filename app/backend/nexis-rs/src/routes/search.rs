@@ -161,7 +161,7 @@ struct ItemDetailsParams {
 }
 
 #[tracing::instrument(
-    name = "Getting search results",
+    name = "Getting item details",
     skip(db, params)
 )]
 #[actix_web::get("/search/item-details")]
@@ -178,6 +178,9 @@ pub async fn search_item_details(
 
     match get_item_details(&db, item_id).await {
         Ok(item) => HttpResponse::Ok().json(item),
-        Err(e) => HttpResponse::InternalServerError().json("Error")
+        Err(e) => {
+            tracing::error!(target: "backend", "{}", e);
+            HttpResponse::InternalServerError().json("Error")
+        }
     }
 }

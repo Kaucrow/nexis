@@ -23,8 +23,14 @@ const ITEM_DE_ERR: &'static str = "An error was produced while retrieving the it
 pub static ITEM_DETAILS_REG: Lazy<ItemDetailsRegistry> = Lazy::new(|| {
     let mut registry = ItemDetailsRegistry::new();
 
-    registry.add_fetcher("libraryItem", get_item_fetcher::<LibraryItem>());
-    registry.add_fetcher("food", get_item_fetcher::<Food>());
+    registry.add_fetcher(Clothes::coll_name(), get_item_fetcher::<Clothes>());
+    registry.add_fetcher(LibraryItem::coll_name(), get_item_fetcher::<LibraryItem>());
+    registry.add_fetcher(Food::coll_name(), get_item_fetcher::<Food>());
+    registry.add_fetcher(Cpu::coll_name(), get_item_fetcher::<Cpu>());
+    registry.add_fetcher(Gpu::coll_name(), get_item_fetcher::<Gpu>());
+    registry.add_fetcher(Keyboard::coll_name(), get_item_fetcher::<Keyboard>());
+    registry.add_fetcher(TechOther::coll_name(), get_item_fetcher::<TechOther>());
+    registry.add_fetcher(Tech::coll_name(), get_item_fetcher::<Tech>());
 
     registry
 });
@@ -49,10 +55,10 @@ impl ItemDetailsRegistry {
     pub async fn get_item_details(
         &self,
         db: &mongodb::Database,
-        coll_name: String,
+        coll_name: &str,
         item_id: ObjectId,
     ) -> Option<Box<dyn ItemDetails + Send>> {
-        let fetcher = self.fetchers.get(&coll_name);
+        let fetcher = self.fetchers.get(coll_name);
 
         match fetcher {
             Some(fetcher) => fetcher(Arc::new(db.clone()), item_id).await,
@@ -90,12 +96,12 @@ where
 #[async_trait]
 pub trait ItemDetails: Send + Sync
 {
-    async fn details(&self) -> Result<Value>;
+    async fn details(&self, db: Option<&mongodb::Database>) -> Result<Value>;
 }
 
 impl<'a> From<&'a Clothes> for ClothesDetails<'a> {
     fn from(item: &'a Clothes) -> Self {
-        ClothesDetails {
+        Self {
             id: item.id.to_hex(),
             name: &item.name,
             price: item.price,
@@ -114,7 +120,7 @@ impl<'a> From<&'a Clothes> for ClothesDetails<'a> {
 
 #[async_trait]
 impl ItemDetails for Clothes {
-    async fn details(&self) -> Result<Value> {
+    async fn details(&self, _: Option<&mongodb::Database>) -> Result<Value> {
         match serde_json::to_value(ClothesDetails::from(self)) {
             Ok(value) => Ok(value),
             Err(e) => bail!(e),
@@ -139,7 +145,7 @@ impl<'a> From<&'a LibraryItem> for LibraryItemDetails<'a> {
                 None
             };
 
-        LibraryItemDetails {
+        Self {
             id: item.id.to_hex(),
             name: &item.name,
             price: item.price,
@@ -150,7 +156,7 @@ impl<'a> From<&'a LibraryItem> for LibraryItemDetails<'a> {
 
 #[async_trait]
 impl ItemDetails for LibraryItem {
-    async fn details(&self) -> Result<Value> {
+    async fn details(&self, _: Option<&mongodb::Database>) -> Result<Value> {
         match serde_json::to_value(LibraryItemDetails::from(self)) {
             Ok(value) => Ok(value),
             Err(e) => bail!(e),
@@ -158,10 +164,9 @@ impl ItemDetails for LibraryItem {
     }
 }
 
-
 impl<'a> From<&'a Food> for FoodDetails<'a> {
     fn from(item: &'a Food) -> Self {
-        FoodDetails {
+        Self {
             id: item.id.to_hex(),
             name: &item.name,
             price_per_kg: item.price_per_kg,
@@ -173,8 +178,188 @@ impl<'a> From<&'a Food> for FoodDetails<'a> {
 
 #[async_trait]
 impl ItemDetails for Food {
-    async fn details(&self) -> Result<Value> {
+    async fn details(&self, _: Option<&mongodb::Database>) -> Result<Value> {
         match serde_json::to_value(FoodDetails::from(self)) {
+            Ok(value) => Ok(value),
+            Err(e) => bail!(e),
+        }
+    }
+}
+
+impl<'a> From<&'a Cpu> for CpuDetails<'a> {
+    fn from(item: &'a Cpu) -> Self {
+        Self {
+            id: item.id.to_hex(),
+            name: &item.name,
+            price: item.price,
+            brand: &item.brand,
+            model: &item.model,
+            arch: &item.arch,
+            cores: item.cores,
+            threads: item.threads,
+            socket_type: &item.socket_type,
+            overclock_supp: item.overclock_supp,
+            memory_supp: MemorySupportedDetails {
+                memory_type: &item.memory_supp.memory_type,
+                max_size_gb: item.memory_supp.max_size_gb,
+            },
+            clock: ClockDetails {
+                core_speed_ghz: item.clock.core_speed_ghz,
+                boost_speed_ghz: item.clock.boost_speed_ghz,
+            }, 
+        }        
+    }
+}
+
+#[async_trait]
+impl ItemDetails for Cpu {
+    async fn details(&self, _: Option<&mongodb::Database>) -> Result<Value> {
+        match serde_json::to_value(CpuDetails::from(self)) {
+            Ok(value) => Ok(value),
+            Err(e) => bail!(e),
+        }
+    }
+}
+
+impl<'a> From<&'a Gpu> for GpuDetails<'a> {
+    fn from(item: &'a Gpu) -> Self {
+        Self {
+            id: item.id.to_hex(),
+            name: &item.name,
+            price: item.price,
+            brand: &item.brand,
+            tdp: item.tdp,
+            model: &item.model,
+            ports: item.ports.iter().map(|s| s.as_str()).collect(),
+            dedicated: item.dedicated,
+            memory: MemoryDetails {
+                memory_type: &item.memory.memory_type,
+                size_gb: item.memory.size_gb,
+            },
+            clock: ClockDetails {
+                core_speed_ghz: item.clock.core_speed_ghz,
+                boost_speed_ghz: item.clock.boost_speed_ghz,
+            }
+        }
+    }
+}
+
+#[async_trait]
+impl ItemDetails for Gpu {
+    async fn details(&self, _: Option<&mongodb::Database>) -> Result<Value> {
+        match serde_json::to_value(GpuDetails::from(self)) {
+            Ok(value) => Ok(value),
+            Err(e) => bail!(e),
+        }
+    }
+}
+
+impl<'a> From<&'a Keyboard> for KeyboardDetails<'a> {
+    fn from(item: &'a Keyboard) -> Self {
+        Self {
+            id: item.id.to_hex(),
+            name: &item.name,
+            price: item.price,
+            brand: &item.brand,
+            model: &item.model,
+            keyboard_type: &item.keyboard_type,
+            key_switch: &item.key_switch,
+            backlight: item.backlight,
+            wireless: item.wireless,
+            dimensions: DimensionsDetails {
+                length: item.dimensions.length,
+                width: item.dimensions.width,
+                height: item.dimensions.height,
+            },
+            weight_kg: item.weight_kg,
+        }
+    }
+}
+
+#[async_trait]
+impl ItemDetails for Keyboard {
+    async fn details(&self, _: Option<&mongodb::Database>) -> Result<Value> {
+        match serde_json::to_value(KeyboardDetails::from(self)) {
+            Ok(value) => Ok(value),
+            Err(e) => bail!(e),
+        }
+    }
+}
+
+impl<'a> From<&'a TechOther> for TechOtherDetails<'a> {
+    fn from(item: &'a TechOther) -> Self {
+        Self {
+            id: item.id.to_hex(),
+            name: &item.name,
+            price: item.price,
+        }
+    }
+}
+
+#[async_trait]
+impl ItemDetails for TechOther {
+    async fn details(&self, _: Option<&mongodb::Database>) -> Result<Value> {
+        match serde_json::to_value(TechOtherDetails::from(self)) {
+            Ok(value) => Ok(value),
+            Err(e) => bail!(e),
+        }
+    }
+}
+
+impl<'a> TechDetails<'a> {
+    async fn from_tech(item: &'a Tech, db: &mongodb::Database) -> Result<Self> {
+        let cpu = {
+            let cpu_details_value =
+                ITEM_DETAILS_REG
+                .get_item_details(db, "cpu", item.cpu)
+                .await
+                .ok_or(anyhow!("Failed to get CPU from Tech item"))?
+                .details(None)
+                .await?;
+
+            serde_json::from_value::<CpuDetailsOwned>(cpu_details_value)?
+        };
+
+        let gpu = match item.gpu {
+            Some(gpu_id) => {
+                let gpu_details_value =
+                    ITEM_DETAILS_REG
+                    .get_item_details(db, "gpu", gpu_id)
+                    .await
+                    .ok_or(anyhow!("Failed to get GPU from Tech item"))?
+                    .details(None)
+                    .await?;
+
+                Some(serde_json::from_value::<GpuDetailsOwned>(gpu_details_value)?)
+            }
+            None => None
+        };
+
+        Ok(Self {
+            id: item.id.to_hex(),
+            name: &item.name,
+            price: item.price,
+            brand: &item.brand,
+            model: &item.model,
+            color: item.color.iter().map(|s| s.as_str()).collect(),
+            tech_type: &item.tech_type,
+            memory: item.memory,
+            cpu,
+            gpu,
+        })
+    }
+}
+
+#[async_trait]
+impl ItemDetails for Tech {
+    async fn details(&self, db: Option<&mongodb::Database>) -> Result<Value> {
+        match serde_json::to_value(
+            TechDetails::from_tech(
+                self,
+                db.ok_or(anyhow!("Must provide a mongodb Database object to obtain tech item details."))?
+            )
+            .await?
+        ) {
             Ok(value) => Ok(value),
             Err(e) => bail!(e),
         }

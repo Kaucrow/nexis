@@ -27,13 +27,13 @@ pub struct Lot {
     pub codes: Vec<ObjectId>,
 }
 
-#[derive(Serialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Material {
     pub percentage: f64,
     pub name: String,    
 }
 
-#[derive(Serialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Clothes {
     #[serde(rename = "_id")]
     pub id: ObjectId,
@@ -86,7 +86,7 @@ pub struct Food {
     pub lots: Vec<Lot>,
 }
 
-#[derive(Serialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Tech {
     #[serde(rename = "_id")]
     pub id: ObjectId,
@@ -103,7 +103,7 @@ pub struct Tech {
     pub lots: Vec<Lot>,
 }
 
-#[derive(Serialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct MemorySupported {
     #[serde(rename = "type")]
     pub memory_type: String,
@@ -111,7 +111,7 @@ pub struct MemorySupported {
     pub max_size_gb: i32,
 }
 
-#[derive(Serialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Clock {
     #[serde(rename = "coreSpeedGhz")]
     pub core_speed_ghz: f64,
@@ -119,7 +119,7 @@ pub struct Clock {
     pub boost_speed_ghz: f64,
 }
 
-#[derive(Serialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Cpu {
     #[serde(rename = "_id")]
     pub id: ObjectId,
@@ -142,7 +142,7 @@ pub struct Cpu {
     pub lots: Vec<Lot>,
 }
 
-#[derive(Serialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Memory {
     #[serde(rename = "type")]
     pub memory_type: String,
@@ -150,7 +150,7 @@ pub struct Memory {
     pub size_gb: i32,
 }
 
-#[derive(Serialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Gpu {
     #[serde(rename = "_id")]
     pub id: ObjectId,
@@ -166,14 +166,14 @@ pub struct Gpu {
     pub lots: Vec<Lot>,
 }
 
-#[derive(Serialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Dimensions {
     pub length: f64,
     pub width: f64,
     pub height: f64,
 }
 
-#[derive(Serialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Keyboard {
     #[serde(rename = "_id")]
     pub id: ObjectId,
@@ -193,7 +193,7 @@ pub struct Keyboard {
     pub lots: Vec<Lot>,
 }
 
-#[derive(Serialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct TechOther {
     #[serde(rename = "_id")]
     pub id: ObjectId,
