@@ -1,5 +1,5 @@
 use crate::prelude::*;
-use types::{ responses, mongodb::SimpleItem};
+use types::{ responses, mongodb::SimpleItem };
 use crate::utils::database::search::get_item_details;
 
 #[derive(Deserialize, Debug)]
@@ -162,7 +162,8 @@ struct ItemDetailsParams {
 
 #[tracing::instrument(
     name = "Getting item details",
-    skip(db, params)
+    skip(db, params),
+    fields(item_id = %params.item_id)
 )]
 #[actix_web::get("/search/item-details")]
 pub async fn search_item_details(
@@ -173,14 +174,23 @@ pub async fn search_item_details(
 
     let item_id = match ObjectId::parse_str(&params.item_id) {
         Ok(oid) => oid,
-        Err(_) => return HttpResponse::BadRequest().json(responses::Error::simple("Malformed item id."))
+        Err(_) => return HttpResponse::BadRequest().json(responses::Error::simple("Malformed item id"))
     };
 
     match get_item_details(&db, item_id).await {
         Ok(item) => HttpResponse::Ok().json(item),
         Err(e) => {
-            tracing::error!(target: "backend", "{}", e);
-            HttpResponse::InternalServerError().json("Error")
+            if let Some(e) = e.downcast_ref::<types::error::Mongodb>() {
+                if let types::error::Mongodb::SimpleItemNotFound = e {
+                    tracing::error!(target: "backend", "{}", e);
+                    HttpResponse::BadRequest().json(responses::Error::from_str(e.to_string()))
+                } else {
+                    unimplemented!()
+                }
+            } else {
+                tracing::error!(target: "backend", "{}", e);
+                HttpResponse::InternalServerError().json(responses::Error::simple("Failed to get the item's details"))
+            }
         }
     }
 }

@@ -27,7 +27,7 @@ pub async fn get_cart_items(
         Ok(token) => token,
         Err(e) => return HttpResponse::BadRequest().json(responses::Error::new(e))
     };
-     
+
     match verify_session_token(sss_pub_token, &db, &redis_pool).await {
         Ok(session) => {
             if session.role != Role::Client {

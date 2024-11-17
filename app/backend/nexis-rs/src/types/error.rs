@@ -10,14 +10,16 @@ pub enum Redis {
 
 #[derive(Debug, Error)]
 pub enum Mongodb {
-    #[error("User repetition: {0} ")]
+    #[error("User repetition: {0}")]
     UserAlreadyExists(String),
-    #[error("The client's cart is empty.")]
+    #[error("The client's cart is empty")]
     CartIsEmpty,
-    #[error("The item is already in the client's cart.")]
+    #[error("The item is already in the client's cart")]
     CartAlreadyHasItem,
-    #[error("The client's cart does not contain this item.")]
+    #[error("The client's cart does not contain this item")]
     ItemNotInCart,
+    #[error("Could not find the item")]
+    SimpleItemNotFound,
 }
 
 #[derive(Debug, Error)]

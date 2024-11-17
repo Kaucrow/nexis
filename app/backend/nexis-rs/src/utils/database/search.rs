@@ -2,6 +2,7 @@ use crate::prelude::*;
 use serde_json::Value;
 use types::{
     responses::ITEM_DETAILS_REG,
+    error,
     mongodb::{
         SimpleItem,
         Tech,
@@ -17,7 +18,7 @@ pub async fn get_item_details(
 ) -> Result<Value> {
     let items_coll: Collection<SimpleItem> = db.collection("items");
     
-    let item = items_coll.find_one( doc! { "_id": item_id }).await?.ok_or_else(|| anyhow!("Failed to find the simple item."))?;
+    let item = items_coll.find_one( doc! { "_id": item_id }).await?.ok_or_else(|| anyhow!(error::Mongodb::SimpleItemNotFound))?;
 
     let coll_name = item.coll;
 

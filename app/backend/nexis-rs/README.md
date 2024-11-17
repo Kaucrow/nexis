@@ -268,6 +268,235 @@ NOTE: Must contain either client, employee, or admin.
     []
     ```
 
+### Item Details
+---
+* **URL**: `/search/item-details`
+* **Method**: `GET`
+* **Description**: Returns an item's details. While in the database this item may have more fields, this endpoint will only return those that the user should see. Different types of responses will be returned according to the type of item requested.
+* **Parameters**:
+    * `item`: ObjectId of the item whose details are being requested.
+* **Response**:
+    * **Clothes**: `HTTP 200`
+    ```
+    {
+        _id: ObjectId,
+        name: "quia",
+        price: 211.69,
+        age: "Teen",
+        size: "M",
+        colors: [
+            "black"
+        ],
+        type: "T-Shirt",
+        brand: "Adidas",
+        materials: [
+            {
+                "percentage": 100.00,
+                "name": "consequatur"
+            }
+        ]
+    }
+    ```
+    * **Food** (Price per unit type): `HTTP 200`
+    ```
+    {
+        _id: ObjectId,
+        name: "et",
+        price: 48.76,
+        type: "cereal"
+    }
+    ```
+    * **Food** (Price per kg type): `HTTP 200`
+    ```
+    {
+        _id: ObjectId,
+        name: "lorem",
+        pricePerKg: 8.32,
+        type: "meat"
+    }
+    ```
+    * **Library item**: `HTTP 200`
+    ```
+    {
+        _id: ObjectId,
+        name: "fugit",
+        price: 46.83
+    }
+    ```
+    * **Library book**: `HTTP 200`
+    ```
+    {
+        _id: ObjectId,
+        name: "ut",
+        price: 141.74,
+        book: {
+            isbn: "0-7144-1829-3",
+            numPages: 73,
+            authors: [
+                "Torrey Kovacek",
+                "Ocie Heller"
+            ],
+            publisher: "nisi",
+            edition: 2,
+            audiences: [
+                "preteens",
+                "children"
+            ],
+            genres: [
+                "horror"
+            ]
+        }
+    }
+    ```
+    * **CPU**: `HTTP 200`
+    ```
+    {
+        _id: ObjectId,
+        name: "intel i7 3770",
+        price: 121.74,
+        brand: "intel",
+        model: "i7 3770",
+        arch: "x86",
+        cores: 1,
+        threads: 3,
+        "socketType": "lga1200",
+        overclockSupp: true,
+        memory_supp: {
+            type: "ddr4",
+            maxSizeGb: 128
+        },
+        clock: {
+            coreSpeedGhz: 1.78,
+            boostSpeedGhz: 2.18
+        },
+        graphics: "quo"
+    }
+    ```
+    * **GPU**: `HTTP 200`
+    ```
+    {
+        _id: "67378b627adf3bd501fc6dad",
+        name: "nvidia gtx1650",
+        price: 200.31,
+        brand: "nvidia",
+        model: "gtx1650",
+        tdp: 191,
+        ports: [
+            "dp"
+        ],
+        memory: {
+            type: "ddr4",
+            sizeGb: 1
+        },
+        clock: {
+            coreSpeedGhz: 3.61,
+            boostSpeedGhz: 4.01
+        }
+    }
+    ```
+    * **Tech devices**: `HTTP 200`
+    ```
+    {
+        _id: ObjectId,
+        name: "nam earum",
+        price: 397.56,
+        brand: "nam",
+        model: "earum",
+        color: [
+            "orange"
+        ],
+        type: "tablet",
+        ram: 64,
+        storage: 64,
+        cpu: {
+            _id: ObjectId,
+            name: "amd rx6700xt",
+            price: 116.52,
+            brand: "amd",
+            model: "rx6700xt",
+            arch: "x64",
+            cores: 4,
+            threads: 1,
+            socketType: "lga1200",
+            overclockSupp: true,
+            memory_supp: {
+                type: "ddr4",
+                maxSizeGb: 64
+            },
+            clock: {
+                coreSpeedGhz: 3.17,
+                boostSpeedGhz: 3.57
+            },
+            graphics: "quis"
+        },
+        gpu: {
+            _id: ObjectId,
+            name: "intel a380",
+            price: 112.71,
+            brand: "intel",
+            model: "a380",
+            tdp: 408,
+            ports: [
+                "dvi",
+                "hdmi"
+            ],
+            memory: {
+                "type: "ddr4",
+                "sizeGb: 8
+            },
+            clock: {
+                coreSpeedGhz: 3.36,
+                boostSpeedGhz: 3.76
+            }
+        }
+    }
+    ```
+    * **Keyboard**: `HTTP 200`
+    ```
+    {
+        _id: ObjectId,
+        name: "sit voluptatem",
+        price: 295.69,
+        brand: "sit",
+        model: "voluptatem",
+        type: "mechanical",
+        keySwitch: "tactile",
+        backlight: false,
+        wireless: false,
+        dimensions: {
+            length: 4.18,
+            width: 13.8,
+            height: 7.04
+        },
+        weightKg: 0.9
+    }
+    ```
+    * **Other tech**: `HTTP 200`
+    ```
+    {
+        _id: ObjectId,
+        name: "ipsum",
+        price: 8.51
+    }
+    ```
+    * Could not find the item requested: `HTTP 400`
+    ```
+    {
+        error: "Could not find the item"
+    }
+    ```
+    * Malformed item id: `HTTP 400`
+    ```
+    {
+        error: "Malformed item id"
+    }
+    ```
+    * Unknown error: `HTTP 500`
+    ```
+    {
+        error: "Failed to find the item's details"
+    }
+    ```
 ### Get Client's Cart Items
 ---
 * **URL**: `/clients/cart`
