@@ -157,7 +157,6 @@ pub struct Gpu {
     cuda_cores: Option<u16>,
     tdp: u16,
     ports: Vec<String>,
-    dedicated: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     warranty: Option<String>,
     memory: MemDetails,
@@ -208,7 +207,6 @@ impl Dummy<Faker> for Gpu {
             cuda_cores,
             tdp: rng.gen_range(10..=700),
             ports,
-            dedicated: rng.gen_bool(0.5),
             warranty,
             memory: MemDetails::dummy_with_rng(config, rng),
             clock: Clock::dummy_with_rng(config, rng),

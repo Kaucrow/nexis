@@ -1,13 +1,4 @@
 use crate::prelude::*;
-use types::mongodb::{
-    LibraryItem,
-    Food,
-};
-use async_trait::async_trait;
-use std::pin::Pin;
-use serde_json::Value;
-use futures_util::Future;
-use anyhow::Result;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct MaterialDetails<'a> {
@@ -23,7 +14,7 @@ pub struct ClothesDetails<'a> {
     pub price: f64,
     pub age: &'a str,
     pub size: &'a str,
-    pub color: Vec<&'a str>,
+    pub colors: Vec<&'a str>,
     #[serde(rename = "type")]
     pub clothes_type: &'a str,
     pub brand: &'a str,
@@ -38,8 +29,8 @@ pub struct BookDetails<'a> {
     pub authors: Vec<&'a str>,
     pub publisher: &'a str,
     pub edition: i32,
-    pub audience: Vec<&'a str>,
-    pub genre: Vec<&'a str>,
+    pub audiences: Vec<&'a str>,
+    pub genres: Vec<&'a str>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -76,7 +67,8 @@ pub struct TechDetails<'a> {
     pub color: Vec<&'a str>,
     #[serde(rename = "type")]
     pub tech_type: &'a str,
-    pub memory: i32,
+    pub ram: i32,
+    pub storage: i32,
     pub cpu: CpuDetailsOwned,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub gpu: Option<GpuDetailsOwned>,
@@ -97,7 +89,6 @@ pub struct MemorySupportedDetailsOwned {
     #[serde(rename = "maxSizeGb")]
     pub max_size_gb: i32,
 }
-
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ClockDetails {
@@ -124,6 +115,7 @@ pub struct CpuDetails<'a> {
     pub overclock_supp: bool,
     pub memory_supp: MemorySupportedDetails<'a>,
     pub clock: ClockDetails,
+    pub graphics: &'a str,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -143,6 +135,7 @@ pub struct CpuDetailsOwned {
     pub overclock_supp: bool,
     pub memory_supp: MemorySupportedDetailsOwned,
     pub clock: ClockDetails,
+    pub graphics: String,
 }
 
 
@@ -172,7 +165,6 @@ pub struct GpuDetails<'a> {
     pub model: &'a str,
     pub tdp: i32,
     pub ports: Vec<&'a str>,
-    pub dedicated: bool,
     pub memory: MemoryDetails<'a>,
     pub clock: ClockDetails,
 }
@@ -187,7 +179,6 @@ pub struct GpuDetailsOwned {
     pub model: String,
     pub tdp: i32,
     pub ports: Vec<String>,
-    pub dedicated: bool,
     pub memory: MemoryDetailsOwned,
     pub clock: ClockDetails,
 }

@@ -6,7 +6,6 @@
     "cudaCores_?_": "Number",
     "tdp": "Number",
     "ports": ["String"],
-    "dedicated": "Boolean",
     "warranty_?_": "String",
     "memory": {
         "sizeGb": "Number",

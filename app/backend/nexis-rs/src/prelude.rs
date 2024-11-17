@@ -29,7 +29,3 @@ pub use futures_util::{ stream, StreamExt, TryStreamExt };
 pub use std::{ sync::Arc, collections::{ HashMap, HashSet }};
 pub use chrono::{ DateTime, Utc };
 pub use crate::{ types, utils };
-
-pub static ITEM_COLLS: Lazy<Vec<&str>> = Lazy::new(|| vec![
-    "clothes", "food", "libraryItem", "tech", "techCpu", "techGpu", "techKeyboard", "techOther"
-]);

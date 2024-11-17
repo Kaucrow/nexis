@@ -107,7 +107,7 @@ impl<'a> From<&'a Clothes> for ClothesDetails<'a> {
             price: item.price,
             age: &item.age,
             size: &item.size,
-            color: item.color.iter().map(|s| s.as_str()).collect(),
+            colors: item.colors.iter().map(|s| s.as_str()).collect(),
             clothes_type: &item.clothes_type,
             brand: &item.brand,
             materials: item.materials.iter().map(|material| MaterialDetails {
@@ -138,8 +138,8 @@ impl<'a> From<&'a LibraryItem> for LibraryItemDetails<'a> {
                     authors: book.authors.iter().map(|s| s.as_str()).collect(),
                     publisher: &book.publisher,
                     edition: book.edition,
-                    audience: book.audience.iter().map(|s| s.as_str()).collect(),
-                    genre: book.genre.iter().map(|s| s.as_str()).collect(),
+                    audiences: book.audiences.iter().map(|s| s.as_str()).collect(),
+                    genres: book.genres.iter().map(|s| s.as_str()).collect(),
                 }))
             } else {
                 None
@@ -206,8 +206,9 @@ impl<'a> From<&'a Cpu> for CpuDetails<'a> {
             clock: ClockDetails {
                 core_speed_ghz: item.clock.core_speed_ghz,
                 boost_speed_ghz: item.clock.boost_speed_ghz,
-            }, 
-        }        
+            },
+            graphics: &item.graphics,
+        }
     }
 }
 
@@ -231,7 +232,6 @@ impl<'a> From<&'a Gpu> for GpuDetails<'a> {
             tdp: item.tdp,
             model: &item.model,
             ports: item.ports.iter().map(|s| s.as_str()).collect(),
-            dedicated: item.dedicated,
             memory: MemoryDetails {
                 memory_type: &item.memory.memory_type,
                 size_gb: item.memory.size_gb,
@@ -311,7 +311,7 @@ impl<'a> TechDetails<'a> {
         let cpu = {
             let cpu_details_value =
                 ITEM_DETAILS_REG
-                .get_item_details(db, "cpu", item.cpu)
+                .get_item_details(db, Cpu::coll_name(), item.cpu)
                 .await
                 .ok_or(anyhow!("Failed to get CPU from Tech item"))?
                 .details(None)
@@ -324,7 +324,7 @@ impl<'a> TechDetails<'a> {
             Some(gpu_id) => {
                 let gpu_details_value =
                     ITEM_DETAILS_REG
-                    .get_item_details(db, "gpu", gpu_id)
+                    .get_item_details(db, Gpu::coll_name(), gpu_id)
                     .await
                     .ok_or(anyhow!("Failed to get GPU from Tech item"))?
                     .details(None)
@@ -343,7 +343,8 @@ impl<'a> TechDetails<'a> {
             model: &item.model,
             color: item.color.iter().map(|s| s.as_str()).collect(),
             tech_type: &item.tech_type,
-            memory: item.memory,
+            ram: item.ram,
+            storage: item.storage, 
             cpu,
             gpu,
         })

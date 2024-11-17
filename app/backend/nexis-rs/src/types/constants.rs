@@ -1,12 +1,15 @@
 use crate::prelude::*;
+use types::mongodb::{
+    Clothes, Cpu, Food, Gpu, Item, Keyboard, LibraryItem, Tech, TechOther
+};
 
 pub const SSS_COOKIE_NAME: &'static str = "session";
 
 pub const STORE_COLLS: Lazy<HashMap<&str, Vec<&str>>> = Lazy::new(|| HashMap::from([
-    ("cyberion", vec![ "tech", "techCpu", "techGpu", "techKeyboard", "techOther" ]),
-    ("savoro", vec![ "food" ]),
-    ("vesti", vec![ "clothes" ]),
-    ("readon", vec![ "libraryItem" ]),
+    ("cyberion", vec![ Tech::coll_name(), Cpu::coll_name(), Gpu::coll_name(), Keyboard::coll_name(), TechOther::coll_name() ]),
+    ("savoro", vec![ Food::coll_name() ]),
+    ("vesti", vec![ Clothes::coll_name() ]),
+    ("readon", vec![ LibraryItem::coll_name() ]),
 ]));
 
 pub struct SessionPublicToken {

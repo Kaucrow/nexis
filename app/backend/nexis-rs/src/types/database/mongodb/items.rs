@@ -1,9 +1,4 @@
 use crate::prelude::*;
-use async_trait::async_trait;
-use rustls::crypto::hmac::Key;
-use serde_json::Value;
-use std::{ sync::Arc, pin::Pin };
-use futures_util::Future;
 
 pub trait Item {
     fn coll_name() -> &'static str;
@@ -41,7 +36,7 @@ pub struct Clothes {
     pub price: f64,
     pub age: String,
     pub size: String,
-    pub color: Vec<String>,
+    pub colors: Vec<String>,
     #[serde(rename = "type")]
     pub clothes_type: String,
     pub brand: String,
@@ -57,8 +52,8 @@ pub struct Book {
     pub authors: Vec<String>,
     pub publisher: String,
     pub edition: i32,
-    pub audience: Vec<String>,
-    pub genre: Vec<String>,
+    pub audiences: Vec<String>,
+    pub genres: Vec<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -97,7 +92,8 @@ pub struct Tech {
     pub color: Vec<String>,
     #[serde(rename = "type")]
     pub tech_type: String,
-    pub memory: i32,
+    pub ram: i32,
+    pub storage: i32,
     pub cpu: ObjectId,
     pub gpu: Option<ObjectId>,
     pub lots: Vec<Lot>,
@@ -139,6 +135,7 @@ pub struct Cpu {
     #[serde(rename = "memorySupp")]
     pub memory_supp: MemorySupported,
     pub clock: Clock,
+    pub graphics: String,
     pub lots: Vec<Lot>,
 }
 
@@ -160,7 +157,6 @@ pub struct Gpu {
     pub model: String,
     pub tdp: i32,
     pub ports: Vec<String>,
-    pub dedicated: bool,
     pub memory: Memory,
     pub clock: Clock,
     pub lots: Vec<Lot>,
@@ -211,25 +207,25 @@ impl Item for Food {
 }
 
 impl Item for LibraryItem {
-    fn coll_name() -> &'static str { "libraryItem" }
+    fn coll_name() -> &'static str { "libraryItems" }
 }
 
 impl Item for Tech {
-    fn coll_name() -> &'static str { "tech" }
+    fn coll_name() -> &'static str { "techs" }
 }
 
 impl Item for Gpu {
-    fn coll_name() -> &'static str { "techGpu" }
+    fn coll_name() -> &'static str { "techGpus" }
 }
 
 impl Item for Cpu {
-    fn coll_name() -> &'static str { "techCpu" }
+    fn coll_name() -> &'static str { "techCpus" }
 }
 
 impl Item for Keyboard {
-    fn coll_name() -> &'static str { "techKeyboard" }
+    fn coll_name() -> &'static str { "techKeyboards" }
 }
 
 impl Item for TechOther {
-    fn coll_name() -> &'static str { "techOther" }
+    fn coll_name() -> &'static str { "techOthers" }
 }
