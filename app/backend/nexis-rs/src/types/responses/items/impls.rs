@@ -1,7 +1,7 @@
 use crate::prelude::*;
 use super::*;
 use types::mongodb::{
-    Item,
+    IsCollection,
     Clothes,
     LibraryItem,
     Food,
@@ -72,7 +72,7 @@ impl ItemDetailsRegistry {
 
 fn get_item_fetcher<T>() -> ItemFetcher
 where
-    T: ItemDetails + Item + DeserializeOwned + Send + Sync + Unpin + 'static,
+    T: ItemDetails + IsCollection + DeserializeOwned + Send + Sync + Unpin + 'static,
 {
     Arc::new(|db: Arc<mongodb::Database>, item_id: ObjectId| {
         Box::pin(async move {

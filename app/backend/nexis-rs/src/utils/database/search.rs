@@ -2,11 +2,9 @@ use crate::prelude::*;
 use serde_json::Value;
 use types::{
     responses::ITEM_DETAILS_REG,
-    error,
     mongodb::{
-        SimpleItem,
         Tech,
-        Item,
+        IsCollection,
     }
 };
 use utils::database::items::get_simple_item;

@@ -20,6 +20,8 @@ pub enum Mongodb {
     ItemNotInCart,
     #[error("Could not find the item")]
     SimpleItemNotFound,
+    #[error("At least one of the requested items is sold out")]
+    ItemSoldOut,
 }
 
 #[derive(Debug, Error)]

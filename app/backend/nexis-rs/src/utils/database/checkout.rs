@@ -1,6 +1,11 @@
 use crate::prelude::*;
 use anyhow::Result;
-use types::database::mongodb::ItemSale;
+use chrono::Utc;
+use mongodb::bson::{ DateTime, to_bson };
+use types::{
+    error,
+    database::mongodb::{ User, IsCollection, ItemSale },
+};
 use utils::{
     common::get_store_from_coll,
     database::items::{
@@ -11,10 +16,19 @@ use utils::{
 
 pub async fn client_cart_checkout(
     db: &mongodb::Database,
-
     user_id: ObjectId,
-) {
+    items: &Vec<String>,
+) -> Result<()> {
+    client_checkout(db, user_id, items).await?;
 
+    let users_coll: Collection<Document> = db.collection(User::coll_name());
+
+    users_coll.update_one(
+        doc! { "_id": user_id },
+        doc! { "$unset": { "client.cart": "" }}
+    ).await?;
+
+    Ok(())
 }
 
 pub async fn client_checkout(
@@ -39,7 +53,7 @@ pub async fn client_checkout(
         let available_item = get_oldest_item_available(db, &simple_item)
             .await?
             .ok_or(
-                anyhow!("At least one of the requested items is sold out")
+                anyhow!(error::Mongodb::ItemSoldOut)
             )?;
         
         sale_items.push(ItemSale {
@@ -59,7 +73,42 @@ pub async fn client_checkout(
             .push(item);
     }
 
-    tracing::info!(target: "backend", "HERE: {:#?}", store_sales);
-    
+    for (store_name, items) in store_sales {
+        for item in &items {
+            let coll: Collection<Document> = db.collection(&item.coll);
+            let res = coll.update_one(
+                doc! {
+                    "_id": item.item_id,
+                    "lots": {
+                        "$elemMatch": {
+                            "_id": item.lot_id,
+                            "codes": item.code,
+                        }
+                    }
+                },
+                doc! { "$pull": { "lots.$.codes": item.code }}
+            ).await?;
+
+            if res.matched_count == 0 {
+                bail!("Item not found: {:#?}", item);
+            }
+        }
+
+        let serialized_sale: Document = doc! {
+            "test": true,
+            "date": DateTime::from_system_time(Utc::now().into()),
+            "client": {
+                "user": user_id,
+            },
+            "items": to_bson(&items)?,
+        };
+
+        let stores_coll: Collection<Document> = db.collection("store");
+        stores_coll.update_one(
+            doc! { "name": store_name },
+            doc! { "$push": { "weekSales": serialized_sale }},
+        ).await?;
+    }
+
     Ok(())
 }

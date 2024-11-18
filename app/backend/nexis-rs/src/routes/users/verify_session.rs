@@ -1,6 +1,6 @@
 // src/routes/users/logout.rs
 use crate::prelude::*;
-use crate::{ responses, types::error };
+use types::{ self, responses, SSS_COOKIE_NAME };
 
 #[tracing::instrument(name = "Verify user session", skip(redis_pool, db, req))]
 #[actix_web::get("/verify-session")]
@@ -11,22 +11,15 @@ pub async fn verify_session(
 ) -> HttpResponse {
     tracing::info!(target: "backend", "Verifying session.");
 
-    let sss_uuid_token =
-        if let Some(sss_uuid_cookie) = req.cookie("session_uuid") {
-            sss_uuid_cookie.value().to_string()
-        } else {
-            return HttpResponse::BadRequest().json(responses::Error::simple("Session cookie missing."));
-        };
-
-    match utils::verify_session_token(sss_uuid_token, &db, &redis_pool).await {
+    match utils::verify_session(&req, &db, &redis_pool).await {
         Ok(_) =>
             HttpResponse::Ok().finish(),
         Err(e) => {
-            if let Some(e) = e.downcast_ref::<error::Redis>() {
+            if let Some(e) = e.downcast_ref::<types::error::Redis>() {
                 match e {
-                    error::Redis::SessionExpired(e) => {
+                    types::error::Redis::SessionExpired(e) => {
                         let clear_cookie = {
-                            let mut cookie = Cookie::build("session_uuid", "")
+                            let mut cookie = Cookie::build(SSS_COOKIE_NAME, "")
                                 .path("/")
                                 .http_only(true)
                                 .finish();
@@ -38,7 +31,7 @@ pub async fn verify_session(
                         .cookie(clear_cookie)
                         .json(responses::Error::from_str(e.to_string()))
                     }
-                    _ => unimplemented!("Unimplemented redis error.")
+                    _ => unimplemented!()
                 }
             } else {
                 HttpResponse::Unauthorized().json(responses::Error::detailed("Failed to verify session", e))

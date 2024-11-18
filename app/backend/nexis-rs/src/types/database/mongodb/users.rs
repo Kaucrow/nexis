@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 use chrono::{ DateTime, Utc };
 use mongodb::bson::oid::ObjectId;
 use crate::types::{ requests::users::NewUser, auth::Role };
+use super::IsCollection;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct CartItem {
@@ -84,6 +85,10 @@ impl User {
 
         roles
     }
+}
+
+impl IsCollection for User {
+    fn coll_name() -> &'static str { "users" }
 }
 
 impl TryFrom<NewUser> for User {

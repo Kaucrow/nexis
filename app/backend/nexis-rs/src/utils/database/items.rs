@@ -1,12 +1,11 @@
 use crate::prelude::*;
 use anyhow::Result;
-use serde::de::DeserializeOwned;
-use async_trait::async_trait;
 use types::{
     error,
     mongodb::{
         items::Lot,
         SimpleItem,
+        IsCollection,
     },
 };
 
@@ -18,8 +17,8 @@ pub async fn get_simple_item(
     db: &mongodb::Database,
     item_id: ObjectId,
 ) -> Result<SimpleItem> {
-    let items_coll: Collection<SimpleItem> = db.collection("items");
-    let item = items_coll.find_one( doc! { "_id": item_id }).await?.ok_or_else(|| anyhow!(error::Mongodb::SimpleItemNotFound))?;
+    let items_coll: Collection<SimpleItem> = db.collection(SimpleItem::coll_name());
+    let item = items_coll.find_one( doc!{ "_id": item_id }).await?.ok_or_else(|| anyhow!(error::Mongodb::SimpleItemNotFound))?;
 
     Ok(item)
 }

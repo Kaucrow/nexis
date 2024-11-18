@@ -1,8 +1,5 @@
 use crate::prelude::*;
-
-pub trait Item {
-    fn coll_name() -> &'static str;
-}
+use super::IsCollection;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct SimpleItem {
@@ -13,7 +10,11 @@ pub struct SimpleItem {
     pub coll: String,
 }
 
-#[derive(Debug)]
+impl IsCollection for SimpleItem {
+    fn coll_name() -> &'static str { "items" }
+}
+
+#[derive(Serialize, Debug)]
 pub struct ItemSale {
     pub coll: String,
     pub item_id: ObjectId,
@@ -206,34 +207,34 @@ pub struct TechOther {
     pub lots: Vec<Lot>,
 }
 
-impl Item for Clothes {
+impl IsCollection for Clothes {
     fn coll_name() -> &'static str { "clothes" }
 }
 
-impl Item for Food {
+impl IsCollection for Food {
     fn coll_name() -> &'static str { "food" }
 }
 
-impl Item for LibraryItem {
+impl IsCollection for LibraryItem {
     fn coll_name() -> &'static str { "libraryItems" }
 }
 
-impl Item for Tech {
+impl IsCollection for Tech {
     fn coll_name() -> &'static str { "techs" }
 }
 
-impl Item for Gpu {
+impl IsCollection for Gpu {
     fn coll_name() -> &'static str { "techGpus" }
 }
 
-impl Item for Cpu {
+impl IsCollection for Cpu {
     fn coll_name() -> &'static str { "techCpus" }
 }
 
-impl Item for Keyboard {
+impl IsCollection for Keyboard {
     fn coll_name() -> &'static str { "techKeyboards" }
 }
 
-impl Item for TechOther {
+impl IsCollection for TechOther {
     fn coll_name() -> &'static str { "techOthers" }
 }

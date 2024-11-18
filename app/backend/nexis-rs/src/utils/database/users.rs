@@ -1,7 +1,11 @@
 use crate::prelude::*;
 use anyhow::Result;
-use types::{ requests::NewUser, mongodb::{ SimpleItem, User }, responses };
 use chrono::{ DateTime, Utc };
+use types::{
+    requests,
+    responses,
+    mongodb::{ SimpleItem, User, IsCollection },
+};
 
 #[tracing::instrument(
     name = "Inserting new user into DB",
@@ -13,9 +17,9 @@ use chrono::{ DateTime, Utc };
 )]
 pub async fn insert_created_user_into_db(
     db: &mongodb::Database,
-    new_user: NewUser
+    new_user: requests::NewUser
 ) -> Result<ObjectId> {
-    let user_coll: Collection<User> = db.collection("user");
+    let user_coll: Collection<User> = db.collection(User::coll_name());
 
     // Check if a user with the same email or username already exists
     let existing_user = user_coll
@@ -51,7 +55,7 @@ pub async fn get_user(
     db: &mongodb::Database,
     user_id: ObjectId,
 ) -> Result<Option<User>> {
-    let users_coll: Collection<User> = db.collection("user");
+    let users_coll: Collection<User> = db.collection(User::coll_name());
 
     let user = users_coll.find_one(
         doc! { "_id": user_id }
@@ -65,11 +69,11 @@ async fn get_client_cart(
     db: &mongodb::Database,
     user_id: ObjectId,
 ) -> Result<Document> {
-    let users_coll: Collection<Document> = db.collection("user");
+    let users_coll: Collection<Document> = db.collection(User::coll_name());
 
     let mut cursor = users_coll.aggregate(vec![
-        doc!{ "$match": { "_id": user_id }},
-        doc!{ "$project": { "_id": 0, "client": { "cart": 1 }}},
+        doc! { "$match": { "_id": user_id }},
+        doc! { "$project": { "_id": 0, "client": { "cart": 1 }}},
     ]).await?;
 
     if let Ok(Some(doc)) = cursor.try_next().await {
@@ -149,7 +153,7 @@ pub async fn delete_client_cart_item(
     user_id: ObjectId,
     item_id: ObjectId,
 ) -> Result<()> {
-    let users_coll: Collection<User> = db.collection("user");
+    let users_coll: Collection<User> = db.collection(User::coll_name());
 
     let update_result = users_coll.update_one(
         doc! { "_id": user_id },
@@ -176,7 +180,7 @@ pub async fn insert_client_cart_item(
     user_id: ObjectId,
     item_id: ObjectId,
 ) -> Result<()> {
-    let items_coll: Collection<SimpleItem> = db.collection("items");
+    let items_coll: Collection<SimpleItem> = db.collection(SimpleItem::coll_name());
 
     let item = items_coll.find_one(
         doc! { "_id": item_id }
@@ -184,7 +188,7 @@ pub async fn insert_client_cart_item(
     .await?
     .ok_or_else(|| anyhow!("Item not found."))?;
 
-    let users_coll: Collection<User> = db.collection("user");
+    let users_coll: Collection<User> = db.collection(User::coll_name());
 
     let now: DateTime<Utc> = Utc::now();
     let date_added = bson::DateTime::from_millis(now.timestamp_millis());

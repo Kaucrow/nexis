@@ -3,7 +3,6 @@ pub mod items;
 
 pub use users::{ User, CartItem };
 pub use items::{
-    Item,
     SimpleItem,
     ItemSale,
     Clothes,
@@ -15,3 +14,7 @@ pub use items::{
     Gpu,
     Keyboard,
 };
+
+pub trait IsCollection {
+    fn coll_name() -> &'static str;
+}

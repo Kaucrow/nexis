@@ -1,8 +1,12 @@
 use crate::prelude::*;
 use crate::responses;
 use anyhow::Result;
-use types::{ requests::{ self, LoginUser }, SSS_COOKIE_NAME };
 use utils::tokens::{ verify_roleselect_token, issue_session_token };
+use types::{
+    SSS_COOKIE_NAME,
+    requests::{ self, LoginUser },
+    mongodb::{ User, IsCollection },
+};
 
 const USER_NOT_FOUND_MSG: &'static str = "A user with these details does not exist. If you registered with these details, ensure you activated your account by clicking on the link sent to your e-mail address.";
 
@@ -23,11 +27,8 @@ async fn login_user(
 ) -> HttpResponse {
     tracing::info!(target: "backend", "Accessing LOGIN.");
 
-    if req.cookie(SSS_COOKIE_NAME).is_some() {
-        let sss_pub_token = req.cookie(SSS_COOKIE_NAME).unwrap().value().to_string();
-        if let Ok(_) = utils::verify_session_token(sss_pub_token, &db, &redis_pool).await {
-            return HttpResponse::Ok().json("You are already logged in.");
-        }
+    if let Ok(_) = utils::verify_session(&req, &db, &redis_pool).await {
+        return HttpResponse::Ok().json("You are already logged in.");
     }
 
     match get_user_who_is_active(db.get_ref(), &login.identifier).await {
@@ -115,7 +116,7 @@ pub async fn get_user_who_is_active(
     db: &mongodb::Database,
     identifier: &String,
 ) -> Result<types::mongodb::User> {
-    let users_coll: Collection<types::mongodb::User> = db.collection("user");
+    let users_coll: Collection<types::mongodb::User> = db.collection(User::coll_name());
     let res = users_coll.find_one(
         doc! {
             "$or": [

@@ -12,7 +12,7 @@ pub async fn log_out(
 ) -> HttpResponse {
     tracing::info!(target: "backend", "Accessing LOGOUT.");
 
-    let sss_pub_token = match get_sss_pub_token(req) {
+    let sss_pub_token = match get_sss_pub_token(&req) {
         Ok(token) => token,
         Err(e) => return HttpResponse::BadRequest().json(responses::Error::new(e))
     };
