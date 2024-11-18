@@ -5,6 +5,7 @@ pub use users::{ User, CartItem };
 pub use items::{
     Item,
     SimpleItem,
+    ItemSale,
     Clothes,
     Food,
     LibraryItem,

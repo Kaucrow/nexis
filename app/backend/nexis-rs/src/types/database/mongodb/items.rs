@@ -13,6 +13,14 @@ pub struct SimpleItem {
     pub coll: String,
 }
 
+#[derive(Debug)]
+pub struct ItemSale {
+    pub coll: String,
+    pub item_id: ObjectId,
+    pub lot_id: ObjectId,
+    pub code: ObjectId,
+}
+
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Lot {
     #[serde(rename = "_id")]

@@ -129,7 +129,7 @@ pub async fn get_client_cart_details(
                 id: item_id.to_hex(),
                 name: item_details.get_str("name")?.to_string(),
                 price: item_details.get_f64("price").or_else(|_| item_details.get_f64("pricePerKg"))?,
-                store,
+                store: store.to_string(),
                 in_stock,
             })
         })

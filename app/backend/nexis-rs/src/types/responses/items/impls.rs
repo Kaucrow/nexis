@@ -79,7 +79,7 @@ where
             let coll_name = T::coll_name();
             let coll: Collection<T> = db.collection(coll_name);
 
-            let library_item =
+            let item =
                 match coll.find_one(doc! { "_id": item_id }).await {
                     Ok(item) => item?,
                     Err(e) => {
@@ -88,7 +88,7 @@ where
                     }
                 };
 
-            Some(Box::new(library_item) as Box<dyn ItemDetails + Send>)
+            Some(Box::new(item) as Box<dyn ItemDetails + Send>)
         })
     })
 }

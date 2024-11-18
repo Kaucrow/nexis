@@ -67,7 +67,8 @@ impl ClientSaleInfo {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct DaySales {
+pub struct WeekSales {
+    date: DateTimeWrapper,
     payment: Payment,
     client: ClientSaleInfo,
     items: Vec<ItemCode>,
@@ -98,7 +99,7 @@ fn process_item<T: SimpleItemTrait>(item: T, collection: String, items: &mut Vec
     }
 }
 
-impl DaySales {
+impl WeekSales {
     pub async fn dummy_with_rng<R: rand::Rng + ?Sized>(payment: Payment, client_info: ClientSaleInfo, store: &str, client: &Client, rng: &mut R) -> Result<Self, mongodb::error::Error> {
         let item_colls = match store {
             "clothes" => vec!["clothes"],
@@ -147,9 +148,16 @@ impl DaySales {
 
             coll.update_one(filter, update).await?;
         };
+        
+        let date = {
+            let naive_date = NaiveDate::from_ymd_opt(2024, 11, rng.gen_range(1..=7)).unwrap();
+            let date = Utc.from_utc_datetime(&naive_date.and_hms_opt(rng.gen_range(0..24), 0, 0).expect(""));
+            DateTimeWrapper(date)
+        };
 
         Ok(
-            DaySales {
+            WeekSales {
+                date,
                 payment,
                 client: client_info,
                 items,
@@ -174,8 +182,8 @@ pub struct Store {
     num: u16,
     floor: u8,
     size: Size,
-    #[serde(rename = "daySales")]
-    day_sales: Vec<DaySales>,
+    #[serde(rename = "weekSales")]
+    week_sales: Vec<WeekSales>,
     owners: Vec<Owner>,
     employees: Vec<ObjectIdWrapper>,
 }
@@ -190,11 +198,11 @@ impl Store {
     ) -> Result<Self, mongodb::error::Error> {
         let id = store_ids.get(store_type).expect(format!("Could not find store of type {store_type} in `store_ids`").as_str()).clone();
 
-        let mut day_sales: Vec<DaySales> = Vec::new();
+        let mut week_sales: Vec<WeekSales> = Vec::new();
 
         for _ in 0..rng.gen_range(1..20) {
-            day_sales.push(
-                DaySales::dummy_with_rng(
+            week_sales.push(
+                WeekSales::dummy_with_rng(
                     Payment::dummy_with_rng(rng.gen_range(1.0..100.0), rng),
                     ClientSaleInfo::dummy_with_rng(ObjectIdWrapper::dummy_with_rng(config, rng), rng),
                     store_type,
@@ -274,7 +282,7 @@ impl Store {
                 num: rng.gen_range(100..200),
                 floor: rng.gen_range(0..1),
                 size: Size::dummy_with_rng(config, rng),
-                day_sales,
+                week_sales,
                 owners: owners.into_iter().map(|(user_id, percentage)|
                     Owner {
                         user_id,

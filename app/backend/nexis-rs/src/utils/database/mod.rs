@@ -1,5 +1,7 @@
 pub mod users;
 pub mod search;
+pub mod checkout;
+pub mod items;
 
 pub use users::{
     insert_created_user_into_db,
