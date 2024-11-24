@@ -1,0 +1,742 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+      "title": "NEXIS Docs",
+      "version": "1.0.0",
+      "description": "API documentation for NEXIS project"
+    },
+    "servers": [
+      {
+        "url": "http://localhost:8080",
+        "description": "Development server"
+      }
+    ],
+    "paths": {
+      "/health-check": {
+        "get": {
+          "summary": "Health Check",
+          "responses": {
+            "200": {
+              "description": "Application is safe and healthy",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "message": {
+                        "type": "string",
+                        "example": "Application is safe and healthy. :)"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/users/register": {
+        "post": {
+          "summary": "User Registration",
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserRegistration"
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Verification email sent",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "message": {
+                        "type": "string",
+                        "example": "Verification email sent."
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "409": {
+              "description": "User already exists"
+            },
+            "500": {
+              "description": "Unknown error"
+            }
+          }
+        }
+      },
+      "/users/register/verify": {
+        "put": {
+          "summary": "User Email Verification",
+          "parameters": [
+            {
+              "name": "token",
+              "in": "query",
+              "required": true,
+              "schema": {
+                "type": "string"
+              },
+              "description": "PASETOv4 email confirmation token"
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "User activated successfully",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "message": {
+                        "type": "string",
+                        "example": "User activated successfully."
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "303": {
+              "description": "Token expired or cannot verify account"
+            }
+          }
+        }
+      },
+      "/users/login": {
+        "post": {
+          "summary": "User Login",
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginRequest"
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "User logged in successfully",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/LoginResponse"
+                  }
+                }
+              }
+            },
+            "404": {
+              "description": "User not found or invalid password",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/ErrorResponse"
+                  }
+                }
+              }
+            },
+            "500": {
+              "description": "Unknown error",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/ErrorResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/users/role-login": {
+        "post": {
+          "summary": "User Login Role Selection",
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoleLoginRequest"
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Role selected successfully",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/LoginResponse"
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "User lacks selected role",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/ErrorResponse"
+                  }
+                }
+              }
+            },
+            "500": {
+              "description": "Unknown error",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/ErrorResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/users/verify-session": {
+        "get": {
+          "summary": "User Session Verification",
+          "responses": {
+            "200": {
+              "description": "Session verified successfully"
+            },
+            "400": {
+              "description": "Session token not present"
+            },
+            "401": {
+              "description": "Verification failed or session expired"
+            }
+          }
+        }
+      },
+      "/users/logout": {
+        "delete": {
+          "summary": "User Logout",
+          "responses": {
+            "200": {
+              "description": "User logged out successfully"
+            },
+            "400": {
+              "description": "Session token not present"
+            },
+            "500": {
+              "description": "Unknown error",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/ErrorResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/search": {
+        "get": {
+          "summary": "Item Search",
+          "parameters": [
+            {
+              "name": "input",
+              "in": "query",
+              "required": true,
+              "schema": {
+                "type": "string"
+              },
+              "description": "Search query"
+            },
+            {
+              "name": "page",
+              "in": "query",
+              "required": false,
+              "schema": {
+                "type": "integer"
+              },
+              "description": "Page number"
+            },
+            {
+              "name": "min-price",
+              "in": "query",
+              "required": false,
+              "schema": {
+                "type": "number"
+              },
+              "description": "Minimum item price"
+            },
+            {
+              "name": "max-price",
+              "in": "query",
+              "required": false,
+              "schema": {
+                "type": "number"
+              },
+              "description": "Maximum item price"
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Search results",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/Item"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/search-suggestions": {
+        "get": {
+          "summary": "Item Search Suggestions",
+          "parameters": [
+            {
+              "name": "input",
+              "in": "query",
+              "required": true,
+              "schema": {
+                "type": "string"
+              },
+              "description": "Search input"
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Search suggestions",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/ItemSuggestion"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/search/item-details": {
+        "get": {
+          "summary": "Item Details",
+          "parameters": [
+            {
+              "name": "item",
+              "in": "query",
+              "required": true,
+              "schema": {
+                "type": "string"
+              },
+              "description": "ObjectId of the item"
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Item details",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/ItemDetails"
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "Item not found or malformed item id",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/ErrorResponse"
+                  }
+                }
+              }
+            },
+            "500": {
+              "description": "Unknown error",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/ErrorResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/clients/cart": {
+        "get": {
+          "summary": "Get Client's Cart Items",
+          "responses": {
+            "200": {
+              "description": "Client's cart items",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/CartItem"
+                    }
+                  }
+                }
+              }
+            },
+            "500": {
+              "description": "Unknown error",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/ErrorResponse"
+                  }
+                }
+              }
+            }
+          },
+          "security": [
+            {
+              "session": []
+            }
+          ]
+        },
+        "post": {
+          "summary": "Insert Item into Client's Cart",
+          "parameters": [
+            {
+              "name": "item",
+              "in": "query",
+              "required": true,
+              "schema": {
+                "type": "string"
+              },
+              "description": "ObjectId of the item to insert"
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Item inserted successfully"
+            },
+            "400": {
+              "description": "Item already in cart",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/ErrorResponse"
+                  }
+                }
+              }
+            },
+            "500": {
+              "description": "Unknown error",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/ErrorResponse"
+                  }
+                }
+              }
+            }
+          },
+          "security": [
+            {
+              "session": []
+            }
+          ]
+        },
+        "delete": {
+          "summary": "Delete Item from Client's Cart",
+          "parameters": [
+            {
+              "name": "item",
+              "in": "query",
+              "required": true,
+              "schema": {
+                "type": "string"
+              },
+              "description": "ObjectId of the item to delete"
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Item deleted successfully"
+            },
+            "400": {
+              "description": "Item not in cart",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/ErrorResponse"
+                  }
+                }
+              }
+            },
+            "500": {
+              "description": "Unknown error",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/ErrorResponse"
+                  }
+                }
+              }
+            }
+          },
+          "security": [
+            {
+              "session": []
+            }
+          ]
+        }
+      }
+    },
+    "components": {
+      "schemas": {
+        "UserRegistration": {
+          "type": "object",
+          "properties": {
+            "email": {
+              "type": "string"
+            },
+            "password": {
+              "type": "string"
+            },
+            "name": {
+              "type": "string"
+            },
+            "username": {
+              "type": "string"
+            },
+            "client": {
+              "$ref": "#/components/schemas/ClientInfo"
+            },
+            "employee": {
+              "$ref": "#/components/schemas/EmployeeInfo"
+            },
+            "admin": {
+              "$ref": "#/components/schemas/AdminInfo"
+            }
+          },
+          "required": [
+            "email",
+            "password",
+            "name",
+            "username"
+          ]
+        },
+        "ClientInfo": {
+          "type": "object",
+          "properties": {
+            "age": {
+              "type": "integer"
+            },
+            "gender": {
+              "type": "string"
+            },
+            "phoneNum": {
+              "type": "string"
+            },
+            "interests": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "EmployeeInfo": {
+          "type": "object",
+          "properties": {
+            "age": {
+              "type": "integer"
+            },
+            "gender": {
+              "type": "string"
+            },
+            "phoneNum": {
+              "type": "string"
+            },
+            "schedule": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/Schedule"
+              }
+            }
+          }
+        },
+        "Schedule": {
+          "type": "object",
+          "properties": {
+            "enterDate": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "exitDate": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "store": {
+              "type": "string"
+            },
+            "storeJob": {
+              "type": "string"
+            }
+          }
+        },
+        "AdminInfo": {
+          "type": "object"
+        },
+        "LoginRequest": {
+          "type": "object",
+          "properties": {
+            "email": {
+              "type": "string"
+            },
+            "password": {
+              "type": "string"
+            },
+            "rememberMe": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "email",
+            "password"
+          ]
+        },
+        "LoginResponse": {
+          "type": "object",
+          "properties": {
+            "email": {
+              "type": "string"
+            },
+            "name": {
+              "type": "string"
+            },
+            "role": {
+              "type": "string"
+            },
+            "availableRoles": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "token": {
+              "type": "string"
+            }
+          }
+        },
+        "RoleLoginRequest": {
+          "type": "object",
+          "properties": {
+            "role": {
+              "type": "string"
+            },
+            "token": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "role",
+            "token"
+          ]
+        },
+        "Item": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "name": {
+              "type": "string"
+            },
+            "price": {
+              "type": "number"
+            },
+            "store": {
+              "type": "string"
+            },
+            "coll": {
+              "type": "string"
+            }
+          }
+        },
+        "ItemSuggestion": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "coll": {
+              "type": "string"
+            }
+          }
+        },
+        "ItemDetails": {
+          "type": "object",
+          "properties": {
+            "_id": {
+              "type": "string"
+            },
+            "name": {
+              "type": "string"
+            },
+            "price": {
+              "type": "number"
+            }
+          }
+        },
+        "CartItem": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "name": {
+              "type": "string"
+            },
+            "price": {
+              "type": "number"
+            },
+            "store": {
+              "type": "string"
+            },
+            "inStock": {
+              "type": "boolean"
+            }
+          }
+        },
+        "ErrorResponse": {
+          "type": "object",
+          "properties": {
+            "error": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "securitySchemes": {
+        "session": {
+          "type": "apiKey",
+          "in": "cookie",
+          "name": "session"
+        }
+      }
+    }
+  }
