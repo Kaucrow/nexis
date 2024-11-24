@@ -3,7 +3,7 @@
     "info": {
       "title": "NEXIS Docs",
       "version": "1.0.0",
-      "description": "API documentation for NEXIS project"
+      "description": "API documentation for NEXIS"
     },
     "servers": [
       {
