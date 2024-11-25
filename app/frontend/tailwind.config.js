@@ -1,4 +1,6 @@
 /** @type {import('tailwindcss').Config} */
+const defaultTheme = require('tailwindcss/defaultTheme')
+
 export default {
   content: ['./src/**/*.{html,js,svelte,ts}'],
   prefix: "tw-",
@@ -9,7 +11,8 @@ export default {
       colors: {
         dark: {
           background: '#131a20',  // Background
-          primary: '#e2f1e7',     // White
+          primary: '#e2f1e7',
+          card: '#1A252E',     
           shade: {                // Dark colors
             light: '#21313b',
             dark: '#0d1418',
@@ -24,6 +27,12 @@ export default {
           },
         }
       }
+    },
+    fontFamily: {
+      'poppinsmedium': ['Poppins Medium', ...defaultTheme.fontFamily.sans],
+      'poppinsregular': ['Poppins Regular', ...defaultTheme.fontFamily.sans],
+      'poppinslight': ['Poppins Light', ...defaultTheme.fontFamily.sans],
+      'poppinsthin': ['Poppins Thin', ...defaultTheme.fontFamily.sans]
     }
   },
   plugins: []
