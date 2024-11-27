@@ -1,9 +1,7 @@
 use crate::prelude::*;
 use types::{ requests, responses, error, Role };
-use utils::{
-    verify_session,
-    database::checkout::{ client_checkout, client_cart_checkout },
-};
+use handlers::checkout::{ client_checkout, client_cart_checkout };
+use utils::verify_session;
 
 #[tracing::instrument(
     name = "Accessing checkout endpoint",

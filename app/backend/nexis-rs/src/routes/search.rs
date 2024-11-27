@@ -1,6 +1,6 @@
 use crate::prelude::*;
 use types::{ responses, mongodb::{ SimpleItem, IsCollection }};
-use crate::utils::database::search::get_item_details;
+use handlers::search::get_item_details;
 
 #[derive(Deserialize, Debug)]
 pub struct SuggestionsParams {

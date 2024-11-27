@@ -1,5 +1,5 @@
 use crate::prelude::*;
-use super::IsCollection;
+use super::{ IsCollection, constants::* };
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct SimpleItem {
@@ -8,10 +8,6 @@ pub struct SimpleItem {
     pub name: String,
     pub price: f64,
     pub coll: String,
-}
-
-impl IsCollection for SimpleItem {
-    fn coll_name() -> &'static str { "items" }
 }
 
 #[derive(Serialize, Debug)]
@@ -45,6 +41,7 @@ pub struct Clothes {
     pub price: f64,
     pub age: String,
     pub size: String,
+    pub gender: String,
     pub colors: Vec<String>,
     #[serde(rename = "type")]
     pub clothes_type: String,
@@ -207,34 +204,38 @@ pub struct TechOther {
     pub lots: Vec<Lot>,
 }
 
+impl IsCollection for SimpleItem {
+    fn coll_name() -> &'static str { ITEMS_COLL_NAME }
+}
+
 impl IsCollection for Clothes {
-    fn coll_name() -> &'static str { "clothes" }
+    fn coll_name() -> &'static str { CLOTHES_COLL_NAME }
 }
 
 impl IsCollection for Food {
-    fn coll_name() -> &'static str { "food" }
+    fn coll_name() -> &'static str { FOOD_COLL_NAME }
 }
 
 impl IsCollection for LibraryItem {
-    fn coll_name() -> &'static str { "libraryItems" }
+    fn coll_name() -> &'static str { LIBRARYITEMS_COLL_NAME }
 }
 
 impl IsCollection for Tech {
-    fn coll_name() -> &'static str { "techs" }
+    fn coll_name() -> &'static str { TECHOTHER_COLL_NAME }
 }
 
 impl IsCollection for Gpu {
-    fn coll_name() -> &'static str { "techGpus" }
+    fn coll_name() -> &'static str { GPUS_COLL_NAME }
 }
 
 impl IsCollection for Cpu {
-    fn coll_name() -> &'static str { "techCpus" }
+    fn coll_name() -> &'static str { CPUS_COLL_NAME }
 }
 
 impl IsCollection for Keyboard {
-    fn coll_name() -> &'static str { "techKeyboards" }
+    fn coll_name() -> &'static str { KEYBOARD_COLL_NAME }
 }
 
 impl IsCollection for TechOther {
-    fn coll_name() -> &'static str { "techOthers" }
+    fn coll_name() -> &'static str { TECHOTHER_COLL_NAME }
 }

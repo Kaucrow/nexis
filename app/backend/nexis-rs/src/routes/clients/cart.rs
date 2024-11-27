@@ -1,14 +1,11 @@
 use crate::prelude::*;
-use crate::responses;
-use crate::utils::{
-    verify_session,
-    database::{
-        get_client_cart_details,
-        delete_client_cart_item,
-        insert_client_cart_item,
-    },
+use types::{ responses, Role };
+use utils::verify_session;
+use handlers::cart::{
+    get_client_cart_details,
+    insert_client_cart_item,
+    delete_client_cart_item,
 };
-use types::Role;
 
 #[tracing::instrument(
     name = "Accessing client's cart items retrieval endpoint",

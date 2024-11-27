@@ -1,0 +1,9 @@
+pub const ITEMS_COLL_NAME: &'static str = "items";
+pub const CLOTHES_COLL_NAME: &'static str = "clothes";
+pub const FOOD_COLL_NAME: &'static str = "food";
+pub const LIBRARYITEMS_COLL_NAME: &'static str = "libraryItems";
+pub const CPUS_COLL_NAME: &'static str = "cpus";
+pub const GPUS_COLL_NAME: &'static str = "gpus";
+pub const TECH_COLL_NAME: &'static str = "techs";
+pub const TECHOTHER_COLL_NAME: &'static str = "techOthers";
+pub const KEYBOARD_COLL_NAME: &'static str = "keyboards";

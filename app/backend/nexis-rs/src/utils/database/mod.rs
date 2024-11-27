@@ -1,15 +1,5 @@
-pub mod users;
-pub mod search;
-pub mod checkout;
 pub mod items;
-
-pub use users::{
-    insert_created_user_into_db,
-    get_client_cart_details,
-    delete_client_cart_item,
-    insert_client_cart_item,
-    get_user,
-};
+pub mod users;
 
 use crate::prelude::*;
 use anyhow::Result;

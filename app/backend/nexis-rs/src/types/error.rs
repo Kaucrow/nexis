@@ -1,4 +1,5 @@
 use thiserror::Error;
+use crate::handlers::inventory::add::CsvType;
 
 #[derive(Debug, Error)]
 pub enum Redis {
@@ -22,6 +23,20 @@ pub enum Mongodb {
     SimpleItemNotFound,
     #[error("At least one of the requested items is sold out")]
     ItemSoldOut,
+}
+
+#[derive(Debug, Error)]
+pub enum Csv {
+    #[error("Unsupported csv type: {0}")]
+    UnsupportedType(CsvType),
+    #[error("Unsupported csv type: {0}")]
+    UnsupportedTypeStr(String),
+    #[error("Wrong number of fields. Expected {0} and found {1}")]
+    WrongFieldNum(usize, usize),
+    #[error("Failed to parse the CSV on line {0}, field {1}")]
+    ParseError(usize, usize),
+    #[error("Missing {0} on line {1}")]
+    MissingProperty(&'static str, usize),
 }
 
 #[derive(Debug, Error)]

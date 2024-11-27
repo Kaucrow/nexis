@@ -107,6 +107,7 @@ impl<'a> From<&'a Clothes> for ClothesDetails<'a> {
             price: item.price,
             age: &item.age,
             size: &item.size,
+            gender: &item.gender,
             colors: item.colors.iter().map(|s| s.as_str()).collect(),
             clothes_type: &item.clothes_type,
             brand: &item.brand,
