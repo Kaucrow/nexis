@@ -7,7 +7,7 @@
     },
     "servers": [
       {
-        "url": "https://localhost:443",
+        "url": "http://localhost:80",
         "description": "Development server"
       }
     ],
@@ -604,7 +604,7 @@
         "LoginRequest": {
           "type": "object",
           "properties": {
-            "email": {
+            "identifier": {
               "type": "string"
             },
             "password": {
