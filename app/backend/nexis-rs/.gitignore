@@ -6,6 +6,7 @@
 
 # CSV files
 inventory
+!src/handlers/inventory
 
 # Rust
 cargo.lock
