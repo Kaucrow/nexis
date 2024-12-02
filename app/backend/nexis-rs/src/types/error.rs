@@ -33,10 +33,12 @@ pub enum Csv {
     UnsupportedTypeStr(String),
     #[error("Wrong number of fields. Expected {0} and found {1}")]
     WrongFieldNum(usize, usize),
-    #[error("Failed to parse the CSV on line {0}, field {1}")]
+    #[error("Failed to parse the csv on line {0}, field {1}")]
     ParseError(usize, usize),
     #[error("Missing {0} on line {1}")]
     MissingProperty(&'static str, usize),
+    #[error("The csv has an invalid header")]
+    InvalidHeader,
 }
 
 #[derive(Debug, Error)]
