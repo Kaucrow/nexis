@@ -28,6 +28,16 @@ pub struct Lot {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
+pub struct FoodLot {
+    #[serde(rename = "_id")]
+    pub id: ObjectId,
+    #[serde(rename = "enterDate")]
+    pub enter_date: DateTime<Utc>,
+    pub expiry: DateTime<Utc>,
+    pub codes: Vec<ObjectId>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Material {
     pub percentage: f64,
     pub name: String,    
@@ -84,7 +94,7 @@ pub struct Food {
     pub price: Option<f64>,
     #[serde(rename = "type")]
     pub food_type: String,
-    pub lots: Vec<Lot>,
+    pub lots: Vec<FoodLot>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]

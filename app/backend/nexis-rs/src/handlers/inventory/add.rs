@@ -4,14 +4,16 @@ use std::{ fs, io::BufReader };
 use csv::{ StringRecord, ReaderBuilder };
 use async_trait::async_trait;
 use chrono::Utc;
+use utils::common::parse_to_utc_date;
 use types::{
     requests,
     error,
     mongodb::{
-        items::{ Material, Book, Lot },
+        items::{ Material, Book, Lot, FoodLot },
         IsCollection,
         Clothes,
         LibraryItem,
+        Food,
     }
 };
 
@@ -186,7 +188,7 @@ impl Csv for Clothes {
 
     async fn from_csv_record(header: &CsvHeader, r: csv::StringRecord, line: usize, csv_type: &CsvType) -> Result<Box<Self>> {
         if r.len() != Self::expected_fields(csv_type)? {
-            bail!(error::Csv::WrongFieldNum(Self::expected_fields(csv_type)?, r.len()));
+            bail!(error::Csv::WrongFieldNum(Self::expected_fields(csv_type)?, r.len(), line));
         }
 
         let colors: Vec<String> = r.get_field("colors", header)?.split(',').map(|color| color.to_string()).collect();
@@ -203,7 +205,7 @@ impl Csv for Clothes {
         .collect();
         let materials = materials?;
 
-        let lot = build_lot(r.get_field("lots", header)?);
+        let lot = build_lot(r.get_field("codes", header)?);
         
         Ok(Box::new(Self {
             id: ObjectId::new(),
@@ -233,12 +235,12 @@ impl Csv for LibraryItem {
 
     async fn from_csv_record(header: &CsvHeader, r: csv::StringRecord, line: usize, csv_type: &CsvType) -> Result<Box<Self>> {
         if r.len() != Self::expected_fields(csv_type)? {
-            bail!(error::Csv::WrongFieldNum(Self::expected_fields(csv_type)?, r.len()));
+            bail!(error::Csv::WrongFieldNum(Self::expected_fields(csv_type)?, r.len(), line));
         }
 
         match csv_type {
             CsvType::LibraryCommon => {
-                let lot = build_lot(r.get_field("lots", header)?);
+                let lot = build_lot(r.get_field("codes", header)?);
 
                 Ok(Box::new(Self {
                     id: ObjectId::new(),
@@ -249,7 +251,7 @@ impl Csv for LibraryItem {
                 }))
             }
             CsvType::LibraryBook => {
-                let lot = build_lot(r.get_field("lots", header)?);
+                let lot = build_lot(r.get_field("codes", header)?);
 
                 let authors: Vec<String> = r.get_field("authors", header)?.split(',').map(|author| author.to_string()).collect();
                 let audiences: Vec<String> = r.get_field("audiences", header)?.split(',').map(|audience| audience.to_string()).collect();
@@ -273,5 +275,52 @@ impl Csv for LibraryItem {
             }
             _ => bail!(error::Csv::UnsupportedType(*csv_type))
         }
+    }
+}
+
+#[async_trait]
+impl Csv for Food {
+    fn expected_fields(_: &CsvType) -> Result<usize> { Ok(5) }
+
+    async fn from_csv_record(header: &CsvHeader, r: csv::StringRecord, line: usize, csv_type: &CsvType) -> Result<Box<Self>> {
+        if r.len() != Self::expected_fields(csv_type)? {
+            bail!(error::Csv::WrongFieldNum(Self::expected_fields(csv_type)?, r.len(), line));
+        }
+
+        let price: Option<f64> = 
+            match r.get_field("price", header)? {
+                field if field.is_empty() => None,
+                field => Some(field.parse::<f64>().map_err(|e| anyhow!(e))?),
+            };
+
+        let price_per_kg: Option<f64> = 
+            match r.get_field("price_per_kg", header)? {
+                field if field.is_empty() => None,
+                field => Some(field.parse::<f64>().map_err(|e| anyhow!(e))?),
+            };
+
+        let lot: FoodLot = {
+            let mut lot = FoodLot {
+                id: ObjectId::new(),
+                enter_date: Utc::now(),
+                expiry: parse_to_utc_date(r.get_field("expiry", header)?)?,
+                codes: Vec::new(),
+            };
+
+            for code in r.get_field("codes", header)?.split(',') {
+                lot.codes.push(ObjectId::new())
+            }
+
+            lot
+        };
+
+        Ok(Box::new(Self {
+            id: ObjectId::new(),
+            name: r.get_field("name", header)?.to_string(),
+            price,
+            price_per_kg,
+            food_type: r.get_field("type", header)?.to_string(),
+            lots: vec![lot],
+        }))
     }
 }
