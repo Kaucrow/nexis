@@ -2,13 +2,12 @@ use crate::prelude::*;
 use serde_json::Value;
 use types::{
     responses::ITEM_DETAILS_REG,
-    error,
     mongodb::{
-        SimpleItem,
         Tech,
         IsCollection,
     }
 };
+use utils::database::items::get_simple_item;
 use anyhow::Result;
 
 static DB_COLLS: Lazy<Vec<&'static str>> = Lazy::new(|| vec![Tech::coll_name()]);
@@ -16,9 +15,7 @@ static DB_COLLS: Lazy<Vec<&'static str>> = Lazy::new(|| vec![Tech::coll_name()])
 pub async fn get_item_details(
     db: &mongodb::Database, item_id: ObjectId
 ) -> Result<Value> {
-    let items_coll: Collection<SimpleItem> = db.collection("items");
-    
-    let item = items_coll.find_one( doc! { "_id": item_id }).await?.ok_or_else(|| anyhow!(error::Mongodb::SimpleItemNotFound))?;
+    let item = get_simple_item(db, item_id).await?;
 
     let coll_name = item.coll;
 

@@ -1,13 +1,10 @@
 use crate::prelude::*;
-use crate::{
-    responses,
-    utils::{
-        auth::password::hash,
-        database::insert_created_user_into_db,
-        send_multipart_email,
-        get_redis_conn,
-    },
-    types::NewUser,
+use types::{ responses, NewUser };
+use utils::{
+    database::users::insert_created_user_into_db,
+    auth::password::hash,
+    send_multipart_email,
+    get_redis_conn,
 };
 
 #[tracing::instrument(name = "Adding a new user",
@@ -30,7 +27,7 @@ pub async fn register_user(
     };
 
     let hashed_password = hash(new_user.0.password.as_bytes()).await;
-    
+
     let create_new_user = NewUser {
         password: hashed_password,
         email: new_user.0.email,
@@ -70,7 +67,7 @@ pub async fn register_user(
     .await
     .unwrap();
 
-    tracing::event!(target: "backend", tracing::Level::INFO, "User created successfully.");
+    tracing::info!(target: "backend", "User created successfully.");
     actix_web::HttpResponse::Ok().json(responses::Success::new(
         "Your account was created successfully. Check your email address to activate your account as we just sent you an activation link. Ensure you activate your account before the link expires.",
     ))

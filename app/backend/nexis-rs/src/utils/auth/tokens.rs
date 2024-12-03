@@ -126,7 +126,7 @@ pub async fn verify_session_token(
             let role: Role = serde_json::from_value(role_claim.clone())?;
 
             let user =
-                utils::database::get_user(db, user_id)
+                utils::database::users::get_user(db, user_id)
                 .await?
                 .expect("Failed to find user in database.");
 

@@ -12,12 +12,30 @@ pub struct SimpleItem {
     pub coll: String,
 }
 
+#[derive(Serialize, Debug)]
+pub struct ItemSale {
+    pub coll: String,
+    pub item_id: ObjectId,
+    pub lot_id: ObjectId,
+    pub code: ObjectId,
+}
+
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Lot {
     #[serde(rename = "_id")]
     pub id: ObjectId,
     #[serde(rename = "enterDate")]
     pub enter_date: DateTime<Utc>,
+    pub codes: Vec<ObjectId>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct FoodLot {
+    #[serde(rename = "_id")]
+    pub id: ObjectId,
+    #[serde(rename = "enterDate")]
+    pub enter_date: DateTime<Utc>,
+    pub expiry: DateTime<Utc>,
     pub codes: Vec<ObjectId>,
 }
 
@@ -35,6 +53,7 @@ pub struct Clothes {
     pub price: f64,
     pub age: String,
     pub size: String,
+    pub gender: String,
     pub colors: Vec<String>,
     #[serde(rename = "type")]
     pub clothes_type: String,
@@ -77,7 +96,7 @@ pub struct Food {
     pub price: Option<f64>,
     #[serde(rename = "type")]
     pub food_type: String,
-    pub lots: Vec<Lot>,
+    pub lots: Vec<FoodLot>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -196,6 +215,12 @@ pub struct TechOther {
     pub price: f64,
     pub lots: Vec<Lot>,
 }
+
+impl IsCollection for SimpleItem {
+    fn coll_name() -> &'static str { "items" }
+}
+
+impl Item for SimpleItem {}
 
 impl IsCollection for Clothes {
     fn coll_name() -> &'static str { "clothes" }

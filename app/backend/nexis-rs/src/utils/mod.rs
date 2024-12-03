@@ -8,10 +8,9 @@ pub use common::get_store_from_coll;
 pub use emails::send_multipart_email;
 pub use auth::{
     tokens,
-    cookies::get_sss_pub_token,
+    cookies::{ verify_session, get_sss_pub_token },
     verify_password,
     issue_session_token,
-    verify_session_token,
     revoke_session_token,
     issue_email_token,
     verify_email_token,

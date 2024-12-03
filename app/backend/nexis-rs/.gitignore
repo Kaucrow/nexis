@@ -1,8 +1,12 @@
-# Setting files
+# Settings files
 *.yaml
 !base_example.yaml
 !development_example.yaml
 !production_example.yaml
+
+# CSV files
+inventory
+!src/handlers/inventory
 
 # Rust
 cargo.lock

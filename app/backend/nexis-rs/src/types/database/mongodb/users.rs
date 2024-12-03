@@ -91,8 +91,6 @@ impl User {
     }
 }
 
-
-
 impl TryFrom<NewUser> for User {
     type Error = anyhow::Error;
 

@@ -1,18 +1,14 @@
 use crate::prelude::*;
-use crate::responses;
-use crate::utils::{
-    get_sss_pub_token,
-    verify_session_token,
-    database::{
-        get_client_cart_details,
-        delete_client_cart_item,
-        insert_client_cart_item,
-    },
+use types::{ responses, Role };
+use utils::verify_session;
+use handlers::cart::{
+    get_client_cart_details,
+    insert_client_cart_item,
+    delete_client_cart_item,
 };
-use types::Role;
 
 #[tracing::instrument(
-    name = "Getting client's cart items",
+    name = "Accessing client's cart items retrieval endpoint",
     skip(db, redis_pool, req)
 )]
 #[actix_web::get("/cart")]
@@ -23,12 +19,7 @@ pub async fn get_cart_items(
 ) -> HttpResponse {
     tracing::info!(target: "backend", "Accessing client cart endpoint.");
 
-    let sss_pub_token = match get_sss_pub_token(req) {
-        Ok(token) => token,
-        Err(e) => return HttpResponse::BadRequest().json(responses::Error::new(e))
-    };
-
-    match verify_session_token(sss_pub_token, &db, &redis_pool).await {
+    match verify_session(&req, &db, &redis_pool).await {
         Ok(session) => {
             if session.role != Role::Client {
                 return HttpResponse::Unauthorized().json(responses::RoleRequired::new(Role::Client));
@@ -67,7 +58,7 @@ struct CartItemUpdateParams {
 }
 
 #[tracing::instrument(
-    name = "Deleting a client's cart item",
+    name = "Accessing client's cart item deletion endpoint",
     skip(db, redis_pool, req, params),
     fields(item_id = %params.item_id)
 )]
@@ -80,12 +71,7 @@ pub async fn delete_cart_item(
 ) -> HttpResponse {
     tracing::info!(target: "backend", "Accessing client cart item delete endpoint.");
 
-    let sss_pub_token = match get_sss_pub_token(req) {
-        Ok(token) => token,
-        Err(e) => return HttpResponse::BadRequest().json(responses::Error::new(e))
-    };
-
-    match verify_session_token(sss_pub_token, &db, &redis_pool).await {
+    match verify_session(&req, &db, &redis_pool).await {
         Ok(session) => {
             if session.role != Role::Client {
                 return HttpResponse::Unauthorized().json(responses::RoleRequired::new(Role::Client));
@@ -120,7 +106,7 @@ pub async fn delete_cart_item(
 }
 
 #[tracing::instrument(
-    name = "Inserting an item into the client's cart",
+    name = "Accessing client's cart item insertion endpoint",
     skip(db, redis_pool, req, params),
     fields(item_id = %params.item_id)
 )]
@@ -133,12 +119,7 @@ pub async fn insert_cart_item(
 ) -> HttpResponse {
     tracing::info!(target: "backend", "Accessing client cart item insert endpoint.");
 
-    let sss_pub_token = match get_sss_pub_token(req) {
-        Ok(token) => token,
-        Err(e) => return HttpResponse::BadRequest().json(responses::Error::new(e))
-    };
-
-    match verify_session_token(sss_pub_token, &db, &redis_pool).await {
+    match verify_session(&req, &db, &redis_pool).await {
         Ok(session) => {
             if session.role != Role::Client {
                 return HttpResponse::Unauthorized().json(responses::RoleRequired::new(Role::Client));

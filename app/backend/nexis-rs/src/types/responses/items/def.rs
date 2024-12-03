@@ -14,6 +14,7 @@ pub struct ClothesDetails<'a> {
     pub price: f64,
     pub age: &'a str,
     pub size: &'a str,
+    pub gender: &'a str,
     pub colors: Vec<&'a str>,
     #[serde(rename = "type")]
     pub clothes_type: &'a str,

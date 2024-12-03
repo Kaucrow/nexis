@@ -80,7 +80,7 @@ where
             let coll_name = T::coll_name();
             let coll: Collection<T> = db.collection(coll_name);
 
-            let library_item =
+            let item =
                 match coll.find_one(doc! { "_id": item_id }).await {
                     Ok(item) => item?,
                     Err(e) => {
@@ -89,7 +89,7 @@ where
                     }
                 };
 
-            Some(Box::new(library_item) as Box<dyn ItemDetails + Send>)
+            Some(Box::new(item) as Box<dyn ItemDetails + Send>)
         })
     })
 }
@@ -108,6 +108,7 @@ impl<'a> From<&'a Clothes> for ClothesDetails<'a> {
             price: item.price,
             age: &item.age,
             size: &item.size,
+            gender: &item.gender,
             colors: item.colors.iter().map(|s| s.as_str()).collect(),
             clothes_type: &item.clothes_type,
             brand: &item.brand,

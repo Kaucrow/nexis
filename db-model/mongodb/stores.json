@@ -9,6 +9,7 @@
         "height": "Number"
     },
     "daySales": [{
+        "date": "Date",
         "payment": {
             "amount": "Number",
             "type": {

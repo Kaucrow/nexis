@@ -1,6 +1,6 @@
 use crate::prelude::*;
-use types::{ responses, mongodb::SimpleItem };
-use crate::utils::database::search::get_item_details;
+use types::{ responses, mongodb::{ SimpleItem, IsCollection }};
+use handlers::search::get_item_details;
 
 #[derive(Deserialize, Debug)]
 pub struct SuggestionsParams {
@@ -20,7 +20,7 @@ pub async fn search_suggestions(
 
     const MAX_SUGGEST: i32 = 8;
 
-    let items_coll: Collection<SimpleItem> = db.collection("items");
+    let items_coll: Collection<SimpleItem> = db.collection(SimpleItem::coll_name());
 
     let input = &params.input;
 
@@ -91,7 +91,7 @@ pub async fn search_items(
 
     let search_aggregate = build_search_pipeline(input, min_price, max_price, skip, MAX_RESULTS, true).await;
         
-    let items_coll: Collection<SimpleItem> = db.collection("items");
+    let items_coll: Collection<SimpleItem> = db.collection(SimpleItem::coll_name());
 
     let mut results: Vec<responses::ItemResult> = Vec::new();
     let mut added_ids: HashSet<ObjectId> = HashSet::new();

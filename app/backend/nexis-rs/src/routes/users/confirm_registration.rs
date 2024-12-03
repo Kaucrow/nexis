@@ -1,7 +1,7 @@
 use crate::prelude::*;
 use crate::responses;
 use anyhow::Result;
-use crate::types::mongodb::User;
+use crate::types::mongodb::{ User, IsCollection };
 
 #[derive(Deserialize)]
 pub struct Parameters {
@@ -69,7 +69,7 @@ pub async fn activate_new_user(
     db: &mongodb::Database,
     user_id: ObjectId, 
 ) -> Result<()> {
-    let users_coll: Collection<User> = db.collection("user");
+    let users_coll: Collection<User> = db.collection(User::coll_name());
 
     let query = doc! { "_id": user_id };
     let update = doc! { "$set": { "isActive": true }};
