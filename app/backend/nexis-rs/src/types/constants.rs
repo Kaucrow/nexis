@@ -1,6 +1,6 @@
 use crate::prelude::*;
 use types::mongodb::{
-    Clothes, Cpu, Food, Gpu, Item, Keyboard, LibraryItem, Tech, TechOther
+    IsCollection, Clothes, Cpu, Food, Gpu, Keyboard, LibraryItem, Tech, TechOther
 };
 
 pub const SSS_COOKIE_NAME: &'static str = "session";

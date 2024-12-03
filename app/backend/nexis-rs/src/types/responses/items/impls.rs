@@ -1,6 +1,7 @@
 use crate::prelude::*;
 use super::*;
 use types::mongodb::{
+    IsCollection,
     Item,
     Clothes,
     LibraryItem,

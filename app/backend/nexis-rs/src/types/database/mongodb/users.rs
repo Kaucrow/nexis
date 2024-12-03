@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 use chrono::{ DateTime, Utc };
 use mongodb::bson::oid::ObjectId;
 use crate::types::{ requests::users::NewUser, auth::Role };
+use super::IsCollection;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct CartItem {
@@ -74,6 +75,10 @@ pub struct User {
     pub admin: Option<Box<Admin>>,
 }
 
+impl IsCollection for User {
+    fn coll_name() -> &'static str { "users" }
+}
+
 impl User {
     pub fn get_roles(&self) -> Vec<Role> {
         let mut roles: Vec<Role> = Vec::new();
@@ -85,6 +90,8 @@ impl User {
         roles
     }
 }
+
+
 
 impl TryFrom<NewUser> for User {
     type Error = anyhow::Error;

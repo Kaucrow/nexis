@@ -12,3 +12,5 @@ cargo.lock
 
 # Debug endpoints
 !src/routes/debug
+
+inventory

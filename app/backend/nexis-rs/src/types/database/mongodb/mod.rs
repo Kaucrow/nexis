@@ -14,3 +14,7 @@ pub use items::{
     Gpu,
     Keyboard,
 };
+
+pub trait IsCollection {
+    fn coll_name() -> &'static str;
+}

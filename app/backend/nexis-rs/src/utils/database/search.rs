@@ -6,7 +6,7 @@ use types::{
     mongodb::{
         SimpleItem,
         Tech,
-        Item,
+        IsCollection,
     }
 };
 use anyhow::Result;
