@@ -8,7 +8,6 @@
     "threads": "Number",
     "socketType": "String",
     "overclockSupp": "Boolean",
-    "soldSep": "Boolean",
     "warranty_?_": "String",
     "memorySupp": {
         "type": "String",

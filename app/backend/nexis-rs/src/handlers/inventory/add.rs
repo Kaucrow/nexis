@@ -6,15 +6,10 @@ use async_trait::async_trait;
 use chrono::Utc;
 use utils::common::parse_to_utc_date;
 use types::{
-    requests,
     error,
-    mongodb::{
-        items::{ Material, Book, Lot, FoodLot },
-        IsCollection,
-        Clothes,
-        LibraryItem,
-        Food,
-    }
+    mongodb::IsCollection,
+    mongodb::items::*,
+    requests,
 };
 
 #[derive(Debug, Copy, Clone)]
@@ -164,7 +159,7 @@ trait CsvParseExt {
 
 impl CsvParseExt for str {
     fn parse_ext<T: std::str::FromStr>(&self, line: usize, column: usize) -> Result<T> {
-        self.parse::<T>().map_err(|_| anyhow!(error::Csv::ParseError(line, column))) 
+        self.parse::<T>().map_err(|_| anyhow!(error::Csv::ParseError(line, column)))
     }
 }
 
@@ -280,7 +275,7 @@ impl Csv for LibraryItem {
 
 #[async_trait]
 impl Csv for Food {
-    fn expected_fields(_: &CsvType) -> Result<usize> { Ok(5) }
+    fn expected_fields(_: &CsvType) -> Result<usize> { Ok(6) }
 
     async fn from_csv_record(header: &CsvHeader, r: csv::StringRecord, line: usize, csv_type: &CsvType) -> Result<Box<Self>> {
         if r.len() != Self::expected_fields(csv_type)? {
@@ -320,6 +315,173 @@ impl Csv for Food {
             price,
             price_per_kg,
             food_type: r.get_field("type", header)?.to_string(),
+            lots: vec![lot],
+        }))
+    }
+}
+
+#[async_trait]
+impl Csv for Cpu {
+    fn expected_fields(_: &CsvType) -> Result<usize> { Ok(15) }
+
+    async fn from_csv_record(header: &CsvHeader, r: csv::StringRecord, line: usize, csv_type: &CsvType) -> Result<Box<Self>> {
+        if r.len() != Self::expected_fields(csv_type)? {
+            bail!(error::Csv::WrongFieldNum(Self::expected_fields(csv_type)?, r.len(), line));
+        }
+
+        let lot = build_lot(r.get_field("codes", header)?);
+
+        Ok(Box::new(Self {
+            id: ObjectId::new(),
+            name: r.get_field("name", header)?.to_string(),
+            price: r.get_field("price", header)?.parse()?,
+            brand: r.get_field("brand", header)?.to_string(),
+            model: r.get_field("model", header)?.to_string(),
+            arch: r.get_field("arch", header)?.to_string(),
+            cores: r.get_field("cores", header)?.parse()?,
+            threads: r.get_field("threads", header)?.parse()?,
+            socket_type: r.get_field("socket_type", header)?.to_string(),
+            overclock_supp: r.get_field("overclock", header)?.parse()?,
+            memory_supp: MemorySupported {
+                memory_type: r.get_field("memsupp_type", header)?.to_string(),
+                max_size_gb: r.get_field("memsupp_max_gb", header)?.parse()?,
+            },
+            clock: Clock {
+                core_speed_ghz: r.get_field("clock_core_speed_ghz", header)?.parse()?,
+                boost_speed_ghz: r.get_field("clock_boost_speed_ghz", header)?.parse()?,
+            },
+            graphics: r.get_field("graphics", header)?.to_string(),
+            lots: vec![lot],
+        }))
+    }
+}
+
+#[async_trait]
+impl Csv for Gpu {
+    fn expected_fields(_: &CsvType) -> Result<usize> { Ok(11) }
+
+    async fn from_csv_record(header: &CsvHeader, r: csv::StringRecord, line: usize, csv_type: &CsvType) -> Result<Box<Self>> {
+        if r.len() != Self::expected_fields(csv_type)? {
+            bail!(error::Csv::WrongFieldNum(Self::expected_fields(csv_type)?, r.len(), line));
+        }
+
+        let lot = build_lot(r.get_field("codes", header)?);
+        let ports: Vec<String> = r.get_field("ports", header)?.split(',').map(|port| port.to_string()).collect();
+
+        Ok(Box::new(Self {
+            id: ObjectId::new(),
+            name: r.get_field("name", header)?.to_string(),
+            price: r.get_field("price", header)?.parse()?,
+            brand: r.get_field("brand", header)?.to_string(),
+            model: r.get_field("model", header)?.to_string(),
+            tdp: r.get_field("tdp", header)?.parse()?,
+            ports,
+            memory: Memory {
+                memory_type: r.get_field("mem_type", header)?.to_string(),
+                size_gb: r.get_field("mem_size_gb", header)?.parse()?,
+            },
+            clock: Clock {
+                core_speed_ghz: r.get_field("clock_core_speed_ghz", header)?.parse()?,
+                boost_speed_ghz: r.get_field("clock_boost_speed_ghz", header)?.parse()?,
+            },
+            lots: vec![lot],
+        }))
+    }
+}
+
+#[async_trait]
+impl Csv for Keyboard {
+    fn expected_fields(_: &CsvType) -> Result<usize> { Ok(11) }
+
+    async fn from_csv_record(header: &CsvHeader, r: csv::StringRecord, line: usize, csv_type: &CsvType) -> Result<Box<Self>> {
+        if r.len() != Self::expected_fields(csv_type)? {
+            bail!(error::Csv::WrongFieldNum(Self::expected_fields(csv_type)?, r.len(), line));
+        }
+
+        let lot = build_lot(r.get_field("codes", header)?);
+
+        let dimensions = {
+            let mut split = r.get_field("dimensions", header)?.splitn(3, 'x');
+
+            let dimensions = Dimensions {
+                height: split.next().ok_or(anyhow!(error::Csv::MissingProperty("height", line)))?.parse()?,
+                width: split.next().ok_or(anyhow!(error::Csv::MissingProperty("width", line)))?.parse()?,
+                length: split.next().ok_or(anyhow!(error::Csv::MissingProperty("length", line)))?.parse()?,
+            };
+
+            dimensions
+        };
+
+        Ok(Box::new(Self {
+            id: ObjectId::new(),
+            name: r.get_field("name", header)?.to_string(),
+            price: r.get_field("price", header)?.parse()?,
+            brand: r.get_field("brand", header)?.to_string(),
+            model: r.get_field("model", header)?.to_string(),
+            keyboard_type: r.get_field("type", header)?.to_string(),
+            key_switch: r.get_field("key_switch", header)?.to_string(),
+            backlight: r.get_field("has_backlight", header)?.parse()?,
+            wireless: r.get_field("is_wireless", header)?.parse()?,
+            weight_kg: r.get_field("weight_kg", header)?.parse()?,
+            dimensions,
+            lots: vec![lot],
+        }))
+    }
+}
+
+#[async_trait]
+impl Csv for TechOther {
+    fn expected_fields(_: &CsvType) -> Result<usize> { Ok(3) }
+
+    async fn from_csv_record(header: &CsvHeader, r: csv::StringRecord, line: usize, csv_type: &CsvType) -> Result<Box<Self>> {
+        if r.len() != Self::expected_fields(csv_type)? {
+            bail!(error::Csv::WrongFieldNum(Self::expected_fields(csv_type)?, r.len(), line));
+        }
+
+        let lot = build_lot(r.get_field("codes", header)?);
+
+        Ok(Box::new(Self {
+            id: ObjectId::new(),
+            name: r.get_field("name", header)?.to_string(),
+            price: r.get_field("price", header)?.parse()?,
+            lots: vec![lot],
+        }))
+    }
+}
+
+#[async_trait]
+impl Csv for Tech {
+    fn expected_fields(_: &CsvType) -> Result<usize> { Ok(11) }
+
+    async fn from_csv_record(header: &CsvHeader, r: csv::StringRecord, line: usize, csv_type: &CsvType) -> Result<Box<Self>> {
+        if r.len() != Self::expected_fields(csv_type)? {
+            bail!(error::Csv::WrongFieldNum(Self::expected_fields(csv_type)?, r.len(), line));
+        }
+
+        let lot = build_lot(r.get_field("codes", header)?);
+
+        let gpu = {
+            let gpu = r.get_field("gpu", header)?;
+
+            if gpu.is_empty() {
+                None
+            } else {
+                Some(gpu.to_string())
+            }
+        };
+
+        Ok(Box::new(Self {
+            id: ObjectId::new(),
+            name: r.get_field("name", header)?.to_string(),
+            price: r.get_field("price", header)?.parse()?,
+            brand: r.get_field("brand", header)?.parse()?,
+            model: r.get_field("model", header)?.parse()?,
+            color: r.get_field("color", header)?.to_string(),
+            tech_type: r.get_field("type", header)?.to_string(),
+            ram: r.get_field("ram", header)?.parse()?,
+            storage: r.get_field("storage", header)?.parse()?,
+            cpu: r.get_field("cpu", header)?.to_string(),
+            gpu,
             lots: vec![lot],
         }))
     }

@@ -65,14 +65,14 @@ pub struct TechDetails<'a> {
     pub price: f64,
     pub brand: &'a str,
     pub model: &'a str,
-    pub color: Vec<&'a str>,
+    pub color: &'a str,
     #[serde(rename = "type")]
     pub tech_type: &'a str,
     pub ram: i32,
     pub storage: i32,
-    pub cpu: CpuDetailsOwned,
+    pub cpu: &'a str,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub gpu: Option<GpuDetailsOwned>,
+    pub gpu: Option<&'a str>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]

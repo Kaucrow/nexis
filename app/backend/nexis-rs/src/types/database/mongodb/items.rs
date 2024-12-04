@@ -105,13 +105,13 @@ pub struct Tech {
     pub price: f64,
     pub brand: String,
     pub model: String,
-    pub color: Vec<String>,
+    pub color: String,
     #[serde(rename = "type")]
     pub tech_type: String,
     pub ram: i32,
     pub storage: i32,
-    pub cpu: ObjectId,
-    pub gpu: Option<ObjectId>,
+    pub cpu: String,
+    pub gpu: Option<String>,
     pub lots: Vec<Lot>,
 }
 
@@ -146,8 +146,6 @@ pub struct Cpu {
     pub socket_type: String,
     #[serde(rename = "overclockSupp")]
     pub overclock_supp: bool,
-    #[serde(rename = "soldSep")]
-    pub sold_sep: bool,
     #[serde(rename = "memorySupp")]
     pub memory_supp: MemorySupported,
     pub clock: Clock,

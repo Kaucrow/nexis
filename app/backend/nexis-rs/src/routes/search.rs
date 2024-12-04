@@ -114,7 +114,6 @@ pub async fn search_items(
                 results.push(responses::ItemResult::from(item));
             }
         }
-
     }
 
     HttpResponse::Ok().json(results)
@@ -142,6 +141,7 @@ async fn build_search_pipeline(
     };
 
     text_or_regex_match.extend(price_match);
+    text_or_regex_match.extend(doc! { "soldSep": { "$ne": false }});
 
     let pipeline = vec![
         doc! { "$match": text_or_regex_match },

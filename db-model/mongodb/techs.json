@@ -7,8 +7,8 @@
     "type": "String",
     "ram": "Number",
     "storage": "Number",
-    "cpu": "ObjectId",
-    "gpu_?_": "ObjectId",
+    "cpu": "String",
+    "gpu_?_": "String",
     "lots": [{
         "_id": "ObjectId",
         "enterDate": "Date",

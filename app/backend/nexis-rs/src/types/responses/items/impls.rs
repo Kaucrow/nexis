@@ -307,61 +307,28 @@ impl ItemDetails for TechOther {
     }
 }
 
-impl<'a> TechDetails<'a> {
-    async fn from_tech(item: &'a Tech, db: &mongodb::Database) -> Result<Self> {
-        let cpu = {
-            let cpu_details_value =
-                ITEM_DETAILS_REG
-                .get_item_details(db, Cpu::coll_name(), item.cpu)
-                .await
-                .ok_or(anyhow!("Failed to get CPU from Tech item"))?
-                .details(None)
-                .await?;
-
-            serde_json::from_value::<CpuDetailsOwned>(cpu_details_value)?
-        };
-
-        let gpu = match item.gpu {
-            Some(gpu_id) => {
-                let gpu_details_value =
-                    ITEM_DETAILS_REG
-                    .get_item_details(db, Gpu::coll_name(), gpu_id)
-                    .await
-                    .ok_or(anyhow!("Failed to get GPU from Tech item"))?
-                    .details(None)
-                    .await?;
-
-                Some(serde_json::from_value::<GpuDetailsOwned>(gpu_details_value)?)
-            }
-            None => None
-        };
-
-        Ok(Self {
+impl<'a> From<&'a Tech> for TechDetails<'a> {
+    fn from(item: &'a Tech) -> Self {
+        Self {
             id: item.id.to_hex(),
             name: &item.name,
             price: item.price,
             brand: &item.brand,
             model: &item.model,
-            color: item.color.iter().map(|s| s.as_str()).collect(),
+            color: &item.color,
             tech_type: &item.tech_type,
             ram: item.ram,
             storage: item.storage, 
-            cpu,
-            gpu,
-        })
+            cpu: &item.cpu,
+            gpu: item.gpu.as_deref(),
+        } 
     }
 }
 
 #[async_trait]
 impl ItemDetails for Tech {
-    async fn details(&self, db: Option<&mongodb::Database>) -> Result<Value> {
-        match serde_json::to_value(
-            TechDetails::from_tech(
-                self,
-                db.ok_or(anyhow!("Must provide a mongodb Database object to obtain tech item details."))?
-            )
-            .await?
-        ) {
+    async fn details(&self, _: Option<&mongodb::Database>) -> Result<Value> {
+        match serde_json::to_value(TechDetails::from(self)) {
             Ok(value) => Ok(value),
             Err(e) => bail!(e),
         }

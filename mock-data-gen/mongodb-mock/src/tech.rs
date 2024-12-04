@@ -103,8 +103,6 @@ pub struct Cpu {
     socket_type: String,
     #[serde(rename = "overclockSupp")]
     overclock_supp: bool,
-    #[serde(rename = "soldSep")]
-    sold_sep: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     warranty: Option<String>,
     #[serde(rename = "memorySupp")]
@@ -136,7 +134,6 @@ impl Dummy<Faker> for Cpu {
             threads: rng.gen_range(1..=3),
             socket_type: CPU_SOCKETS.choose(rng).unwrap().to_string(),
             overclock_supp: rng.gen_bool(0.5),
-            sold_sep: rng.gen_bool(0.5),
             warranty,
             memory_supp: MemSupp::dummy_with_rng(config, rng),
             clock: Clock::dummy_with_rng(config, rng),
@@ -222,33 +219,32 @@ pub struct Tech {
     price: f64,
     brand: String,
     model: String,
-    color: Vec<String>,
+    color: String,
     #[serde(rename = "type")]
     tech_type: String,
     ram: u16,
     storage: u16,
-    cpu: ObjectIdWrapper,
+    cpu: String,
     #[serde(skip_serializing_if = "Option::is_none")]
-    gpu: Option<ObjectIdWrapper>,
+    gpu: Option<String>,
     lots: Vec<Lot>,
 }
 
 impl Tech {
     pub fn dummy_with_rng<R: rand::Rng + ?Sized>(cpu: ObjectIdWrapper, gpu: Option<ObjectIdWrapper>, config: &Faker, rng: &mut R) -> Self {
-        let color = {
-            let mut used: HashSet<&str> = HashSet::new();
-            (0..rng.gen_range(1..=2)).filter_map(|_| {
-                let color = COLORS.choose(rng).unwrap();
-                if used.insert(color) {
-                    Some(color.to_string())
-                } else {
-                    None
-                }
-            }).collect()
-        };
-
         let brand: String = Word().fake();
         let model: String = Word().fake();
+
+        let cpu_brand = CPU_BRAND_MODEL.keys().choose(rng).unwrap();
+        let cpu_model = CPU_BRAND_MODEL[cpu_brand].choose(rng).unwrap();
+
+        let gpu = if rng.gen_bool(0.5) {
+            let gpu_brand = GPU_BRAND_MODEL.keys().choose(rng).unwrap();
+            let gpu_model = GPU_BRAND_MODEL[gpu_brand].choose(rng).unwrap();
+            Some(format!("{} {}", gpu_brand, gpu_model))
+        } else {
+            None
+        };
 
         Tech {
             _id: ObjectIdWrapper::dummy_with_rng(config, rng),
@@ -256,11 +252,11 @@ impl Tech {
             price: (rng.gen_range(80.0..=1200.0) as f64).round_to_2(),
             brand,
             model,
-            color,
+            color: COLORS.choose(rng).unwrap().to_string(),
             tech_type: TECH_TYPES.choose(rng).unwrap().to_string(),
             ram: 2u16.pow(rng.gen_range(0..=6)),
             storage: 2u16.pow(rng.gen_range(3..=10)),
-            cpu,
+            cpu: format!("{} {}", cpu_brand, cpu_model),
             gpu,
             lots: (0..rng.gen_range(1..=5)).map(|_| Lot::dummy_with_rng(config, rng)).collect(),
         }
