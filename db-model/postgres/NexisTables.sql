@@ -31,7 +31,9 @@ CREATE TABLE Schedule (
     employeeUuid UUID,
     FOREIGN KEY (employeeUuid) REFERENCES Employees(employeeUuid),
     enterDate DATE NOT NULL,
-    exitDate DATE NOT NULL
+    exitDate DATE NOT NULL,
+    checkedIn DATE NOT NULL,
+    checkedOut DATE NOT NULL
 );
 
 CREATE TABLE Jobs (
@@ -55,8 +57,8 @@ CREATE TABLE StoreJobs (
     FOREIGN KEY (storeUuid) REFERENCES Stores(uuid),
     jobUuid UUID,
     FOREIGN KEY (jobUuid) REFERENCES Jobs(uuid),
-    payPerHour INT NOT NULL,
-    payPerWeek INT NOT NULL
+    payPerHour FLOAT(2) NOT NULL,
+    payPerWeek FLOAT(2) NOT NULL
 );
 
 CREATE TABLE EmployeeJob (
@@ -76,8 +78,8 @@ CREATE TABLE StoreOwners (
 
 CREATE TABLE FoodType (
     uuid UUID PRIMARY KEY,
-    typeName VARCHAR(255) NOT NULL,
-    pricePerKg INT NOT NULL
+    typeName VARCHAR(255) NOT NULL
+    
 );
 
 CREATE TABLE Food (
@@ -85,8 +87,15 @@ CREATE TABLE Food (
     typeFoodUuid UUID,
     FOREIGN KEY (typeFoodUuid) REFERENCES FoodType(uuid),
     foodName VARCHAR(255) NOT NULL,
-    foodPrice INT NOT NULL
+    foodPrice FLOAT(2) NOT NULL,
+    pricePerKg FLOAT(2) NOT NULL
 );
+
+CREATE TABLE foodreviews (
+    reviewUuid UUID,
+    FOREIGN KEY (reviewUuid) REFERENCES Food(uuid),
+    stars FLOAT(2) NOT NULL
+);  
 
 CREATE TABLE FoodLot (
     uuid UUID PRIMARY KEY,
@@ -105,7 +114,13 @@ CREATE TABLE FoodLotItems (
 CREATE TABLE LibraryItems (
     uuid UUID PRIMARY KEY,
     itemName VARCHAR(255) NOT NULL,
-    itemPrice INT NOT NULL
+    itemPrice FLOAT(2) NOT NULL
+);
+
+CREATE TABLE libraryreviews (
+    reviewUuid UUID,
+    FOREIGN KEY (reviewUuid) REFERENCES LibraryItems(uuid),
+    stars FLOAT(2) NOT NULL
 );
 
 CREATE TABLE BookPublishers (
@@ -169,11 +184,17 @@ CREATE TABLE Clothes (
     typeClothesUuid UUID,
     FOREIGN KEY (typeClothesUuid) REFERENCES ClothesTypes(uuid),
     clothesName VARCHAR(255) NOT NULL,
-    clothesPrice INT NOT NULL,
+    clothesPrice FLOAT(2) NOT NULL,
     clothesBrand VARCHAR(255) NOT NULL,
     clothesSize VARCHAR(10) NOT NULL,
     clothesGender VARCHAR(255) NOT NULL,
     clothesAge VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE clothesreviews (
+    reviewUuid UUID,
+    FOREIGN KEY (reviewUuid) REFERENCES Clothes(uuid),
+    stars FLOAT(2) NOT NULL
 );
 
 CREATE TABLE Colors (
@@ -192,15 +213,15 @@ CREATE TABLE TechCpu (
     uuid UUID PRIMARY KEY,
     cpuBrand VARCHAR(255) NOT NULL,
     cpuModel VARCHAR(255) NOT NULL,
-    cpuPrice INT NOT NULL,
-    soldSeparately BOOLEAN NOT NULL
+    cpuPrice FLOAT(2) NOT NULL
+    
 );
 
 CREATE TABLE TechGpu (
     uuid UUID PRIMARY KEY,
     gpuBrand VARCHAR(255) NOT NULL,
     gpuModel VARCHAR(255) NOT NULL,
-    gpuPrice INT NOT NULL,
+    gpuPrice FLOAT(2) NOT NULL,
     dedicated BOOLEAN NOT NULL
 );
 
@@ -211,10 +232,16 @@ CREATE TABLE Tech (
     uuidGpu UUID,
     FOREIGN KEY (uuidGpu) REFERENCES TechGpu(uuid),
     techName VARCHAR(255) NOT NULL,
-    techPrice INT NOT NULL,
+    techPrice FLOAT(2) NOT NULL,
     techBrand VARCHAR(255) NOT NULL,
     techType VARCHAR(255) NOT NULL,
     techModel VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE techreviews (
+    reviewUuid UUID,
+    FOREIGN KEY (reviewUuid) REFERENCES Tech(uuid),
+    stars FLOAT(2) NOT NULL
 );
 
 CREATE TABLE TechColors (
@@ -275,7 +302,7 @@ CREATE TABLE SalesTech (
     FOREIGN KEY (techUuid) REFERENCES Tech(uuid),
     employeeUuid UUID,   
     FOREIGN KEY (employeeUuid) REFERENCES Employees(employeeUuid),
-    price INT NOT NULL,
+    price FLOAT(2) NOT NULL,
     returned BOOLEAN NOT NULL
 );
 
@@ -286,7 +313,7 @@ CREATE TABLE SalesClothes (
     FOREIGN KEY (clothesUuid) REFERENCES Clothes(uuid),
     employeeUuid UUID,   
     FOREIGN KEY (employeeUuid) REFERENCES Employees(employeeUuid),
-    price INT NOT NULL,
+    price FLOAT(2) NOT NULL,
     returned BOOLEAN NOT NULL
 );
 
@@ -297,7 +324,7 @@ CREATE TABLE SalesFood (
     FOREIGN KEY (foodUuid) REFERENCES Food(uuid),
     employeeUuid UUID,
     FOREIGN KEY (employeeUuid) REFERENCES Employees(employeeUuid),
-    price INT NOT NULL,
+    price FLOAT(2) NOT NULL,
     returned BOOLEAN NOT NULL
 );
 
@@ -308,7 +335,7 @@ CREATE TABLE SalesLibrary (
     FOREIGN KEY (libraryUuid) REFERENCES LibraryItems(uuid),
     employeeUuid UUID,
     FOREIGN KEY (employeeUuid) REFERENCES Employees(employeeUuid),
-    price INT NOT NULL,
+    price FLOAT(2) NOT NULL,
     returned BOOLEAN NOT NULL
 );
 
@@ -337,7 +364,7 @@ CREATE TABLE TechStats (
     techUuid UUID,
     dateTechStats DATE,
     PRIMARY KEY (techUuid, dateTechStats),
-    salesPerWeek INT NOT NULL
+    salesPerWeek FLOAT(2) NOT NULL
 );
 
 CREATE TABLE TechBrandStats (
@@ -352,7 +379,7 @@ CREATE TABLE TechModelsStats (
     brandUuid UUID,
     FOREIGN KEY (brandUuid) REFERENCES TechBrandStats(uuid),
     nameTMS VARCHAR(255) NOT NULL,
-    percentageTMS INT NOT NULL
+    percentageTMS FLOAT(2) NOT NULL
 );
 
 CREATE TABLE FoodStats (
@@ -366,14 +393,14 @@ CREATE TABLE LibraryStats (
     dateLS DATE NOT NULL,
     FOREIGN KEY (libraryUuid) REFERENCES LibraryItems(uuid),
     PRIMARY KEY (libraryUuid, dateLS),
-    salesPerWeek INT NOT NULL,
+    salesPerWeek FLOAT(2) NOT NULL,
     bookOfTheWeek VARCHAR(255) NOT NULL
 );
 
 CREATE TABLE LibraryGenderStats (
     dateLGS DATE PRIMARY KEY,
-    malePercentage INT NOT NULL,
-    femalePercentage INT NOT NULL
+    malePercentage FLOAT(2) NOT NULL,
+    femalePercentage FLOAT(2) NOT NULL
 );
 
 CREATE TABLE ClothesStats(
@@ -381,23 +408,23 @@ CREATE TABLE ClothesStats(
     dateCS DATE NOT NULL,
     FOREIGN KEY (clothesUuid) REFERENCES Clothes(uuid),
     PRIMARY KEY (clothesUuid, dateCS),
-    salesPerWeek INT NOT NULL
+    salesPerWeek FLOAT(2) NOT NULL
 );
 
 CREATE TABLE SizeClothesStats (
     dateSCS DATE PRIMARY KEY,
-    percentageSCS INT NOT NULL,
+    percentageSCS FLOAT(2) NOT NULL,
     sizeSCS VARCHAR(255) NOT NULL
 );
 
 CREATE TABLE GenderClothesStats (
     dateGCS DATE PRIMARY KEY,
-    malePercetage INT NOT NULL,
-    femalePercetage INT NOT NULL
+    malePercetage FLOAT(2) NOT NULL,
+    femalePercetage FLOAT(2) NOT NULL
 );
 
 CREATE TABLE ExpiredFoodStats (
-    foodLotUuid UUID,
+    foodLotUuid UUID PRIMARY KEY,
     FOREIGN KEY (foodLotUuid) REFERENCES FoodLot(uuid),
     quantity INT NOT NULL
 );
@@ -407,6 +434,6 @@ CREATE TABLE GenreLibraryStats (
     dateGLS DATE NOT NULL,
     FOREIGN KEY (uuidGenre) REFERENCES Genres(uuid),
     PRIMARY KEY (uuidGenre, dateGLS),
-    percentageGLS INT NOT NULL
+    percentageGLS FLOAT(2) NOT NULL
 );
 
