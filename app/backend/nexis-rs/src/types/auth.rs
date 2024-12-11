@@ -91,7 +91,9 @@ pub struct ClientSession {}
 pub struct EmployeeSession {}
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct AdminSession {}
+pub struct AdminSession {
+    pub stores: Vec<String>,
+}
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct UserSession {
@@ -115,7 +117,9 @@ impl UserSession {
             }
             Role::Admin => {
                 user.admin
-                    .map(|_| Session::Admin(AdminSession {}))
+                    .map(|admin| Session::Admin(AdminSession {
+                        stores: admin.stores
+                    }))
                     .ok_or_else(|| anyhow!("User lacks admin role data."))?
             }
         };

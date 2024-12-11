@@ -3,6 +3,7 @@ use crate::prelude::*;
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Food {
     _id: ObjectIdWrapper,
+    store: String,
     name: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     price: Option<f64>,
@@ -31,6 +32,7 @@ impl Dummy<Faker> for Food {
 
         Food {
             _id: ObjectIdWrapper::dummy_with_rng(config, rng),
+            store: "savoro".to_string(),
             name: Word().fake(),
             price,
             price_per_kg,

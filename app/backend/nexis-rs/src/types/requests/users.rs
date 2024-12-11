@@ -20,7 +20,9 @@ pub struct NewEmployee {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct NewAdmin {}
+pub struct NewAdmin {
+    pub stores: Vec<String>,
+}
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct NewUser {

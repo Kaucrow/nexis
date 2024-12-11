@@ -92,6 +92,7 @@ impl Dummy<Faker> for Clock {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Cpu {
     _id: ObjectIdWrapper,
+    store: String,
     name: String,
     price: f64,
     brand: String,
@@ -125,6 +126,7 @@ impl Dummy<Faker> for Cpu {
 
         Cpu {
             _id: ObjectIdWrapper::dummy_with_rng(config, rng),
+            store: "cyberion".to_string(),
             name: format!("{} {}", brand, model),
             price: (rng.gen_range(50.0..=200.0) as f64).round_to_2(),
             brand: brand.to_string(),
@@ -146,6 +148,7 @@ impl Dummy<Faker> for Cpu {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Gpu {
     _id: ObjectIdWrapper,
+    store: String,
     name: String,
     price: f64,
     brand: String,
@@ -197,6 +200,7 @@ impl Dummy<Faker> for Gpu {
 
         Gpu {
             _id: ObjectIdWrapper::dummy_with_rng(config, rng),
+            store: "cyberion".to_string(),
             name: format!("{} {}", brand, model),
             price: (rng.gen_range(50.0..=300.0) as f64).round_to_2(),
             brand: brand.to_string(),
@@ -215,6 +219,7 @@ impl Dummy<Faker> for Gpu {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Tech {
     _id: ObjectIdWrapper,
+    store: String,
     name: String,
     price: f64,
     brand: String,
@@ -231,7 +236,7 @@ pub struct Tech {
 }
 
 impl Tech {
-    pub fn dummy_with_rng<R: rand::Rng + ?Sized>(cpu: ObjectIdWrapper, gpu: Option<ObjectIdWrapper>, config: &Faker, rng: &mut R) -> Self {
+    pub fn dummy_with_rng<R: rand::Rng + ?Sized>(config: &Faker, rng: &mut R) -> Self {
         let brand: String = Word().fake();
         let model: String = Word().fake();
 
@@ -248,6 +253,7 @@ impl Tech {
 
         Tech {
             _id: ObjectIdWrapper::dummy_with_rng(config, rng),
+            store: "cyberion".to_string(),
             name: format!("{} {}", brand, model),
             price: (rng.gen_range(80.0..=1200.0) as f64).round_to_2(),
             brand,
@@ -266,6 +272,7 @@ impl Tech {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Keyboard {
     _id: ObjectIdWrapper,
+    store: String,
     name: String,
     price: f64,
     brand: String,
@@ -297,6 +304,7 @@ impl Dummy<Faker> for Keyboard {
 
         Keyboard {
             _id: ObjectIdWrapper::dummy_with_rng(config, rng),
+            store: "cyberion".to_string(),
             name: format!("{} {}", brand, model),
             price: (rng.gen_range(10.0..300.0) as f64).round_to_2(),
             brand,
@@ -315,6 +323,7 @@ impl Dummy<Faker> for Keyboard {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct TechOther {
     _id: ObjectIdWrapper,
+    store: String,
     name: String,
     price: f64,
     lots: Vec<Lot>,
@@ -324,6 +333,7 @@ impl Dummy<Faker> for TechOther {
     fn dummy_with_rng<R: Rng + ?Sized>(config: &Faker, rng: &mut R) -> Self {
         TechOther {
             _id: ObjectIdWrapper::dummy_with_rng(config, rng),
+            store: "cyberion".to_string(),
             name: Word().fake(),
             price: (rng.gen_range(0.5..100.0) as f64),
             lots: (0..rng.gen_range(1..5)).map(|_| Lot::dummy_with_rng(config, rng)).collect(),

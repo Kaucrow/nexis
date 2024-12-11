@@ -10,6 +10,7 @@ pub struct MaterialDetails<'a> {
 pub struct ClothesDetails<'a> {
     #[serde(rename = "_id")]
     pub id: String,
+    pub store: &'a str,
     pub name: &'a str,
     pub price: f64,
     pub age: &'a str,
@@ -38,6 +39,7 @@ pub struct BookDetails<'a> {
 pub struct LibraryItemDetails<'a> {
     #[serde(rename = "_id")]
     pub id: String,
+    pub store: &'a str,
     pub name: &'a str,
     pub price: f64,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -48,6 +50,7 @@ pub struct LibraryItemDetails<'a> {
 pub struct FoodDetails<'a> {
     #[serde(rename = "_id")]
     pub id: String,
+    pub store: &'a str,
     pub name: &'a str,
     #[serde(rename = "pricePerKg", skip_serializing_if = "Option::is_none")]
     pub price_per_kg: Option<f64>,
@@ -61,6 +64,7 @@ pub struct FoodDetails<'a> {
 pub struct TechDetails<'a> {
     #[serde(rename = "_id")]
     pub id: String,
+    pub store: &'a str,
     pub name: &'a str,
     pub price: f64,
     pub brand: &'a str,
@@ -103,6 +107,7 @@ pub struct ClockDetails {
 pub struct CpuDetails<'a> {
     #[serde(rename = "_id")]
     pub id: String,
+    pub store: &'a str,
     pub name: &'a str,
     pub price: f64,
     pub brand: &'a str,
@@ -160,6 +165,7 @@ pub struct MemoryDetailsOwned {
 pub struct GpuDetails<'a> {
     #[serde(rename = "_id")]
     pub id: String, 
+    pub store: &'a str,
     pub name: &'a str,
     pub price: f64,
     pub brand: &'a str,
@@ -196,6 +202,7 @@ pub struct DimensionsDetails {
 pub struct KeyboardDetails<'a> {
     #[serde(rename = "_id")]
     pub id: String,
+    pub store: &'a str,
     pub name: &'a str,
     pub price: f64,
     pub brand: &'a str,
@@ -215,6 +222,7 @@ pub struct KeyboardDetails<'a> {
 pub struct TechOtherDetails<'a> {
     #[serde(rename = "_id")]
     pub id: String,
+    pub store: &'a str,
     pub name: &'a str,
     pub price: f64,
 }

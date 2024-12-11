@@ -1,5 +1,3 @@
-use std::iter::zip;
-
 use mongodb_mock::{
     prelude::*,
     clothes::Clothes,
@@ -82,39 +80,8 @@ async fn main() -> mongodb::error::Result<()> {
     ]).await?;
     println!("- Inserted: GPUs");
 
-    let cpu_coll: Collection<Document> = db.collection("techCpus");
-    let mut cursor = cpu_coll.aggregate(get_rnd_item_pipeline(50)).await?;
-    let mut rnd_cpus: Vec<ItemSimple> = Vec::new();
-    loop {
-        if let Some(res) = cursor.try_next().await? {
-            rnd_cpus.push(mongodb::bson::from_document::<ItemSimple>(res)?);
-        } else {
-            break;
-        }
-    }
-
-    let gpu_coll: Collection<Document> = db.collection("techGpus");
-    let mut cursor = gpu_coll.aggregate(get_rnd_item_pipeline(50)).await?;
-    let mut rnd_gpus: Vec<ItemSimple> = Vec::new();
-    loop {
-        if let Some(res) = cursor.try_next().await? {
-            rnd_gpus.push(mongodb::bson::from_document::<ItemSimple>(res)?);
-        } else {
-            break;
-        }
-    }
-    
-    let rnd_cpus_gpus = zip(rnd_cpus, rnd_gpus);
-    
     let tech_coll: Collection<Tech> = db.collection("techs");
-    let techs: Vec<Tech> =
-        rnd_cpus_gpus.map(|(cpu, gpu)| {
-            let gpu =
-                if rng.gen_bool(0.5) { Some(gpu._id) }
-                else { None };
-
-            Tech::dummy_with_rng(cpu._id, gpu, &Faker, &mut rng)
-        }).collect();
+    let techs: Vec<Tech> = (0..50).map(|_| Tech::dummy_with_rng(&Faker, &mut rng)).collect();
     tech_coll.insert_many(techs).await?;
     tech_coll.create_indexes(vec![
         IndexModel::builder().keys(doc! { "name": "text" }).build(),
@@ -232,6 +199,7 @@ async fn main() -> mongodb::error::Result<()> {
         while let Some(doc) = cursor.try_next().await? {
             items.push(Item {
                 _id: doc.get_object_id("_id").unwrap(),
+                store: doc.get_str("store").unwrap().to_string(),
                 name: doc.get_str("name").unwrap().to_string(),
                 price: doc.get_f64("price").unwrap_or_else(|_| doc.get_f64("pricePerKg").unwrap()),
                 coll: coll_name.to_string(),

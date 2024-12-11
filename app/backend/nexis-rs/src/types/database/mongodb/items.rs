@@ -5,6 +5,7 @@ use super::{ IsCollection, constants::* };
 pub struct SimpleItem {
     #[serde(rename = "_id")]
     pub id: ObjectId,
+    pub store: String,
     pub name: String,
     pub price: f64,
     pub coll: String,
@@ -47,6 +48,7 @@ pub struct Material {
 pub struct Clothes {
     #[serde(rename = "_id")]
     pub id: ObjectId,
+    pub store: String,
     pub name: String,
     pub price: f64,
     pub age: String,
@@ -76,6 +78,7 @@ pub struct Book {
 pub struct LibraryItem {
     #[serde(rename = "_id")]
     pub id: ObjectId,
+    pub store: String,
     pub name: String,
     pub price: f64,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -87,6 +90,7 @@ pub struct LibraryItem {
 pub struct Food {
     #[serde(rename = "_id")]
     pub id: ObjectId,
+    pub store: String,
     pub name: String,
     #[serde(rename = "pricePerKg", skip_serializing_if = "Option::is_none")]
     pub price_per_kg: Option<f64>,
@@ -101,6 +105,7 @@ pub struct Food {
 pub struct Tech {
     #[serde(rename = "_id")]
     pub id: ObjectId,
+    pub store: String,
     pub name: String,
     pub price: f64,
     pub brand: String,
@@ -135,6 +140,7 @@ pub struct Clock {
 pub struct Cpu {
     #[serde(rename = "_id")]
     pub id: ObjectId,
+    pub store: String,
     pub name: String,
     pub price: f64,
     pub brand: String,
@@ -165,6 +171,7 @@ pub struct Memory {
 pub struct Gpu {
     #[serde(rename = "_id")]
     pub id: ObjectId,
+    pub store: String,
     pub name: String,
     pub price: f64,
     pub brand: String,
@@ -187,6 +194,7 @@ pub struct Dimensions {
 pub struct Keyboard {
     #[serde(rename = "_id")]
     pub id: ObjectId,
+    pub store: String,
     pub name: String,
     pub price: f64,
     pub brand: String,
@@ -207,6 +215,7 @@ pub struct Keyboard {
 pub struct TechOther {
     #[serde(rename = "_id")]
     pub id: ObjectId,
+    pub store: String,
     pub name: String,
     pub price: f64,
     pub lots: Vec<Lot>,

@@ -1,5 +1,6 @@
 {
     "_id": "ObjectId",
+    "store": "String",
     "name": "String",
     "price_?_": "Number",
     "pricePerKg_?_": "Number",

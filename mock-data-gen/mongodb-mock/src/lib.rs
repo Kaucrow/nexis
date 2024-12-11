@@ -7,5 +7,5 @@ pub mod store;
 pub mod user;
 pub mod other;
 
-pub use prelude::{ COLORS, ITEM_COLLS, hash };
+pub use prelude::{ COLORS, ITEM_COLLS, STORES, hash };
 pub use other::JOBS;

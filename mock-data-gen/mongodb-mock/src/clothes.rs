@@ -9,6 +9,7 @@ struct Material {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Clothes {
     _id: ObjectIdWrapper,
+    store: String,
     name: String,
     price: f64,
     gender: String,
@@ -50,6 +51,7 @@ impl Dummy<Faker> for Clothes {
 
         Clothes {
             _id: ObjectIdWrapper(ObjectId::new()),
+            store: "vesti".to_string(),
             name: Word().fake(),
             price: format!("{:.2}", rng.gen_range(10.0..500.0)).parse().unwrap(),
             gender: genders.choose(rng).unwrap().to_string(),

@@ -103,6 +103,7 @@ impl<'a> From<&'a Clothes> for ClothesDetails<'a> {
     fn from(item: &'a Clothes) -> Self {
         Self {
             id: item.id.to_hex(),
+            store: &item.store,
             name: &item.name,
             price: item.price,
             age: &item.age,
@@ -148,6 +149,7 @@ impl<'a> From<&'a LibraryItem> for LibraryItemDetails<'a> {
 
         Self {
             id: item.id.to_hex(),
+            store: &item.store,
             name: &item.name,
             price: item.price,
             book,
@@ -169,6 +171,7 @@ impl<'a> From<&'a Food> for FoodDetails<'a> {
     fn from(item: &'a Food) -> Self {
         Self {
             id: item.id.to_hex(),
+            store: &item.store,
             name: &item.name,
             price_per_kg: item.price_per_kg,
             price: item.price,
@@ -191,6 +194,7 @@ impl<'a> From<&'a Cpu> for CpuDetails<'a> {
     fn from(item: &'a Cpu) -> Self {
         Self {
             id: item.id.to_hex(),
+            store: &item.store,
             name: &item.name,
             price: item.price,
             brand: &item.brand,
@@ -227,6 +231,7 @@ impl<'a> From<&'a Gpu> for GpuDetails<'a> {
     fn from(item: &'a Gpu) -> Self {
         Self {
             id: item.id.to_hex(),
+            store: &item.store,
             name: &item.name,
             price: item.price,
             brand: &item.brand,
@@ -259,6 +264,7 @@ impl<'a> From<&'a Keyboard> for KeyboardDetails<'a> {
     fn from(item: &'a Keyboard) -> Self {
         Self {
             id: item.id.to_hex(),
+            store: &item.store,
             name: &item.name,
             price: item.price,
             brand: &item.brand,
@@ -291,6 +297,7 @@ impl<'a> From<&'a TechOther> for TechOtherDetails<'a> {
     fn from(item: &'a TechOther) -> Self {
         Self {
             id: item.id.to_hex(),
+            store: &item.store,
             name: &item.name,
             price: item.price,
         }
@@ -311,6 +318,7 @@ impl<'a> From<&'a Tech> for TechDetails<'a> {
     fn from(item: &'a Tech) -> Self {
         Self {
             id: item.id.to_hex(),
+            store: &item.store,
             name: &item.name,
             price: item.price,
             brand: &item.brand,

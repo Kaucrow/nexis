@@ -37,10 +37,14 @@ pub struct Client {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Schedule {
-    /*#[serde(rename = "enter")]
+    #[serde(rename = "enter")]
     pub enter_date: DateTime<Utc>,
     #[serde(rename = "exit")]
-    pub exit_date: DateTime<Utc>,*/
+    pub exit_date: DateTime<Utc>,
+    #[serde(rename = "checkedIn", skip_serializing_if = "Option::is_none")]
+    pub checked_in: Option<DateTime<Utc>>,
+    #[serde(rename = "checkedOut", skip_serializing_if = "Option::is_none")]
+    pub checked_out: Option<DateTime<Utc>>,
     pub store: ObjectId,
     pub job: ObjectId,
 }
@@ -55,7 +59,9 @@ pub struct Employee {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct Admin {}
+pub struct Admin {
+    pub stores: Vec<String>,
+}
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct User {
@@ -122,8 +128,10 @@ impl TryFrom<NewUser> for User {
             };
 
         let admin =
-            if let Some(_new) = new.admin {
-                Some(Box::new(Admin {}))
+            if let Some(new) = new.admin {
+                Some(Box::new(Admin {
+                    stores: new.stores,
+                }))
             } else {
                 None
             };

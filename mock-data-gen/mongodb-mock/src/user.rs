@@ -1,7 +1,6 @@
 use crate::prelude::*;
-use chrono::{ Duration, Datelike, Timelike, Weekday };
+use chrono::Duration;
 use once_cell::sync::Lazy;
-use serde::Serializer;
 
 static GENDERS: Lazy<Vec<&str>> = Lazy::new(|| vec![
     "male", "female", "other"
@@ -128,6 +127,8 @@ impl Client {
     }
 }
 
+// Currently UNUSED
+/*
 fn format_datetime(dt: DateTime<Utc>) -> String {
     let weekday = match dt.weekday() {
         Weekday::Mon => "Mon",
@@ -147,19 +148,22 @@ fn format_datetime(dt: DateTime<Utc>) -> String {
 
     format!("{} {}:{} {} UTC", weekday, hour, dt.minute(), period)
 }
+*/
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 struct Schedule {
     enter: DateTimeWrapper,
     exit: DateTimeWrapper,
-    #[serde(rename = "enterDate", skip_serializing_if = "Option::is_none")]
-    enter_date: Option<DateTimeWrapper>,
-    #[serde(rename = "exitDate", skip_serializing_if = "Option::is_none")]
-    exit_date: Option<DateTimeWrapper>,
+    #[serde(rename = "checkedIn", skip_serializing_if = "Option::is_none")]
+    checked_in: Option<DateTimeWrapper>,
+    #[serde(rename = "checkedOut", skip_serializing_if = "Option::is_none")]
+    checked_out: Option<DateTimeWrapper>,
     store: ObjectIdWrapper,
     job: ObjectIdWrapper,
 }
 
+// Currently UNUSED
+/*
 impl Serialize for Schedule {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where S: Serializer,
@@ -182,6 +186,7 @@ impl Serialize for Schedule {
         state.end()
     }
 }
+*/
 
 fn get_rnd_storejob_pipeline() -> Vec<Document> {
     vec![
@@ -244,8 +249,8 @@ impl Schedule {
         Schedule {
             enter: DateTimeWrapper(enter),
             exit: DateTimeWrapper(exit),
-            enter_date: None,
-            exit_date: None,
+            checked_in: None,
+            checked_out: None,
             store,
             job,
         }
@@ -280,7 +285,29 @@ impl Employee {
 }
 
 #[derive(Debug, Serialize, Deserialize, Dummy)]
-struct Admin {}
+struct Admin {
+    stores: Vec<String>,
+}
+
+impl Admin {
+    async fn dummy_with_rng<R: Rng + ?Sized>(rng: &mut R) -> Self {
+        let mut used_stores: HashSet<&'static str> = HashSet::new();
+        let stores: Vec<String> = 
+
+        (0..rng.gen_range(1..4)).filter_map(|_| {
+            let store = STORES.choose(rng).unwrap();
+            if used_stores.insert(store) {
+                Some(store.to_string())
+            } else {
+                None
+            }
+        }).collect();
+
+        Self {
+            stores,
+        }
+    }
+}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct User {
@@ -333,7 +360,7 @@ impl User {
                 (
                     None,
                     None,
-                    Some(Box::new(Admin {})),
+                    Some(Box::new(Admin::dummy_with_rng(rng).await)),
                 )
             }
             _ => unimplemented!()
@@ -343,7 +370,7 @@ impl User {
             _id: ObjectIdWrapper::dummy_with_rng(config, rng),
             email: FreeEmail().fake(),
             username: Username().fake(),
-            password: Password(8..9).fake(),
+            password: hash(b"12345678").await,
             name: Name().fake(),
             is_active: rng.gen_bool(0.8),
             client,
@@ -371,7 +398,7 @@ impl User {
                 "employee" =>
                     employee = Some(Box::new(Employee::dummy_with_rng(mongo_client, config, rng).await)),
                 "admin" =>
-                    admin = Some(Box::new(Admin {})),
+                    admin = Some(Box::new(Admin::dummy_with_rng(rng).await)),
                 _ => unimplemented!("Unknown role")
             }
         }

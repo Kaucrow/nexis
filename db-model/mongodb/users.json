@@ -35,5 +35,7 @@
             "StoreJob": "ObjectId"
         }]
     },
-    "admin_?_": {}
+    "admin_?_": {
+        "stores": ["String"]
+    }
 }

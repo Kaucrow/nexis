@@ -1,5 +1,6 @@
 {
     "_id": "ObjectId",
+    "store": "String",
     "price": "String",
     "brand": "String",
     "model": "String",

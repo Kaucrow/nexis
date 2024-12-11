@@ -56,6 +56,7 @@ impl Dummy<Faker> for Book {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct LibraryItem {
     _id: ObjectIdWrapper,
+    store: String,
     name: String,
     price: f64,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -67,6 +68,7 @@ impl Dummy<Faker> for LibraryItem {
     fn dummy_with_rng<R: rand::Rng + ?Sized>(config: &Faker, rng: &mut R) -> Self {
         LibraryItem {
             _id: ObjectIdWrapper::dummy_with_rng(config, rng),
+            store: "readon".to_string(),
             name: Word().fake(),
             price: format!("{:.2}", rng.gen_range(1.0..200.0)).parse().unwrap(),
             book:

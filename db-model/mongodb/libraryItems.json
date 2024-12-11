@@ -1,5 +1,6 @@
 {
     "_id": "ObjectId",
+    "store": "String",
     "name": "String",
     "price": "Number",
     "book_?_": {

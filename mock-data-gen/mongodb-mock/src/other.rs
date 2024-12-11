@@ -47,6 +47,7 @@ impl Job {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Item {
     pub _id: ObjectId,
+    pub store: String,
     pub name: String,
     pub price: f64,
     pub coll: String,

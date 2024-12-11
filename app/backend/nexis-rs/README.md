@@ -237,9 +237,9 @@ NOTE: Must contain either client, employee, or admin.
     ```
     [{
         id: ObjectId,
+        store: "cyberion",
         name: "Intel A770 GPU",
         price: 499.99,
-        store: "cyberion",
         coll: "techGpu"
     }]
     ```
@@ -280,6 +280,7 @@ NOTE: Must contain either client, employee, or admin.
     ```
     {
         _id: ObjectId,
+        store: "vesti",
         name: "quia",
         price: 211.69,
         age: "Teen",
@@ -301,6 +302,7 @@ NOTE: Must contain either client, employee, or admin.
     ```
     {
         _id: ObjectId,
+        store: "savoro",
         name: "et",
         price: 48.76,
         type: "cereal"
@@ -310,6 +312,7 @@ NOTE: Must contain either client, employee, or admin.
     ```
     {
         _id: ObjectId,
+        store: "savoro",
         name: "lorem",
         pricePerKg: 8.32,
         type: "meat"
@@ -319,6 +322,7 @@ NOTE: Must contain either client, employee, or admin.
     ```
     {
         _id: ObjectId,
+        store: "readon",
         name: "fugit",
         price: 46.83
     }
@@ -327,6 +331,7 @@ NOTE: Must contain either client, employee, or admin.
     ```
     {
         _id: ObjectId,
+        store: "readon",
         name: "ut",
         price: 141.74,
         book: {
@@ -352,6 +357,7 @@ NOTE: Must contain either client, employee, or admin.
     ```
     {
         _id: ObjectId,
+        store: "cyberion",
         name: "intel i7 3770",
         price: 121.74,
         brand: "intel",
@@ -376,6 +382,7 @@ NOTE: Must contain either client, employee, or admin.
     ```
     {
         _id: "67378b627adf3bd501fc6dad",
+        store: "cyberion",
         name: "nvidia gtx1650",
         price: 200.31,
         brand: "nvidia",
@@ -398,6 +405,7 @@ NOTE: Must contain either client, employee, or admin.
     ```
     {
         _id: ObjectId,
+        store: "cyberion",
         name: "nam earum",
         price: 397.56,
         brand: "nam",
@@ -455,6 +463,7 @@ NOTE: Must contain either client, employee, or admin.
     ```
     {
         _id: ObjectId,
+        store: "cyberion",
         name: "sit voluptatem",
         price: 295.69,
         brand: "sit",
@@ -475,6 +484,7 @@ NOTE: Must contain either client, employee, or admin.
     ```
     {
         _id: ObjectId,
+        store: "cyberion",
         name: "ipsum",
         price: 8.51
     }
@@ -508,9 +518,9 @@ NOTE: Must contain either client, employee, or admin.
     ```
     [{
         id: ObjectId,
+        store: "cyberion",
         name: "Intel A770 GPU",
         price: 499.99,
-        store: "cyberion",
         inStock: true
     }]
     ```
@@ -554,3 +564,30 @@ NOTE: Must contain either client, employee, or admin.
         error: "The item was not found in the cart."
     }
     ```
+
+### Add store inventory
+---
+* **URL**: `/admins/inventory`
+* **Method**: `POST`
+* **Description**: Parses a CSV file containing a store's inventory and uploads its contents to the lakehouse database.
+* **Role**: `admin`
+* **Request body** (form-data):
+    * `file` (binary): Inventory file in semicolon-delimited format.
+    * `store` (string): Name of the store to add the inventory to.
+    * `csvType` (string): Type of CSV. Currently, the supported types are:
+        * clothes
+        * libraryCommon
+        * libraryBooks
+        * food
+        * techs
+        * techOthers
+        * cpus
+        * gpus
+        * keyboards
+
+The format required for each CSV type can be seen in the [examples](./examples/add-inventory/).
+
+* Response: 
+    * Success: `HTTP 200`
+    * Error in CSV formatting: `HTTP 400`
+    * Unknown error: `HTTP 500`

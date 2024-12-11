@@ -79,7 +79,7 @@ pub async fn search_items(
     params: web::Query<ItemsParams>,
     db: web::Data<mongodb::Database>,
 ) -> HttpResponse {
-    tracing::info!(target: "backend", "Accessing search.");
+    tracing::info!(target: "backend", "Starting search");
 
     const MAX_RESULTS: i32 = 15;
 
@@ -90,7 +90,7 @@ pub async fn search_items(
     let skip = page * MAX_RESULTS;
 
     let search_aggregate = build_search_pipeline(input, min_price, max_price, skip, MAX_RESULTS, true).await;
-        
+
     let items_coll: Collection<SimpleItem> = db.collection(SimpleItem::coll_name());
 
     let mut results: Vec<responses::ItemResult> = Vec::new();

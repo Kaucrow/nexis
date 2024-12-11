@@ -82,7 +82,9 @@ pub async fn add_inventory(
 
     f.file.persist(&path).unwrap();
 
-    process_by_type(csv_type, db, &path).await?;
+    let store = form.store.0;
+
+    process_by_type(store, csv_type, db, &path).await?;
 
     Ok(())
 }
@@ -106,6 +108,7 @@ impl CsvRecordExt for StringRecord {
 }
 
 async fn get_csv_items<T>(
+    store: String,
     csv_path: &str,
     csv_type: CsvType,
 ) -> Result<Vec<Box<T>>>
@@ -132,7 +135,7 @@ where
     for (i, result) in csv_reader.records().enumerate() {
         let record = result?;
 
-        let item = T::from_csv_record(&header, record, i, &csv_type).await?;
+        let item = T::from_csv_record(&store, &header, record, i, &csv_type).await?;
         items.push(item);
     }
 
@@ -140,41 +143,42 @@ where
 }
 
 async fn process_by_type(
+    store: String,
     csv_type: CsvType,
     db: &mongodb::Database,
     csv_path: &str,
 ) -> Result<()> {
     match csv_type {
         CsvType::Clothes => {
-            let items = get_csv_items::<Clothes>(csv_path, csv_type).await?;
+            let items = get_csv_items::<Clothes>(store, csv_path, csv_type).await?;
             for item in items { item.mongodb_insert(db).await? };
         }
         CsvType::LibraryCommon | CsvType::LibraryBooks => {
-            let items = get_csv_items::<LibraryItem>(csv_path, csv_type).await?;
+            let items = get_csv_items::<LibraryItem>(store, csv_path, csv_type).await?;
             for item in items { item.mongodb_insert(db).await? };
         }
         CsvType::Food => {
-            let items = get_csv_items::<Food>(csv_path, csv_type).await?;
+            let items = get_csv_items::<Food>(store, csv_path, csv_type).await?;
             for item in items { item.mongodb_insert(db).await? };
         }
         CsvType::Techs => {
-            let items = get_csv_items::<Tech>(csv_path, csv_type).await?;
+            let items = get_csv_items::<Tech>(store, csv_path, csv_type).await?;
             for item in items { item.mongodb_insert(db).await? };
         }
         CsvType::TechOthers => {
-            let items = get_csv_items::<TechOther>(csv_path, csv_type).await?;
+            let items = get_csv_items::<TechOther>(store, csv_path, csv_type).await?;
             for item in items { item.mongodb_insert(db).await? };
         }
         CsvType::Cpus => {
-            let items = get_csv_items::<Cpu>(csv_path, csv_type).await?;
+            let items = get_csv_items::<Cpu>(store, csv_path, csv_type).await?;
             for item in items { item.mongodb_insert(db).await? };
         }
         CsvType::Gpus => {
-            let items = get_csv_items::<Gpu>(csv_path, csv_type).await?;
+            let items = get_csv_items::<Gpu>(store, csv_path, csv_type).await?;
             for item in items { item.mongodb_insert(db).await? };
         }
         CsvType::Keyboards => {
-            let items = get_csv_items::<Keyboard>(csv_path, csv_type).await?;
+            let items = get_csv_items::<Keyboard>(store, csv_path, csv_type).await?;
             for item in items { item.mongodb_insert(db).await? };
         }
     };
@@ -186,7 +190,7 @@ async fn process_by_type(
 trait Csv: IsCollection + Sized + Send + Sync + serde::Serialize {
     fn expected_fields(csv_type: &CsvType) -> Result<usize>;
 
-    async fn from_csv_record(header: &CsvHeader, r: csv::StringRecord, line: usize, csv_type: &CsvType) -> Result<Box<Self>>;
+    async fn from_csv_record(store: &String, header: &CsvHeader, r: csv::StringRecord, line: usize, csv_type: &CsvType) -> Result<Box<Self>>;
 
     async fn mongodb_insert(&self, db: &mongodb::Database) -> Result<()> {
         let coll: Collection<Self> = db.collection(Self::coll_name());
@@ -223,7 +227,7 @@ fn build_lot(codes: &str) -> Lot {
 impl Csv for Clothes {
     fn expected_fields(_: &CsvType) -> Result<usize> { Ok(10) }
 
-    async fn from_csv_record(header: &CsvHeader, r: csv::StringRecord, line: usize, csv_type: &CsvType) -> Result<Box<Self>> {
+    async fn from_csv_record(store: &String, header: &CsvHeader, r: csv::StringRecord, line: usize, csv_type: &CsvType) -> Result<Box<Self>> {
         if r.len() != Self::expected_fields(csv_type)? {
             bail!(error::Csv::WrongFieldNum(Self::expected_fields(csv_type)?, r.len(), line));
         }
@@ -246,6 +250,7 @@ impl Csv for Clothes {
         
         Ok(Box::new(Self {
             id: ObjectId::new(),
+            store: store.to_string(),
             name: r.get_field("name", header)?.to_string(),
             price: r.get_field("price", header)?.parse_ext(line, 1)?,
             age: r.get_field("age", header)?.to_string(),
@@ -270,7 +275,7 @@ impl Csv for LibraryItem {
         }
     }
 
-    async fn from_csv_record(header: &CsvHeader, r: csv::StringRecord, line: usize, csv_type: &CsvType) -> Result<Box<Self>> {
+    async fn from_csv_record(store: &String, header: &CsvHeader, r: csv::StringRecord, line: usize, csv_type: &CsvType) -> Result<Box<Self>> {
         if r.len() != Self::expected_fields(csv_type)? {
             bail!(error::Csv::WrongFieldNum(Self::expected_fields(csv_type)?, r.len(), line));
         }
@@ -281,6 +286,7 @@ impl Csv for LibraryItem {
 
                 Ok(Box::new(Self {
                     id: ObjectId::new(),
+                    store: store.to_string(),
                     name: r.get_field("name", header)?.to_string(),
                     price: r.get_field("price", header)?.parse_ext(line, 1)?,
                     book: None,
@@ -296,6 +302,7 @@ impl Csv for LibraryItem {
 
                 Ok(Box::new(Self {
                     id: ObjectId::new(),
+                    store: store.to_string(),
                     name: r.get_field("name", header)?.to_string(),
                     price: r.get_field("price", header)?.parse_ext(line, 1)?,
                     book: Some(Box::new(Book {
@@ -319,7 +326,7 @@ impl Csv for LibraryItem {
 impl Csv for Food {
     fn expected_fields(_: &CsvType) -> Result<usize> { Ok(6) }
 
-    async fn from_csv_record(header: &CsvHeader, r: csv::StringRecord, line: usize, csv_type: &CsvType) -> Result<Box<Self>> {
+    async fn from_csv_record(store: &String, header: &CsvHeader, r: csv::StringRecord, line: usize, csv_type: &CsvType) -> Result<Box<Self>> {
         if r.len() != Self::expected_fields(csv_type)? {
             bail!(error::Csv::WrongFieldNum(Self::expected_fields(csv_type)?, r.len(), line));
         }
@@ -353,6 +360,7 @@ impl Csv for Food {
 
         Ok(Box::new(Self {
             id: ObjectId::new(),
+            store: store.to_string(),
             name: r.get_field("name", header)?.to_string(),
             price,
             price_per_kg,
@@ -366,7 +374,7 @@ impl Csv for Food {
 impl Csv for Cpu {
     fn expected_fields(_: &CsvType) -> Result<usize> { Ok(15) }
 
-    async fn from_csv_record(header: &CsvHeader, r: csv::StringRecord, line: usize, csv_type: &CsvType) -> Result<Box<Self>> {
+    async fn from_csv_record(store: &String, header: &CsvHeader, r: csv::StringRecord, line: usize, csv_type: &CsvType) -> Result<Box<Self>> {
         if r.len() != Self::expected_fields(csv_type)? {
             bail!(error::Csv::WrongFieldNum(Self::expected_fields(csv_type)?, r.len(), line));
         }
@@ -375,6 +383,7 @@ impl Csv for Cpu {
 
         Ok(Box::new(Self {
             id: ObjectId::new(),
+            store: store.to_string(),
             name: r.get_field("name", header)?.to_string(),
             price: r.get_field("price", header)?.parse()?,
             brand: r.get_field("brand", header)?.to_string(),
@@ -402,7 +411,7 @@ impl Csv for Cpu {
 impl Csv for Gpu {
     fn expected_fields(_: &CsvType) -> Result<usize> { Ok(11) }
 
-    async fn from_csv_record(header: &CsvHeader, r: csv::StringRecord, line: usize, csv_type: &CsvType) -> Result<Box<Self>> {
+    async fn from_csv_record(store: &String, header: &CsvHeader, r: csv::StringRecord, line: usize, csv_type: &CsvType) -> Result<Box<Self>> {
         if r.len() != Self::expected_fields(csv_type)? {
             bail!(error::Csv::WrongFieldNum(Self::expected_fields(csv_type)?, r.len(), line));
         }
@@ -412,6 +421,7 @@ impl Csv for Gpu {
 
         Ok(Box::new(Self {
             id: ObjectId::new(),
+            store: store.to_string(),
             name: r.get_field("name", header)?.to_string(),
             price: r.get_field("price", header)?.parse()?,
             brand: r.get_field("brand", header)?.to_string(),
@@ -435,7 +445,7 @@ impl Csv for Gpu {
 impl Csv for Keyboard {
     fn expected_fields(_: &CsvType) -> Result<usize> { Ok(11) }
 
-    async fn from_csv_record(header: &CsvHeader, r: csv::StringRecord, line: usize, csv_type: &CsvType) -> Result<Box<Self>> {
+    async fn from_csv_record(store: &String, header: &CsvHeader, r: csv::StringRecord, line: usize, csv_type: &CsvType) -> Result<Box<Self>> {
         if r.len() != Self::expected_fields(csv_type)? {
             bail!(error::Csv::WrongFieldNum(Self::expected_fields(csv_type)?, r.len(), line));
         }
@@ -456,6 +466,7 @@ impl Csv for Keyboard {
 
         Ok(Box::new(Self {
             id: ObjectId::new(),
+            store: store.to_string(),
             name: r.get_field("name", header)?.to_string(),
             price: r.get_field("price", header)?.parse()?,
             brand: r.get_field("brand", header)?.to_string(),
@@ -475,7 +486,7 @@ impl Csv for Keyboard {
 impl Csv for TechOther {
     fn expected_fields(_: &CsvType) -> Result<usize> { Ok(3) }
 
-    async fn from_csv_record(header: &CsvHeader, r: csv::StringRecord, line: usize, csv_type: &CsvType) -> Result<Box<Self>> {
+    async fn from_csv_record(store: &String, header: &CsvHeader, r: csv::StringRecord, line: usize, csv_type: &CsvType) -> Result<Box<Self>> {
         if r.len() != Self::expected_fields(csv_type)? {
             bail!(error::Csv::WrongFieldNum(Self::expected_fields(csv_type)?, r.len(), line));
         }
@@ -484,6 +495,7 @@ impl Csv for TechOther {
 
         Ok(Box::new(Self {
             id: ObjectId::new(),
+            store: store.to_string(),
             name: r.get_field("name", header)?.to_string(),
             price: r.get_field("price", header)?.parse()?,
             lots: vec![lot],
@@ -495,7 +507,7 @@ impl Csv for TechOther {
 impl Csv for Tech {
     fn expected_fields(_: &CsvType) -> Result<usize> { Ok(11) }
 
-    async fn from_csv_record(header: &CsvHeader, r: csv::StringRecord, line: usize, csv_type: &CsvType) -> Result<Box<Self>> {
+    async fn from_csv_record(store: &String, header: &CsvHeader, r: csv::StringRecord, line: usize, csv_type: &CsvType) -> Result<Box<Self>> {
         if r.len() != Self::expected_fields(csv_type)? {
             bail!(error::Csv::WrongFieldNum(Self::expected_fields(csv_type)?, r.len(), line));
         }
@@ -514,6 +526,7 @@ impl Csv for Tech {
 
         Ok(Box::new(Self {
             id: ObjectId::new(),
+            store: store.to_string(),
             name: r.get_field("name", header)?.to_string(),
             price: r.get_field("price", header)?.parse()?,
             brand: r.get_field("brand", header)?.parse()?,

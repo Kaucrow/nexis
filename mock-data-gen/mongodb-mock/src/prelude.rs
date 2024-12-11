@@ -37,6 +37,10 @@ pub static COLORS: Lazy<Vec<&'static str>> = Lazy::new(|| vec![
     "red", "green", "blue", "yellow", "orange", "teal", "purple", "pink", "white", "black", "brown"
 ]);
 
+pub static STORES: Lazy<Vec<&'static str>> = Lazy::new(|| vec![
+    "vesti", "readon", "savoro", "cyberion"
+]);
+
 pub fn get_rnd_item_pipeline(item_amt: i64) -> Vec<Document> {
     vec![
         doc! { "$sample": { "size": item_amt }},
