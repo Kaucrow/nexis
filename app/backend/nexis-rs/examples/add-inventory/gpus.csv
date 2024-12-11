@@ -1,0 +1,2 @@
+name;price;brand;model;tdp;mem_type;mem_size_gb;clock_core_speed_ghz;clock_boost_speed_ghz;ports;codes
+NVIDIA GTX4090Ti;999999.99;NVIDIA;GTX4090Ti;1200;DDR6;32;5.0;5.8;HDMI,DP;a,b,c,d,e,f

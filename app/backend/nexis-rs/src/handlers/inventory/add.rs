@@ -16,7 +16,13 @@ use types::{
 pub enum CsvType {
     Clothes,
     LibraryCommon,
-    LibraryBook,
+    LibraryBooks,
+    Food,
+    Techs,
+    TechOthers,
+    Cpus,
+    Gpus,
+    Keyboards,
 }
 
 impl TryFrom<&str> for CsvType {
@@ -25,7 +31,13 @@ impl TryFrom<&str> for CsvType {
         match s {
             "clothes" => Ok(CsvType::Clothes),
             "libraryCommon" => Ok(CsvType::LibraryCommon),
-            "libraryBook" => Ok(CsvType::LibraryBook),
+            "libraryBooks" => Ok(CsvType::LibraryBooks),
+            "food" => Ok(CsvType::Food),
+            "techs" => Ok(CsvType::Techs),
+            "techOthers" => Ok(CsvType::TechOthers),
+            "cpus" => Ok(CsvType::Cpus),
+            "gpus" => Ok(CsvType::Gpus),
+            "keyboards" => Ok(CsvType::Keyboards),
             _ => bail!(error::Csv::UnsupportedTypeStr(s.to_string()))
         }
     }
@@ -36,7 +48,13 @@ impl std::fmt::Display for CsvType {
         match self {
             Self::Clothes => f.write_str("clothes"),
             Self::LibraryCommon => f.write_str("libraryCommon"),
-            Self::LibraryBook => f.write_str("libraryBook"),
+            Self::LibraryBooks => f.write_str("libraryBooks"),
+            Self::Food => f.write_str("food"),
+            Self::Techs => f.write_str("techs"),
+            Self::TechOthers => f.write_str("techOthers"),
+            Self::Cpus => f.write_str("cpus"),
+            Self::Gpus => f.write_str("gpus"),
+            Self::Keyboards => f.write_str("keyboards"),
         }
     }
 }
@@ -131,8 +149,32 @@ async fn process_by_type(
             let items = get_csv_items::<Clothes>(csv_path, csv_type).await?;
             for item in items { item.mongodb_insert(db).await? };
         }
-        CsvType::LibraryCommon | CsvType::LibraryBook => {
+        CsvType::LibraryCommon | CsvType::LibraryBooks => {
             let items = get_csv_items::<LibraryItem>(csv_path, csv_type).await?;
+            for item in items { item.mongodb_insert(db).await? };
+        }
+        CsvType::Food => {
+            let items = get_csv_items::<Food>(csv_path, csv_type).await?;
+            for item in items { item.mongodb_insert(db).await? };
+        }
+        CsvType::Techs => {
+            let items = get_csv_items::<Tech>(csv_path, csv_type).await?;
+            for item in items { item.mongodb_insert(db).await? };
+        }
+        CsvType::TechOthers => {
+            let items = get_csv_items::<TechOther>(csv_path, csv_type).await?;
+            for item in items { item.mongodb_insert(db).await? };
+        }
+        CsvType::Cpus => {
+            let items = get_csv_items::<Cpu>(csv_path, csv_type).await?;
+            for item in items { item.mongodb_insert(db).await? };
+        }
+        CsvType::Gpus => {
+            let items = get_csv_items::<Gpu>(csv_path, csv_type).await?;
+            for item in items { item.mongodb_insert(db).await? };
+        }
+        CsvType::Keyboards => {
+            let items = get_csv_items::<Keyboard>(csv_path, csv_type).await?;
             for item in items { item.mongodb_insert(db).await? };
         }
     };
@@ -222,8 +264,8 @@ impl Csv for Clothes {
 impl Csv for LibraryItem {
     fn expected_fields(csv_type: &CsvType) -> Result<usize> {
         match csv_type {
-            CsvType::LibraryCommon => Ok(9),
-            CsvType::LibraryBook => Ok(9),
+            CsvType::LibraryCommon => Ok(3),
+            CsvType::LibraryBooks => Ok(10),
             _ => bail!(error::Csv::UnsupportedType(*csv_type)),
         }
     }
@@ -245,7 +287,7 @@ impl Csv for LibraryItem {
                     lots: vec![lot],
                 }))
             }
-            CsvType::LibraryBook => {
+            CsvType::LibraryBooks => {
                 let lot = build_lot(r.get_field("codes", header)?);
 
                 let authors: Vec<String> = r.get_field("authors", header)?.split(',').map(|author| author.to_string()).collect();

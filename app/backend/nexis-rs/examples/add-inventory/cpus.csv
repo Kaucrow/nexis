@@ -1,0 +1,2 @@
+name;price;brand;model;arch;cores;threads;socket_type;overclock;memsupp_type;memsupp_max_gb;clock_core_speed_ghz;clock_boost_speed_ghz;graphics;codes
+Intel i5-11350u;259.79;Intel;i5-11350u;x64;8;2;l1380;true;DDR5;64;4.0;4.4;Intel UHD Graphics 530;a,b,c,d,e,f
