@@ -8,7 +8,7 @@
         "age": "Number",
         "gender": "String",
         "phoneNum": "String",
-        "interests": ["ObjectId"],
+        "interests": ["String"],
         "cartItems_?_": [{
             "dateAdded": "Date",
             "coll": "String",

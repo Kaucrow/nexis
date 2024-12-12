@@ -1,6 +1,8 @@
 pub mod items;
 pub mod users;
 
+pub use users::{ NewUser, insert_created_user_into_db };
+
 use crate::prelude::*;
 use anyhow::Result;
 

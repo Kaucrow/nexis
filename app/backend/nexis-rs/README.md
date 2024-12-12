@@ -70,11 +70,11 @@ This approach ensures proper handling of session expiry and allows for secure an
     ```
     * Unknown error: Literally hangs.
 
-### User Registration
+### Client Registration
 ---
-* **URL**: `/users/register`
+* **URL**: `/clients/register`
 * **Method**: `POST`
-* **Description**: Registers a new user and sends a user verification email.
+* **Description**: Registers a new client and sends a user verification email.
 * **Request Body**:
 ```
 {
@@ -82,24 +82,10 @@ This approach ensures proper handling of session expiry and allows for secure an
     "password": "12345678",
     "name": "Napstablook",
     "username": "NAPSTABLOOK22",
-    "client"?: {
-        age: 21,
-        gender: "other",
-        phoneNum: "999-9999-999",
-        interests: ["clothes", "tech", "library", "food"]
-    },
-    "employee"?: {
-        age: 21,
-        gender: "other",
-        phoneNum: "999-9999-999",
-        schedule: [{
-            enterDate: DateTimeUtc,
-            exitDate: DateTimeUtc,
-            store: ObjectId,
-            storeJob: ObjectId
-        }]
-    },
-    "admin"?: {}
+    age: 21,
+    gender: "other",
+    phoneNum: "999-9999-999",
+    interests: ["vesti", "cyberion", "readon", "savoro"]
 }
 
 NOTE: Must contain either client, employee, or admin.
@@ -111,7 +97,7 @@ NOTE: Must contain either client, employee, or admin.
         message: "Verification email sent."
     }
     ```
-    * Attempted to create a user with an email/username that already exists: `HTTP 409`
+    * Attempted to create a client with an email/username that already exists: `HTTP 409`
     * Unknown error: `HTTP 500`
 
 ### User Email Verification

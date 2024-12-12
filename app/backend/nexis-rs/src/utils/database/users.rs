@@ -5,27 +5,33 @@ use types::{
     database::mongodb::{ User, IsCollection },
 };
 
+#[derive(Debug)]
+pub enum NewUser {
+    Client(requests::NewClient),
+    Employee(requests::NewEmployee),
+}
+
 #[tracing::instrument(
     name = "Inserting new user into DB",
     skip(db, new_user),
-    fields(
-        new_user_email = %new_user.email,
-        new_user_name = %new_user.name
-    )
 )]
 pub async fn insert_created_user_into_db(
     db: &mongodb::Database,
-    new_user: requests::NewUser
+    new_user: NewUser,
 ) -> Result<ObjectId> {
     let user_coll: Collection<User> = db.collection(User::coll_name());
+
+    let user = User::try_from(new_user)?;
+
+    tracing::debug!(target: "mongodb", "Inserting user into DB: {{ email: {}, username: {} }}", user.email, user.username);
 
     // Check if a user with the same email or username already exists
     let existing_user = user_coll
         .find_one(
             doc! {
                 "$or": [
-                    { "email": &new_user.email },
-                    { "username": &new_user.username },
+                    { "email": &user.email },
+                    { "username": &user.username },
                 ]
             },
         )
@@ -37,7 +43,7 @@ pub async fn insert_created_user_into_db(
         ))
     }
 
-    let res = user_coll.insert_one(User::try_from(new_user)?).await?;
+    let res = user_coll.insert_one(user).await?;
 
     tracing::info!(target: "mongodb", "User profile created successfully {}.", res.inserted_id);
 

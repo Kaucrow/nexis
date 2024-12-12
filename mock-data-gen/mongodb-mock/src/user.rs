@@ -54,20 +54,20 @@ struct Client {
     gender: String,
     #[serde(rename = "phoneNum")]
     phone_num: String,
-    interests: Vec<ObjectIdWrapper>,
+    interests: Vec<String>,
     cart: Option<Box<Vec<CartItem>>>,
     reviews: Option<Box<Vec<Review>>>,
 }
 
 impl Client {
-    async fn dummy_with_rng<R: Rng + ?Sized>(store_ids: &Vec<ObjectIdWrapper>, client: &mongodb::Client, config: &Faker, rng: &mut R) -> Self {
-        let rnd_stores: Vec<ObjectIdWrapper> = {
-            let mut used_stores: HashSet<ObjectIdWrapper> = HashSet::new();
+    async fn dummy_with_rng<R: Rng + ?Sized>(client: &mongodb::Client, config: &Faker, rng: &mut R) -> Self {
+        let rnd_stores: Vec<String> = {
+            let mut used_stores: HashSet<&str> = HashSet::new();
 
             (0..rng.gen_range(1..4)).filter_map(|_| {
-                let store = store_ids.choose(rng).unwrap().clone();
-                if used_stores.insert(store.clone()) {
-                    Some(store)
+                let store = STORES.choose(rng).unwrap();
+                if used_stores.insert(store) {
+                    Some(store.to_string())
                 } else {
                     None
                 }
@@ -158,7 +158,7 @@ struct Schedule {
     checked_in: Option<DateTimeWrapper>,
     #[serde(rename = "checkedOut", skip_serializing_if = "Option::is_none")]
     checked_out: Option<DateTimeWrapper>,
-    store: ObjectIdWrapper,
+    store: String,
     job: ObjectIdWrapper,
 }
 
@@ -231,17 +231,13 @@ impl Schedule {
 
         let mut cursor = jobs_coll.aggregate(get_rnd_storejob_pipeline()).await.expect("");
         
-        let (job, store) =
+        let job =
             if let Ok(Some(res)) = cursor.try_next().await {
                 let job = if let Some(Bson::ObjectId(oid)) = res.get("_id") {
                     ObjectIdWrapper(*oid)
                 } else { panic!() };
 
-                let store = if let Some(Bson::ObjectId(oid)) = res.get("rndStore") {
-                    ObjectIdWrapper(*oid)
-                } else { panic!() };
-
-                ( job, store )
+                job
             } else {
                 panic!()
             };
@@ -251,7 +247,7 @@ impl Schedule {
             exit: DateTimeWrapper(exit),
             checked_in: None,
             checked_out: None,
-            store,
+            store: STORES.choose(rng).unwrap().to_string(),
             job,
         }
     }
@@ -336,7 +332,6 @@ pub struct UserDetails {
 
 impl User {
     pub async fn dummy_with_rng<R: Rng + ?Sized>(
-        store_ids: &Vec<ObjectIdWrapper>,
         client: &mongodb::Client,
         config: &Faker,
         rng: &mut R
@@ -344,7 +339,7 @@ impl User {
         let (client, employee, admin) = match rng.gen_range(0..3) {
             0 => {
                 (
-                    Some(Box::new(Client::dummy_with_rng(store_ids, client, config, rng).await)),
+                    Some(Box::new(Client::dummy_with_rng(client, config, rng).await)),
                     None,
                     None
                 )
@@ -382,7 +377,6 @@ impl User {
     pub async fn custom<R: Rng + ?Sized>(
         roles: Vec<&str>,
         details: &UserDetails,
-        store_ids: &Vec<ObjectIdWrapper>,
         mongo_client: &mongodb::Client,
         config: &Faker,
         rng: &mut R
@@ -394,7 +388,7 @@ impl User {
         for role in roles {
             match role {
                 "client" =>
-                    client = Some(Box::new(Client::dummy_with_rng(store_ids, mongo_client, config, rng).await)),
+                    client = Some(Box::new(Client::dummy_with_rng(mongo_client, config, rng).await)),
                 "employee" =>
                     employee = Some(Box::new(Employee::dummy_with_rng(mongo_client, config, rng).await)),
                 "admin" =>

@@ -117,11 +117,9 @@ async fn main() -> mongodb::error::Result<()> {
         }
     }).collect();
 
-    let store_ids_values: Vec<ObjectIdWrapper> = store_ids.values().map(|val| val.clone()).collect();
-
     let jobs_coll: Collection<Job> = db.collection("storeJobs");
     let jobs: Vec<Job> = mongodb_mock::JOBS.iter().map(|name|
-        Job::dummy_with_rng(name, &store_ids_values, &client, &Faker, &mut rng)
+        Job::dummy_with_rng(name, &Faker, &mut rng)
     ).collect();
     jobs_coll.insert_many(jobs).await?;
     println!("- Inserted: jobs");
@@ -129,7 +127,7 @@ async fn main() -> mongodb::error::Result<()> {
     let users_coll: Collection<User> = db.collection("users");
     let mut users: Vec<User> = Vec::new();
     for _ in 0..50 {
-        users.push(User::dummy_with_rng(&store_ids_values, &client, &Faker, &mut rng).await);
+        users.push(User::dummy_with_rng(&client, &Faker, &mut rng).await);
     }
     users_coll.insert_many(users).await?;
     println!("- Inserted: users");
@@ -144,7 +142,6 @@ async fn main() -> mongodb::error::Result<()> {
     let custom_user = User::custom(
         vec!["client", "employee", "admin"],
         &custom_user_details,
-        &store_ids_values,
         &client,
         &Faker,
         &mut rng
