@@ -3,6 +3,9 @@ from conex_postg import *
 from create_squema import *
 import psycopg2.extras
 from multiple_transactions.transaction_clothes import *
+from multiple_transactions.transaction_users import *
+from multiple_transactions.transaction_tecnologi_CPU import *
+from multiple_transactions.transaction_techGpu import *
 
 # Registrar el adaptador para UUID
 psycopg2.extras.register_uuid()
