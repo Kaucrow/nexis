@@ -111,7 +111,6 @@ pub async fn client_checkout(
 
                         // Serialize the sale data
                         let serialized_sale = doc! {
-                            "test": true,
                             "date": DateTime::from_system_time(Utc::now().into()),
                             "client": {
                                 "user": user_id.clone(),

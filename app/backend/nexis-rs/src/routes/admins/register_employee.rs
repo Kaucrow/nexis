@@ -49,7 +49,6 @@ pub async fn register_employee(
     let mut create_new_employee = new_employee.0;
     create_new_employee.password = hashed_password;
 
-
     let user_id = match insert_created_user_into_db(db.get_ref(), NewUser::Employee(create_new_employee.clone())).await {
         Ok(id) => id,
         Err(e) => {

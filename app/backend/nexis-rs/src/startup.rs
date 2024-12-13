@@ -90,6 +90,7 @@ async fn run(
             .configure(crate::routes::auth_routes_config)
             .configure(crate::routes::clients_routes_config)
             .configure(crate::routes::admins_routes_config)
+            .configure(crate::routes::employees_routes_config)
             // Add database pool to application state
             .app_data(db.clone())
             // Add redis pool to application state

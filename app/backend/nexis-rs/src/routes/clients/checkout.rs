@@ -1,10 +1,10 @@
 use crate::prelude::*;
 use types::{ requests, responses, error, Role };
-use handlers::checkout::{ client_checkout, client_cart_checkout };
+use handlers::clients::{ client_checkout, client_cart_checkout };
 use utils::verify_session;
 
 #[tracing::instrument(
-    name = "Accessing checkout endpoint",
+    name = "Accessing online checkout endpoint",
     skip(req, db, redis_pool)
 )]
 #[actix_web::post("/checkout")]
