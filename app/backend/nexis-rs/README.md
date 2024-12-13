@@ -577,3 +577,91 @@ The format required for each CSV type can be seen in the [examples](./examples/a
     * Success: `HTTP 200`
     * Error in CSV formatting: `HTTP 400`
     * Unknown error: `HTTP 500`
+
+### View available jobs
+---
+* **URL**: `/admins/jobs`
+* **Method**: `GET`
+* **Description**: Gets the jobs available to an admin's stores.
+* **Role**: `admin`
+* **Request body**: None
+* Response:
+    * Success: `HTTP 200`
+    ```
+    [{
+        _id: ObjectId,
+        name: "DJ",
+        pay: "10.9",
+        stores: ["readon", "vesti", "cyberion"]
+    }]
+    ```
+    * Unknown error: `HTTP 500`
+
+### Register an employee
+---
+* **URL**: `/admins/register-employee`
+* **Method**: `POST`
+* **Description**: Registers a new employee and sends a user verification email.
+* **Role**: `admin`
+* **Request body**:
+```
+{
+    email: "napstablook@undernet.com",
+    password: "12345678",
+    name: "Napstablook",
+    username: "NAPSTABLOOK22",
+    age: 21,
+    gender: "other",
+    phoneNum: "999-9999-999",
+    schedule: [{
+        enter: DateTime UTC ISO 8601,
+        exit: DateTime UTC ISO 8601,
+        store: "vesti",
+        job: ObjectId
+    }]
+}
+```
+* Response:
+    * Success: `HTTP 200`
+    * Attempted to create a client with an email/username that already exists: `HTTP 409`
+    * Attempted to add an employee to a user unavailable to the admin: `HTTP 401`
+    * Unknown error: `HTTP 500`
+
+### In-person checkout
+---
+* **URL**: `/employees/checkout`
+* **Method**: `POST`
+* **Description**: Performs an in-person checkout
+* **Role**: `employee`
+* **Request body**:
+```
+{
+    items: [ObjectId],
+    clientName: "MTT",
+    store: "vesti" 
+}
+```
+* Response:
+    * Success: `HTTP 200`
+    * Unknown error: `HTTP 500`
+
+### Online checkout
+---
+* **URL**: `/clients/checkout`
+* **Method**: `POST`
+* **Description**: Performs an online checkout
+* **Role**: `client`
+* **Request body**:
+```
+{
+    cart: bool,
+    items: [ObjectId]
+}
+```
+
+If the checkout is a "cart checkout", `cart` should be set to true, and the items' ObjectIds should still be sent.
+
+* **Response**:
+    * Success: `HTTP 200`
+    * Malformed ObjectId: `HTTP 400`
+    * Unknown error: `HTTP 500`

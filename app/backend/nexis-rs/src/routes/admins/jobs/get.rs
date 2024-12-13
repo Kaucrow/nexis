@@ -19,8 +19,6 @@ pub async fn get_jobs(
         }
     };
 
-    //In rust, I have a "stores" vec of strings. I want to make a query to my mongodb database to a "jobs" collection. The documents in the collection have a "stores" field, which is an array. I want to return every document where the "stores" array contains at least one store in the "stores" vec of strings
-
     let jobs_coll: Collection<Job> = db.collection(Job::coll_name());
     let mut jobs: Vec<Job> = Vec::new();
 
